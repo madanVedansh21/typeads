@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
 
     // Fallback: If the database hasn't been migrated yet to accept the metadata fields,
     // the RPC call will fail with a signature mismatch. Try again with just the original fields.
-    if (error && error.message.includes('could not find the function')) {
+    if (error && error.message.toLowerCase().includes('could not find the function')) {
       console.warn('Metadata RPC failed, falling back to legacy RPC signature...')
       const fallbackResult = await supabase.rpc('complete_session', {
         p_session_id: session_id,

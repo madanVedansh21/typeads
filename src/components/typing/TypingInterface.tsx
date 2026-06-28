@@ -3,9 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { v4 as uuidv4 } from 'uuid'
+import Image from 'next/image'
 import type { Campaign } from '@/lib/supabase/types'
-import WordFeederProvider, { useWordFeeder } from '@/contexts/WordFeederContext'
-import SlothCharacter from '@/components/typing/SlothCharacter'
 
 /* ─────────────────────────────────────────────────────────────
    Types
@@ -30,24 +29,17 @@ interface Props {
 }
 
 /* ─────────────────────────────────────────────────────────────
+   Constants
+───────────────────────────────────────────────────────────── */
+// How many words to keep visible ahead of the active word
+const BASE_LOOKAHEAD = 5
+
+/* ─────────────────────────────────────────────────────────────
    Component
 ───────────────────────────────────────────────────────────── */
 export default function TypingInterface({ campaign, userId }: Props) {
-  const router    = useRouter()
-  const rawText   = campaign.ad_text
-
-  const {
-    setWpm: feedWpm,
-    setIsActive,
-    setWords,
-    setTypingTarget,
-    setOnWordLanded,
-    throwTrigger,
-    throwerReady,
-  } = useWordFeeder()
-
-  const typingCanvasRef = useRef<HTMLDivElement>(null)
-  const activeWordRef   = useRef<HTMLSpanElement>(null)
+  const router  = useRouter()
+  const rawText = campaign.ad_text
 
   /* ── Settings ── */
   const [usePunctuation, setUsePunctuation] = useState(true)
@@ -55,15 +47,19 @@ export default function TypingInterface({ campaign, userId }: Props) {
   const [mode,           setMode]           = useState<'jumbled' | 'exact'>('jumbled')
   const [timeLimit,      setTimeLimit]      = useState<number | null>(null)
 
-  /* ── Campaign word pool (derived from settings) ── */
+  /* ── Full word pool (derived from settings) ── */
+  const [wordPool,        setWordPool]        = useState<string[]>([])
   const campaignWordCountRef = useRef(0)
   const timeLimitRef         = useRef<number | null>(null)
 
-  /* ── Word queue: grows as words land ── */
-  const [typingWords, setTypingWords]         = useState<string[]>([])
-  const [activeWordIdx, setActiveWordIdx]     = useState(0)
-  const [charIdx, setCharIdx]                 = useState(0)
-  const [wordCharStates, setWordCharStates]   = useState<Record<number, CharState[]>>({})
+  /* ── Visible word queue: only a sliding window of words shown ── */
+  // visibleWords: the words currently rendered in the lane
+  // poolIndexRef: how many words from the pool have been fed in so far
+  const [visibleWords,     setVisibleWords]     = useState<string[]>([])
+  const [activeWordIdx,    setActiveWordIdx]     = useState(0)  // index into visibleWords
+  const [charIdx,          setCharIdx]           = useState(0)
+  const [wordCharStates,   setWordCharStates]    = useState<Record<number, CharState[]>>({})
+  const poolIndexRef = useRef(0) // how many from pool have been added to visibleWords
 
   /* ── Session lifecycle ── */
   const [started,    setStarted]    = useState(false)
@@ -72,13 +68,13 @@ export default function TypingInterface({ campaign, userId }: Props) {
   const [discarded,  setDiscarded]  = useState(false)
 
   /* ── Stats ── */
-  const [wpm,              setWpm]              = useState(0)
-  const [accuracy,         setAccuracy]         = useState(100)
-  const [totalKeystrokes,  setTotalKeystrokes]  = useState(0)
-  const [correctKeystrokes,setCorrectKeystrokes]= useState(0)
-  const [elapsedSeconds,   setElapsedSeconds]   = useState(0)
+  const [wpm,               setWpm]               = useState(0)
+  const [accuracy,          setAccuracy]           = useState(100)
+  const [totalKeystrokes,   setTotalKeystrokes]    = useState(0)
+  const [correctKeystrokes, setCorrectKeystrokes]  = useState(0)
+  const [elapsedSeconds,    setElapsedSeconds]     = useState(0)
 
-  const correctCharsRef = useRef(0)   // for WPM calculation
+  const correctCharsRef = useRef(0)
 
   /* ── Anti-fraud refs ── */
   const keystrokesRef        = useRef<KeystrokeRecord[]>([])
@@ -87,10 +83,15 @@ export default function TypingInterface({ campaign, userId }: Props) {
   const startTimeRef         = useRef(0)
   const sessionIdRef         = useRef(uuidv4())
 
-  const inputRef = useRef<HTMLInputElement>(null)
+  /* ── Sloth X position (0–100%) — always 50% (center) ── */
+  const [slothX, setSlothX] = useState(50)
+
+  const laneRef       = useRef<HTMLDivElement>(null)
+  const activeWordRef = useRef<HTMLSpanElement>(null)
+  const inputRef      = useRef<HTMLInputElement>(null)
 
   /* ═══════════════════════════════════════════════════════════
-     SETTINGS → derive campaign word list
+     SETTINGS → derive full word pool
   ═══════════════════════════════════════════════════════════ */
   useEffect(() => {
     timeLimitRef.current = timeLimit
@@ -110,10 +111,14 @@ export default function TypingInterface({ campaign, userId }: Props) {
 
     const wordList = text.split(/\s+/).filter(Boolean)
     campaignWordCountRef.current = wordList.length
-    setWords(wordList)
+    setWordPool(wordList)
 
-    // Full reset and pre-load all words for optimal typing UX
-    setTypingWords(wordList)
+    // Full reset — start with only the first window of words visible
+    const initialCount = BASE_LOOKAHEAD + 2
+    const initialWords = wordList.slice(0, initialCount)
+    poolIndexRef.current = initialCount
+
+    setVisibleWords(initialWords)
     setActiveWordIdx(0)
     setCharIdx(0)
     setWordCharStates({})
@@ -125,64 +130,100 @@ export default function TypingInterface({ campaign, userId }: Props) {
     setAccuracy(100)
     setTotalKeystrokes(0)
     setCorrectKeystrokes(0)
-    correctCharsRef.current         = 0
-    keystrokesRef.current           = []
-    accuracySamplesRef.current      = []
-    lastKeystrokeTimeRef.current    = 0
-    startTimeRef.current            = 0
-    sessionIdRef.current            = uuidv4()
-  }, [usePunctuation, useLowercase, mode, rawText, setWords]) // setTimeLimit kept out intentionally
+    correctCharsRef.current      = 0
+    keystrokesRef.current        = []
+    accuracySamplesRef.current   = []
+    lastKeystrokeTimeRef.current = 0
+    startTimeRef.current         = 0
+    sessionIdRef.current         = uuidv4()
+    // Reset scroll
+    scrollXRef.current = 0
+    if (trackRef.current) trackRef.current.style.transform = 'translateX(0px)'
+    setSlothX(50)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [usePunctuation, useLowercase, mode, rawText])
 
-  // Keep timeLimitRef in sync separately (doesn't need a full reset)
   useEffect(() => { timeLimitRef.current = timeLimit }, [timeLimit])
 
   /* ═══════════════════════════════════════════════════════════
-     WORD LANDED CALLBACK — unused now that words are preloaded
+     DYNAMIC LOOKAHEAD — feed more words from pool as user types
+     Keeps (lookahead) words ahead of the active word visible
   ═══════════════════════════════════════════════════════════ */
   useEffect(() => {
-    setOnWordLanded(() => {
-      // Intentionally empty: words are now pre-loaded for better UX
-    })
-    return () => setOnWordLanded(null)
-  }, [setOnWordLanded])
+    if (!started) return
+
+    // Lookahead scales with wpm: faster = more words pre-loaded
+    const lookahead = Math.max(BASE_LOOKAHEAD, Math.floor(wpm / 15) + BASE_LOOKAHEAD)
+
+    // How many words ahead of active word are currently in the visible list?
+    const wordsAhead = visibleWords.length - activeWordIdx
+
+    if (wordsAhead < lookahead && poolIndexRef.current < wordPool.length) {
+      const needed = lookahead - wordsAhead
+      const toAdd  = wordPool.slice(poolIndexRef.current, poolIndexRef.current + needed)
+      if (toAdd.length > 0) {
+        poolIndexRef.current += toAdd.length
+        setVisibleWords(prev => [...prev, ...toAdd])
+      }
+    }
+  }, [activeWordIdx, wpm, started, visibleWords.length, wordPool])
 
   /* ═══════════════════════════════════════════════════════════
-     FEEDER — starts only when user begins typing, stops on end
+     LANE SCROLL — keep the active word always centered in the lane
+     by translating the entire track leftward as words are consumed
   ═══════════════════════════════════════════════════════════ */
+  const trackRef = useRef<HTMLDivElement>(null)
+  const scrollXRef = useRef(0)   // current translateX in px (negative = scrolled left)
+  const scrollRafRef = useRef(0)
+
   useEffect(() => {
-    if (started && !completed && !discarded) {
-      setIsActive(true)
-    } else if (completed || discarded) {
-      setIsActive(false)
+    const animateScroll = () => {
+      if (!activeWordRef.current || !laneRef.current || !trackRef.current) return
+
+      const laneRect  = laneRef.current.getBoundingClientRect()
+      const wordRect  = activeWordRef.current.getBoundingClientRect()
+
+      // Target position based on WPM: 20% to 80% across the lane
+      // At 0 WPM -> 0.2 (left), at 150+ WPM -> 0.8 (right)
+      const targetPct = 0.2 + Math.min(wpm / 150, 1) * 0.6
+      const targetScreenX = laneRect.left + laneRect.width * targetPct
+      const wordCenter = wordRect.left + wordRect.width / 2
+
+      // How far off is the word from the target? Shift track to compensate
+      const delta = targetScreenX - wordCenter
+
+      const current = scrollXRef.current
+      const target  = current + delta
+
+      const diff = target - current
+      if (Math.abs(diff) < 0.3) {
+        // Close enough — snap
+        scrollXRef.current = target
+        trackRef.current.style.transform = `translateX(${target}px)`
+        setSlothX(targetPct * 100) // sloth exactly at target
+        return
+      }
+
+      // Speed scales with wpm: faster typer = faster scroll catch-up
+      const ease = Math.max(0.08, Math.min(0.22, 0.08 + (wpm / 200) * 0.14))
+      const next  = current + diff * ease
+
+      scrollXRef.current = next
+      trackRef.current.style.transform = `translateX(${next}px)`
+      
+      // Sloth exact position: where is the word center *right now* in percentages?
+      const moveThisFrame = next - current
+      const newWordCenter = wordCenter + moveThisFrame
+      setSlothX(((newWordCenter - laneRect.left) / laneRect.width) * 100)
+
+      scrollRafRef.current = requestAnimationFrame(animateScroll)
     }
-  }, [started, completed, discarded, setIsActive])
 
-  // Cleanup feeder on unmount
-  useEffect(() => () => setIsActive(false), [setIsActive])
-
-  /* ═══════════════════════════════════════════════════════════
-     ACTIVE WORD TARGET — measure the live position of the word
-     the feeder should aim at, update whenever word changes
-  ═══════════════════════════════════════════════════════════ */
-  const measureTarget = useCallback(() => {
-    if (activeWordRef.current) {
-      const r = activeWordRef.current.getBoundingClientRect()
-      setTypingTarget(r.left + r.width / 2, r.top)
-    } else if (typingCanvasRef.current) {
-      // Fallback: aim at canvas top-left
-      const r = typingCanvasRef.current.getBoundingClientRect()
-      setTypingTarget(r.left + 80, r.top + 24)
-    }
-  }, [setTypingTarget])
-
-  // Re-measure on every word advance and whenever the word list grows
-  useEffect(() => { measureTarget() }, [activeWordIdx, typingWords.length, measureTarget])
-
-  // Also re-measure on scroll/resize
-  useEffect(() => {
-    window.addEventListener('resize', measureTarget)
-    return () => window.removeEventListener('resize', measureTarget)
-  }, [measureTarget])
+    cancelAnimationFrame(scrollRafRef.current)
+    scrollRafRef.current = requestAnimationFrame(animateScroll)
+    return () => cancelAnimationFrame(scrollRafRef.current)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeWordIdx, wpm, visibleWords.length])
 
   /* ═══════════════════════════════════════════════════════════
      FOCUS INPUT
@@ -204,12 +245,10 @@ export default function TypingInterface({ campaign, userId }: Props) {
 
       setElapsedSeconds(Math.floor(elapsedMs / 1000))
       setWpm(liveWpm)
-      feedWpm(liveWpm)
 
       const secs = Math.floor(elapsedMs / 1000)
       if (timeLimitRef.current && secs >= timeLimitRef.current) {
         setCompleted(true)
-        // Capture final values via functional updates can't work in timeout — use current values
         handleCompleteRef.current?.()
         return
       }
@@ -219,19 +258,12 @@ export default function TypingInterface({ campaign, userId }: Props) {
       }
     }, 500)
     return () => clearInterval(iv)
-  }, [started, completed, discarded]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  /* ═══════════════════════════════════════════════════════════
-     SCROLL active word into view
-  ═══════════════════════════════════════════════════════════ */
-  useEffect(() => {
-    activeWordRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
-  }, [activeWordIdx])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [started, completed, discarded])
 
   /* ═══════════════════════════════════════════════════════════
      SESSION SUBMIT
   ═══════════════════════════════════════════════════════════ */
-  // Keep a stable ref to handleComplete so the ticker interval can call it
   const handleCompleteRef = useRef<(() => void) | null>(null)
 
   const handleComplete = useCallback(async (
@@ -243,9 +275,9 @@ export default function TypingInterface({ campaign, userId }: Props) {
     setCompleted(true)
     setSubmitting(true)
 
-    const duration    = finalSecs ?? Math.round((Date.now() - startTimeRef.current) / 1000)
-    const elapsedMin  = duration / 60
-    const finalWpm    = elapsedMin > 0
+    const duration   = finalSecs ?? Math.round((Date.now() - startTimeRef.current) / 1000)
+    const elapsedMin = duration / 60
+    const finalWpm   = elapsedMin > 0
       ? Math.round((correctCharsRef.current / 5) / elapsedMin)
       : 0
 
@@ -254,20 +286,20 @@ export default function TypingInterface({ campaign, userId }: Props) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          session_id:        sessionIdRef.current,
-          user_id:           userId,
-          campaign_id:       campaign.id,
-          wpm:               finalWpm,
-          accuracy:          finalAccuracy,
-          keystrokes_data:   keystrokesRef.current,
-          accuracy_samples:  accuracySamplesRef.current,
-          total_keystrokes:  finalTotal,
-          correct_keystrokes:finalCorrect,
-          duration_seconds:  duration,
-          test_mode:         mode,
-          time_limit:        timeLimitRef.current,
-          use_punctuation:   usePunctuation,
-          use_lowercase:     useLowercase,
+          session_id:         sessionIdRef.current,
+          user_id:            userId,
+          campaign_id:        campaign.id,
+          wpm:                finalWpm,
+          accuracy:           finalAccuracy,
+          keystrokes_data:    keystrokesRef.current,
+          accuracy_samples:   accuracySamplesRef.current,
+          total_keystrokes:   finalTotal,
+          correct_keystrokes: finalCorrect,
+          duration_seconds:   duration,
+          test_mode:          mode,
+          time_limit:         timeLimitRef.current,
+          use_punctuation:    usePunctuation,
+          use_lowercase:      useLowercase,
         }),
       })
     } catch (err) {
@@ -278,10 +310,9 @@ export default function TypingInterface({ campaign, userId }: Props) {
     }
   }, [campaign.id, mode, userId, usePunctuation, useLowercase, router])
 
-  // Wire up the ref used by the timer
-  const totalKeystrokesRef  = useRef(0)
-  const correctKeystrokesRef= useRef(0)
-  const accuracyRef         = useRef(100)
+  const totalKeystrokesRef   = useRef(0)
+  const correctKeystrokesRef = useRef(0)
+  const accuracyRef          = useRef(100)
 
   useEffect(() => {
     totalKeystrokesRef.current   = totalKeystrokes
@@ -306,19 +337,23 @@ export default function TypingInterface({ campaign, userId }: Props) {
   ═══════════════════════════════════════════════════════════ */
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.ctrlKey && e.key === 'v') { e.preventDefault(); return }
+    
+    // Ignore pure modifier keys before starting
+    if (!started && (e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt' || e.key === 'Meta' || e.key === 'CapsLock' || e.key === 'Tab')) {
+      return
+    }
 
     const now      = Date.now()
     const interval = lastKeystrokeTimeRef.current ? now - lastKeystrokeTimeRef.current : 0
     lastKeystrokeTimeRef.current = now
 
-    // Start session timer on first keystroke
     if (!started) {
       setStarted(true)
       startTimeRef.current = now
     }
 
-    const currentWord = typingWords[activeWordIdx]
-    if (!currentWord) return  // queue empty — wait for next word
+    const currentWord = visibleWords[activeWordIdx]
+    if (!currentWord) return
 
     /* ── Backspace ── */
     if (e.key === 'Backspace') {
@@ -339,29 +374,27 @@ export default function TypingInterface({ campaign, userId }: Props) {
     if (e.key === ' ') {
       e.preventDefault()
       const nextWi = activeWordIdx + 1
+
+      // Track total words typed against pool
+      const totalTyped = poolIndexRef.current - (visibleWords.length - nextWi)
+
       setActiveWordIdx(nextWi)
       setCharIdx(0)
-      
+
       // Non-timed: complete when all campaign words are typed
-      if (!timeLimitRef.current && nextWi >= campaignWordCountRef.current) {
+      if (!timeLimitRef.current && totalTyped >= campaignWordCountRef.current) {
         setCompleted(true)
         const secs = (now - startTimeRef.current) / 1000
-        handleComplete(
-          totalKeystrokes,
-          correctKeystrokes,
-          accuracyRef.current,
-          secs,
-        )
+        handleComplete(totalKeystrokes, correctKeystrokes, accuracyRef.current, secs)
       }
       return
     }
 
-    /* ── Ignore non-printable or extra characters ── */
+    /* ── Ignore non-printable ── */
     if (e.key.length !== 1) return
-    if (charIdx >= currentWord.length) return // Stop typing at end of word until space is pressed
+    if (charIdx >= currentWord.length) return
     e.preventDefault()
 
-    /* ── Record keystroke for anti-fraud ── */
     keystrokesRef.current.push({ key: e.key, timestamp: now, interval_ms: interval })
     const isCorrect  = e.key === currentWord[charIdx]
     const newTotal   = totalKeystrokes + 1
@@ -373,7 +406,6 @@ export default function TypingInterface({ campaign, userId }: Props) {
     const newAcc = newTotal > 0 ? Math.round((newCorrect / newTotal) * 100) : 100
     setAccuracy(newAcc)
 
-    // Accuracy sample every 5 keystrokes
     if (newTotal % 5 === 0) {
       const min = (now - startTimeRef.current) / 60000
       accuracySamplesRef.current.push({
@@ -383,7 +415,6 @@ export default function TypingInterface({ campaign, userId }: Props) {
       })
     }
 
-    /* ── Update char state ── */
     setWordCharStates(prev => {
       const ws = [...(prev[activeWordIdx] ?? [])]
       ws[charIdx] = isCorrect ? 'correct' : 'error'
@@ -392,13 +423,11 @@ export default function TypingInterface({ campaign, userId }: Props) {
 
     setCharIdx(charIdx + 1)
   }, [
-    started, activeWordIdx, charIdx, typingWords,
+    started, activeWordIdx, charIdx, visibleWords,
     totalKeystrokes, correctKeystrokes, handleComplete,
   ])
 
-  /* ═══════════════════════════════════════════════════════════
-     HELPERS
-  ═══════════════════════════════════════════════════════════ */
+  /* ─── Helpers ─── */
   const formatTime = (secs: number) => {
     const display = timeLimit ? Math.max(0, timeLimit - secs) : secs
     const m = Math.floor(display / 60)
@@ -411,10 +440,10 @@ export default function TypingInterface({ campaign, userId }: Props) {
   ═══════════════════════════════════════════════════════════ */
   return (
     <>
-    {/* ── Settings Sub-bar — fixed below topbar ── */}
+    {/* ── Settings Sub-bar ── */}
     <div style={{
       position: 'fixed',
-      top: 60,          /* topbar height */
+      top: 60,
       left: 0,
       right: 0,
       zIndex: 90,
@@ -458,7 +487,7 @@ export default function TypingInterface({ campaign, userId }: Props) {
       <div style={{ width: 1, height: 24, background: 'var(--paper-darker)' }} />
 
       {/* Time limits */}
-      {[15, 30, 60, 120].map(val => (
+      {[15, 30, 60].map(val => (
         <button
           key={val} onClick={() => setTimeLimit(tl => tl === val ? null : val)}
           style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-courier)', fontSize: 16, fontWeight: 700, color: timeLimit === val ? 'var(--stamp-navy)' : 'var(--ink-faint)', letterSpacing: '0.04em', transition: 'color 0.15s', borderBottom: timeLimit === val ? '2px solid var(--stamp-navy)' : '2px solid transparent', paddingBottom: 2 }}
@@ -468,53 +497,82 @@ export default function TypingInterface({ campaign, userId }: Props) {
       ))}
     </div>
 
-    {/* ── Sloth sleeping on the bottom border of the settings bar ── */}
-    <SlothCharacter triggerThrow={throwTrigger} onPositionReady={throwerReady} />
+    {/* ── Main area ── */}
+    <div style={{ display: 'flex', flex: 1, width: '100%', height: '100%', position: 'relative', flexDirection: 'column' }}>
 
-    <div style={{ display: 'flex', flex: 1, width: '100%', height: '100%', position: 'relative' }}>
-
-      {/* ── Typing area ── */}
-      <div style={{ flex: 1, padding: '40px 48px 64px 48px', paddingRight: '380px', paddingTop: '56px', display: 'flex', flexDirection: 'column' }}>
-
-        {/* Timer */}
-        {started && !completed && !discarded && (
-          <div style={{ fontFamily: 'var(--font-playfair)', fontSize: 36, fontWeight: 900, color: timeLimit && (timeLimit - elapsedSeconds) <= 5 ? 'var(--stamp-red)' : 'var(--stamp-navy)', marginBottom: 16, transition: 'color 0.3s' }}>
-            {formatTime(elapsedSeconds)}
-          </div>
-        )}
-
-        {/* Live stats */}
+      {/* ── Stats bar ── */}
+      <div style={{ display: 'flex', gap: 24, padding: '20px 48px 0 48px', fontFamily: 'var(--font-courier)', fontSize: 13, color: 'var(--ink-faint)', minHeight: 40 }}>
         {started && !completed && (
-          <div style={{ display: 'flex', gap: 24, marginBottom: 20, fontFamily: 'var(--font-courier)', fontSize: 13, color: 'var(--ink-faint)' }}>
+          <>
             <span><strong style={{ color: 'var(--stamp-navy)', fontSize: 16 }}>{wpm}</strong> wpm</span>
             <span><strong style={{ color: accuracy >= 90 ? 'var(--ink)' : 'var(--stamp-red)', fontSize: 16 }}>{accuracy}%</strong> acc</span>
-            <span style={{ color: 'var(--paper-darker)' }}>|</span>
-            <span>{activeWordIdx} / {campaignWordCountRef.current > 0 ? (timeLimit ? '∞' : campaignWordCountRef.current) : '…'} words</span>
-          </div>
+            {timeLimit && (
+              <span style={{ marginLeft: 'auto', color: timeLimit && (timeLimit - elapsedSeconds) <= 5 ? 'var(--stamp-red)' : 'var(--stamp-navy)', fontSize: 24, fontWeight: 900, transition: 'color 0.3s' }}>
+                {formatTime(elapsedSeconds)}
+              </span>
+            )}
+          </>
         )}
+      </div>
 
-        {/* ── Word Lane ── */}
+      {/* ── Horizontal Typing Lane ── */}
+      <div style={{ position: 'relative', width: '100%', marginTop: 80 }}>
+        {/* Sloth rides above the active word, safely outside overflow:hidden */}
         <div
-          ref={typingCanvasRef}
-          className="word-lane"
+          className="sloth-runner"
+          style={{
+            left: `${slothX}%`,
+          }}
+        >
+          <Image
+            src="/sloth.png"
+            alt="Sloth"
+            width={72}
+            height={72}
+            style={{
+              objectFit: 'contain',
+              filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.15))',
+              // Tilt forward when typing fast — max 12deg
+              transform: `rotate(${Math.min(wpm / 10, 12)}deg)`,
+              transformOrigin: 'bottom center',
+              transition: 'transform 0.4s ease',
+            }}
+          />
+        </div>
+
+        <div
+          ref={laneRef}
+          className="typing-lane-wrapper"
+          style={{ marginTop: 0 }} // overriding the css margin-top since wrapper handles it
           onClick={() => inputRef.current?.focus()}
         >
-          {typingWords.length === 0 ? (
-            <span className="word-lane-waiting">
-              {started ? '⬇ next word on its way…' : 'Click or start typing to begin'}
-            </span>
+          {/* Fade masks left & right */}
+          <div className="lane-fade-left"  />
+          <div className="lane-fade-right" />
+
+        {/* The actual word track — JS drives translateX to scroll */}
+        <div ref={trackRef} className="typing-lane-track">
+          {visibleWords.length === 0 ? (
+            <span className="word-lane-waiting">Loading…</span>
           ) : (
-            typingWords.map((word, wi) => {
-              const states    = wordCharStates[wi] ?? []
-              const isActive  = wi === activeWordIdx
-              const isDone    = wi < activeWordIdx
-              const isFuture  = wi > activeWordIdx
+            visibleWords.map((word, wi) => {
+              const states   = wordCharStates[wi] ?? []
+              const isActive = wi === activeWordIdx
+              const isDone   = wi < activeWordIdx
+              const isFuture = wi > activeWordIdx
+
+              // Gradually fade future words the farther they are (depth effect)
+              const futureDistance = wi - activeWordIdx
+              const futureOpacity  = isFuture
+                ? Math.max(0.15, 0.75 - futureDistance * 0.12)
+                : undefined
 
               return (
                 <span
                   key={wi}
                   ref={isActive ? activeWordRef : undefined}
                   className={`wl-word ${isDone ? 'wl-done' : ''} ${isActive ? 'wl-active' : ''} ${isFuture ? 'wl-future' : ''}`}
+                  style={isFuture ? { opacity: futureOpacity } : undefined}
                 >
                   {word.split('').map((ch, ci) => {
                     const st      = states[ci]
@@ -528,7 +586,6 @@ export default function TypingInterface({ campaign, userId }: Props) {
                       </span>
                     )
                   })}
-
                   {/* Caret past last char */}
                   {isActive && charIdx >= word.length && (
                     <span className="wl-ch wl-caret" style={{ width: 2, display: 'inline-block' }}> </span>
@@ -538,14 +595,27 @@ export default function TypingInterface({ campaign, userId }: Props) {
             })
           )}
         </div>
-
-        {/* Incoming word hint */}
-        {started && typingWords.length > 0 && activeWordIdx >= typingWords.length && !completed && (
-          <div style={{ marginTop: 12, fontFamily: 'var(--font-courier)', fontSize: 13, color: 'var(--ink-faint)' }}>
-            ⬇ next word incoming…
-          </div>
-        )}
       </div>
+      </div>
+
+      {/* ── Revealed Ad Text ── */}
+      <div style={{ padding: '40px 48px', maxWidth: 800 }}>
+        <div className="label-sm" style={{ marginBottom: 12 }}>REVEALED AD TEXT</div>
+        <div className="font-body" style={{ fontSize: 20, color: 'var(--ink-light)', lineHeight: 1.6, minHeight: 64 }}>
+          {visibleWords.slice(0, activeWordIdx).join(' ')}
+          {activeWordIdx > 0 ? ' ' : ''}
+          <span style={{ color: 'var(--ink)' }}>
+            {visibleWords[activeWordIdx]?.substring(0, charIdx)}
+          </span>
+        </div>
+      </div>
+
+      {/* ── Start hint ── */}
+      {!started && !completed && !discarded && (
+        <div style={{ paddingLeft: 48, marginTop: 12 }} className="label-sm">
+          START TYPING TO BEGIN
+        </div>
+      )}
 
       {/* ── Ad Image ── */}
       <div style={{ position: 'absolute', bottom: 8, right: 48, width: 320, height: 240, border: '2px dashed var(--paper-darker)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--paper-dark)' }}>
@@ -553,13 +623,6 @@ export default function TypingInterface({ campaign, userId }: Props) {
           AD IMAGE<br />PLACEHOLDER
         </div>
       </div>
-
-      {/* ── Start hint ── */}
-      {!started && !completed && !discarded && (
-        <div style={{ position: 'absolute', bottom: 24, left: '50%', transform: 'translateX(-50%)' }} className="label-sm">
-          CLICK OR START TYPING TO BEGIN
-        </div>
-      )}
 
       {/* ── Hidden input ── */}
       <input

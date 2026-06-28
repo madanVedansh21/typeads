@@ -4,7 +4,9 @@ import { createClient } from "@/lib/supabase/server";
 
 export default async function LandingPage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   return (
     <main
       style={{
@@ -28,12 +30,12 @@ export default async function LandingPage() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <Image 
-            src="/sloth.png" 
-            alt="Sloth Mascot" 
-            width={52} 
-            height={52} 
-            style={{ objectFit: 'contain' }} 
+          <Image
+            src="/sloth.png"
+            alt="Sloth Mascot"
+            width={52}
+            height={52}
+            style={{ objectFit: "contain" }}
           />
           <div
             style={{
@@ -50,15 +52,24 @@ export default async function LandingPage() {
         </div>
 
         <nav style={{ display: "flex", gap: 32, alignItems: "center" }}>
-          {["HOW IT WORKS", "FOR TYPISTS", "FOR ADVERTISERS", user ? "START TYPING" : "SIGN UP"].map((item) => (
+          {[
+            "HOW IT WORKS",
+            "FOR TYPISTS",
+            "FOR ADVERTISERS",
+            user ? "START TYPING" : "SIGN UP",
+          ].map((item) => (
             <Link
               key={item}
               href={
-                item === "SIGN UP" ? "/signup" : 
-                item === "START TYPING" ? "/" : 
-                item === "HOW IT WORKS" ? "#how-it-works" : 
-                item === "FOR TYPISTS" ? "#for-typists" : 
-                "#for-advertisers"
+                item === "SIGN UP"
+                  ? "/signup"
+                  : item === "START TYPING"
+                    ? "/typing"
+                    : item === "HOW IT WORKS"
+                      ? "#how-it-works"
+                      : item === "FOR TYPISTS"
+                        ? "#for-typists"
+                        : "#for-advertisers"
               }
               className="nav-item"
               style={{ color: "var(--ink)", textDecoration: "none" }}
@@ -90,13 +101,13 @@ export default async function LandingPage() {
           >
             <h1
               className="font-headline"
-              style={{ fontSize: 48, marginBottom: 12 }}
+              style={{ fontSize: 72, marginBottom: 12 }}
             >
               GET REWARDED TO TYPE ADS.
             </h1>
             <h2
               className="font-subheadline"
-              style={{ fontSize: 24, marginBottom: 32 }}
+              style={{ fontSize: 32, marginBottom: 32 }}
             >
               The internet's first typing platform where every keystroke earns
               you rewards.
@@ -108,7 +119,10 @@ export default async function LandingPage() {
                 marginBottom: 32,
               }}
             />
-            <div className="font-body" style={{ textAlign: "justify", fontSize: 18, lineHeight: 1.8 }}>
+            <div
+              className="font-body"
+              style={{ textAlign: "justify", fontSize: 22, lineHeight: 1.8 }}
+            >
               <span
                 style={{
                   float: "left",
@@ -171,13 +185,16 @@ export default async function LandingPage() {
                     style={{
                       fontFamily: "var(--font-playfair)",
                       fontStyle: "italic",
-                      fontSize: 18,
+                      fontSize: 24,
                       color: "var(--ink)",
                     }}
                   >
                     {i + 1}.
                   </span>
-                  <span className="font-body" style={{ marginTop: 2 }}>
+                  <span
+                    className="font-body"
+                    style={{ marginTop: 2, fontSize: 22 }}
+                  >
                     {step}
                   </span>
                 </div>
@@ -198,24 +215,32 @@ export default async function LandingPage() {
           <div style={{ padding: 64, maxWidth: 800, margin: "0 auto" }}>
             <h2
               className="font-headline"
-              style={{ fontSize: 32, marginBottom: 16, textAlign: "center" }}
+              style={{ fontSize: 42, marginBottom: 16, textAlign: "center" }}
             >
               Gamify Your Typing Speed
             </h2>
             <div
               className="font-body"
-              style={{ textAlign: "justify", marginBottom: 32 }}
+              style={{
+                textAlign: "justify",
+                marginBottom: 32,
+                fontSize: 22,
+                lineHeight: 1.8,
+              }}
             >
-              Finally, a typing test that rewards your skill. Whether you're practicing your
-              WPM or just looking for a productive way to kill time, TypeAds
-              turns your spare minutes into real rewards. Each advertisement
-              takes roughly 30 to 60 seconds to complete. Perfect accuracy and
-              high speeds yield bonus multipliers. Once you hit the 500 point
-              threshold, redeem instantly for gift cards valid at major
-              retailers.
+              Finally, a typing test that rewards your skill. Whether you're
+              practicing your WPM or just looking for a productive way to kill
+              time, TypeAds turns your spare minutes into real rewards. Each
+              advertisement takes roughly 30 to 60 seconds to complete. Perfect
+              accuracy and high speeds yield bonus multipliers. Once you hit the
+              500 point threshold, redeem instantly for gift cards valid at
+              major retailers.
             </div>
             <div style={{ textAlign: "center" }}>
-              <Link href={user ? "/" : "/signup"} className="btn btn-inverted">
+              <Link
+                href={user ? "/typing" : "/signup"}
+                className="btn btn-inverted"
+              >
                 START TYPING
               </Link>
             </div>
@@ -277,15 +302,6 @@ export default async function LandingPage() {
                   >
                     REACH: 10,000 VERIFIED READS
                   </p>
-                  <p
-                    style={{
-                      borderBottom: "1px solid var(--paper-darker)",
-                      paddingBottom: 8,
-                      marginBottom: 8,
-                    }}
-                  >
-                    CPC: ₹2.00 / READ
-                  </p>
                   <p style={{ marginTop: 16 }}>
                     STATUS: [X] APPROVED FOR PRINT
                   </p>
@@ -295,11 +311,14 @@ export default async function LandingPage() {
             <div>
               <h2
                 className="font-headline"
-                style={{ fontSize: 32, marginBottom: 16 }}
+                style={{ fontSize: 42, marginBottom: 16 }}
               >
                 Guaranteed Attention.
               </h2>
-              <div className="font-body" style={{ textAlign: "justify" }}>
+              <div
+                className="font-body"
+                style={{ textAlign: "justify", fontSize: 22, lineHeight: 1.8 }}
+              >
                 Stop paying for impressions that no one looks at. In traditional
                 digital advertising, a user scrolls past your banner in
                 milliseconds. On TypeAds, the user is forced to read, process,
@@ -339,7 +358,7 @@ export default async function LandingPage() {
             style={{
               fontFamily: "var(--font-playfair)",
               fontStyle: "italic",
-              fontSize: 28,
+              fontSize: 36,
               color: "var(--ink)",
               maxWidth: 800,
               margin: "0 auto",
@@ -354,7 +373,7 @@ export default async function LandingPage() {
             className="label-sm"
             style={{ marginTop: 24, color: "var(--ink)" }}
           >
-            — EARLY ACCESS USER
+            — fake marketing manager , typeads team...
           </div>
           <span
             style={{

@@ -199,11 +199,12 @@ body {
 }
 .topbar-nav a:hover {
   color: var(--ink);
-  text-decoration: underline;
 }
 .topbar-nav a.active {
   color: var(--ink);
-  font-weight: 700;
+  /* Removed font-weight: 700 to prevent Canopee faux-bold smearing */
+  border-bottom: 2px solid var(--ink);
+  margin-bottom: -2px;
 }
 .topbar-actions {
   display: flex;
@@ -363,30 +364,108 @@ body {
 }
 
 /* ============================================================
-   WORD LANE — progressive word-by-word typing display
+   HORIZONTAL TYPING LANE — progressive 1D word feed
    ============================================================ */
-@keyframes wl-arrive {
-  from { opacity: 0; transform: translateY(-6px) scale(0.96); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
-}
 
-.word-lane {
-  font-family: var(--font-courier), 'Courier New', monospace;
-  font-size: 38px;
-  font-weight: 700;
-  line-height: 1.7;
-  letter-spacing: 0.03em;
-  display: flex;
-  flex-wrap: wrap;
-  align-content: flex-start;
-  gap: 0 0.45em;
-  max-height: 5.1em;    /* ~3 visible lines */
+/* Outer wrapper: holds the lane track + sloth + fade masks */
+.typing-lane-wrapper {
+  position: relative;
+  width: 100%;
+  height: 120px;
+  margin-top: 32px;
   overflow: hidden;
   cursor: text;
   user-select: none;
-  outline: none;
+  border-top: 2px solid var(--paper-darker);
+  border-bottom: 2px solid var(--paper-darker);
+  background: var(--paper);
 }
 
+/* The scrollable word track — single horizontal row */
+.typing-lane-track {
+  display: flex;
+  align-items: center;
+  gap: 0.55em;
+  white-space: nowrap;
+  font-family: var(--font-courier), 'Courier New', monospace;
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  line-height: 1;
+  height: 100%;
+  padding: 0 80vw 0 20vw;  /* align left side but allow scrolling */
+  /* Scroll horizontally via CSS transform driven by JS */
+  will-change: transform;
+}
+
+/* Each word chip */
+.wl-word {
+  display: inline-flex;
+  flex-shrink: 0;
+  transition: opacity 0.25s ease;
+}
+.wl-word.wl-active {
+  border-bottom: 3px solid var(--stamp-navy);
+  padding-bottom: 2px;
+}
+.wl-word.wl-done {
+  opacity: 0.28;
+}
+/* future words: JS controls opacity per distance, this is the baseline */
+.wl-word.wl-future {
+  opacity: 0.6;
+}
+
+/* Per-character */
+.wl-ch              { color: var(--ink-faint); }
+.wl-ch.correct      { color: var(--ink); }
+.wl-ch.error        { color: var(--white); background: var(--stamp-red); }
+
+/* Caret blade */
+.wl-ch.wl-caret { position: relative; }
+.wl-ch.wl-caret::before {
+  content: '';
+  position: absolute;
+  left: -2px;
+  top: 4px;
+  bottom: 4px;
+  width: 2.5px;
+  background: var(--stamp-navy);
+  border-radius: 1px;
+  animation: blink 1.1s step-end infinite;
+}
+
+/* Left + right fade masks so words appear/disappear smoothly */
+.lane-fade-left,
+.lane-fade-right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 15%;
+  pointer-events: none;
+  z-index: 2;
+}
+.lane-fade-left {
+  left: 0;
+  background: linear-gradient(to right, var(--paper) 0%, transparent 100%);
+}
+.lane-fade-right {
+  right: 0;
+  background: linear-gradient(to left, var(--paper) 0%, transparent 100%);
+}
+
+/* Sloth runner — absolute, rides above the top border of the lane */
+.sloth-runner {
+  position: absolute;
+  top: -72px;           /* sits on the top border of the lane */
+  transform: translateX(-50%);
+  z-index: 60;
+  pointer-events: none;
+  transition: left 0.15s ease-out;
+  transform-origin: bottom center;
+}
+
+/* Waiting message */
 .word-lane-waiting {
   font-family: var(--font-im-fell), Georgia, serif;
   font-size: 20px;
@@ -394,40 +473,6 @@ body {
   color: var(--ink-faint);
   font-style: italic;
   opacity: 0.6;
-}
-
-/* Each word chip */
-.wl-word {
-  display: inline-flex;
-  animation: wl-arrive 0.18s ease-out both;
-  margin-bottom: 0.1em;
-}
-.wl-word.wl-active {
-  border-bottom: 2.5px solid var(--stamp-navy);
-  padding-bottom: 1px;
-}
-.wl-word.wl-done   { opacity: 0.38; }
-.wl-word.wl-future { opacity: 0.55; }
-
-/* Per-character inside a word */
-.wl-ch              { color: var(--ink-faint); }
-.wl-ch.correct      { color: var(--ink); }
-.wl-ch.error        { color: var(--white); background: var(--stamp-red); }
-
-/* Caret: the cursor is a ::before blade — only IT blinks, not the character */
-.wl-ch.wl-caret {
-  position: relative;
-}
-.wl-ch.wl-caret::before {
-  content: '';
-  position: absolute;
-  left: -2px;
-  top: 2px;
-  bottom: 2px;
-  width: 2.5px;
-  background: var(--stamp-navy);
-  border-radius: 1px;
-  animation: blink 1.1s step-end infinite;
 }
 
 

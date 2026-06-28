@@ -65,7 +65,7 @@ export default async function DashboardPage() {
 
   // Render TypingInterface for the next campaign
   return (
-    <div className="page-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div className="page-wrapper" style={{ display: 'flex', flexDirection: 'column' }}>
       <TypingInterface campaign={nextCampaign} userId={user.id} />
     </div>
   )
