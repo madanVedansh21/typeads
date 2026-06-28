@@ -7,15 +7,21 @@ export default async function ProfileRedirectPage() {
 
   if (!user) redirect('/login')
 
+  console.log('ProfileRedirectPage hit for user:', user.id)
+
   const { data: profile } = await supabase
     .from('profiles')
     .select('username')
     .eq('id', user.id)
     .single()
 
+  console.log('Fetched profile:', profile)
+
   if (profile?.username) {
+    console.log('Redirecting to:', `/profile/${profile.username}`)
     redirect(`/profile/${profile.username}`)
   }
 
+  console.log('Redirecting to dashboard (no username)')
   redirect('/dashboard')
 }

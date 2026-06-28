@@ -25,7 +25,7 @@ export default function Topbar({ profile }: TopbarProps) {
     { href: '/leaderboard', label: 'LEADERBOARD' },
     { href: '/rewards', label: 'REWARDS' },
     { href: '/wallet', label: 'WALLET' },
-    { href: `/profile/${profile?.username || ''}`, label: 'PROFILE' },
+    { href: '/profile', label: 'PROFILE' },
   ]
 
   return (
@@ -44,19 +44,19 @@ export default function Topbar({ profile }: TopbarProps) {
         ))}
       </nav>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div className="topbar-actions">
         <div className="topbar-points">
           <span>PTS</span>
           {profile?.points_balance?.toLocaleString() ?? '0'}
         </div>
 
         {profile?.is_admin && (
-          <Link href="/admin" className="btn btn-sm" style={{ borderColor: 'var(--grey-dark)', color: '#fff', background: 'transparent' }}>
+          <Link href="/admin" className="btn btn-sm btn-inverted" style={{ borderLeft: '3px solid #fff', height: '100%', borderTop: 'none', borderBottom: 'none', borderRight: '3px solid #fff' }}>
             ADMIN
           </Link>
         )}
 
-        <button onClick={handleLogout} className="btn btn-sm" style={{ borderColor: 'var(--grey-dark)', color: '#fff', background: 'transparent' }}>
+        <button onClick={handleLogout} className="btn btn-sm btn-inverted" style={{ border: 'none', height: '100%', padding: '0 24px' }}>
           LOGOUT
         </button>
       </div>

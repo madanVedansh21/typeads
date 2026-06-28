@@ -34,29 +34,26 @@ export default async function ResultsPage({ params }: Props) {
     ? Math.round((profile.total_wpm_sum ?? 0) / profile.total_completions)
     : 0
 
-  const campaign = session.campaigns as { brand_name: string; ad_text: string; image_url: string | null; points_reward: number } | null
   const accuracySamples = (session.accuracy_samples as Array<{ char_index: number; accuracy: number; wpm: number }>) ?? []
   const isFlagged = session.is_flagged
+  const campaign = session.campaigns as { brand_name: string; ad_text: string; image_url: string | null; points_reward: number } | null
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: '32px 24px' }}>
       {/* Header */}
       <div style={{ marginBottom: 32 }}>
-        <span className="brand-tag" style={{ marginBottom: 12, display: 'inline-block' }}>
-          {campaign?.brand_name}
-        </span>
-        <h1 className="font-brand" style={{ fontSize: 32, fontWeight: 900, lineHeight: 1, marginBottom: 8 }}>
+        <h1 className="font-brand" style={{ fontSize: 32, marginBottom: 8, color: '#000' }}>
           {isFlagged ? 'SESSION FLAGGED' : 'SESSION COMPLETE'}
         </h1>
         {isFlagged && (
-          <div className="alert alert-error" style={{ marginTop: 12, maxWidth: 600 }}>
-            This session was flagged for review: {session.flag_reason}. Points are held pending admin review.
+          <div style={{ background: 'var(--red-error)', color: 'var(--white)', padding: 12, border: '3px solid #000', fontFamily: 'Arial Black', fontSize: 12 }}>
+            THIS SESSION WAS FLAGGED FOR REVIEW: {session.flag_reason}. POINTS ARE HELD PENDING ADMIN REVIEW.
           </div>
         )}
       </div>
 
       {/* Stats grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', border: '3px solid #000', marginBottom: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', border: '3px solid #000', marginBottom: 24, background: '#fff' }}>
         {[
           { label: 'WPM', value: session.wpm, sub: `AVG: ${avgWpm}` },
           { label: 'ACCURACY', value: `${session.accuracy}%`, sub: '' },
@@ -74,7 +71,7 @@ export default async function ResultsPage({ params }: Props) {
             <div className="label-sm" style={{ marginBottom: 6 }}>{stat.label}</div>
             <div className="stat-number" style={{ fontSize: 28 }}>{stat.value}</div>
             {stat.sub && (
-              <div style={{ fontFamily: 'Arial', fontSize: 9, color: 'var(--grey-mid)', marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+              <div style={{ fontFamily: 'Arial', fontSize: 9, color: 'var(--grey-mid)', marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>
                 {stat.sub}
               </div>
             )}
@@ -84,55 +81,40 @@ export default async function ResultsPage({ params }: Props) {
 
       {/* Charts */}
       {accuracySamples.length > 1 && (
-        <ResultsCharts samples={accuracySamples} />
-      )}
-
-      {/* Completed ad image full reveal */}
-      {campaign?.image_url && (
-        <div style={{ marginTop: 24 }}>
-          <div className="label-sm" style={{ marginBottom: 8 }}>FULL AD CREATIVE</div>
-          <div style={{ border: '3px solid #000', overflow: 'hidden', maxHeight: 300 }}>
-            <img
-              src={campaign.image_url}
-              alt={`${campaign.brand_name} ad creative`}
-              style={{ width: '100%', objectFit: 'cover' }}
-            />
-          </div>
+        <div style={{ border: '3px solid #000', padding: 24, background: '#fff', marginBottom: 24 }}>
+          <ResultsCharts samples={accuracySamples} />
         </div>
       )}
 
       {/* Session details */}
-      <div style={{ marginTop: 24, border: '3px solid #000' }}>
+      <div className="section-box">
         <div className="section-header">SESSION DETAILS</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)' }}>
           {[
-            ['TOTAL KEYSTROKES', session.total_keystrokes],
-            ['CORRECT KEYSTROKES', session.correct_keystrokes],
+            ['KEYSTROKES', session.total_keystrokes],
+            ['CORRECT', session.correct_keystrokes],
             ['DURATION', `${session.duration_seconds}s`],
-            ['WORDS TYPED', Math.round((session.total_keystrokes) / 5)],
+            ['WORDS', Math.round((session.total_keystrokes) / 5)],
           ].map(([label, val], i) => (
             <div key={String(label)} style={{
-              padding: '12px 16px',
-              borderBottom: i < 2 ? '2px solid #000' : 'none',
-              borderRight: i % 2 === 0 ? '2px solid #000' : 'none',
+              padding: '16px 24px',
+              borderRight: i < 3 ? '3px solid #000' : 'none',
+              textAlign: 'center'
             }}>
               <div className="label-sm">{label}</div>
-              <div style={{ fontFamily: 'Arial Black', fontSize: 18, fontWeight: 900, marginTop: 4 }}>{val}</div>
+              <div style={{ fontFamily: 'Arial Black', fontSize: 20, color: '#000', marginTop: 8, fontWeight: 900 }}>{val}</div>
             </div>
           ))}
         </div>
       </div>
 
       {/* Actions */}
-      <div style={{ marginTop: 32, display: 'flex', gap: 12 }}>
-        <Link href="/dashboard" className="btn btn-lg">
-          ← BACK TO QUEUE
+      <div style={{ marginTop: 32, display: 'flex', gap: 16 }}>
+        <Link href="/dashboard" className="btn btn-inverted" style={{ flex: 1, padding: '24px', fontSize: 20, justifyContent: 'center' }}>
+          NEXT AD →
         </Link>
-        <Link href="/rewards" className="btn btn-lg btn-inverted">
-          REDEEM POINTS →
-        </Link>
-        <Link href="/leaderboard" className="btn btn-lg">
-          VIEW LEADERBOARD
+        <Link href="/leaderboard" className="btn" style={{ flex: 1, justifyContent: 'center' }}>
+          LEADERBOARD
         </Link>
       </div>
     </div>

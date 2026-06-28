@@ -16,187 +16,99 @@ export default async function LeaderboardPage() {
   const currentUserEntry = entries?.find(e => e.id === user?.id)
 
   return (
-    <div>
+    <div style={{ maxWidth: 1000, margin: '0 auto', padding: '40px 24px' }}>
       {/* Header */}
-      <div style={{ borderBottom: '3px solid #000', padding: '16px 24px', background: '#000', color: '#fff' }}>
-        <h1 className="font-brand" style={{ fontSize: 24, fontWeight: 900, letterSpacing: '0.05em', color: '#fff' }}>
+      <div style={{ borderBottom: '3px solid #000', padding: '16px 24px', background: '#000', color: '#fff', marginBottom: 24 }}>
+        <h1 className="font-brand" style={{ fontSize: 24, fontWeight: 900, letterSpacing: '0.05em' }}>
           GLOBAL LEADERBOARD
         </h1>
-        <p style={{ fontFamily: 'Arial', fontSize: 11, color: '#555', marginTop: 4 }}>
-          Top typists ranked by total points balance.
+        <p style={{ fontFamily: 'Arial', fontSize: 11, color: '#ccc', marginTop: 4 }}>
+          TOP TYPISTS RANKED BY TOTAL POINTS BALANCE.
         </p>
       </div>
 
       {/* Your rank */}
       {currentUserEntry && (
         <div style={{
-          background: '#eee',
-          borderBottom: '3px solid #000',
-          padding: '12px 24px',
+          background: '#fff',
+          border: '3px solid #000',
+          padding: '16px 24px',
           display: 'flex',
           alignItems: 'center',
-          gap: 16
+          gap: 16,
+          marginBottom: 32
         }}>
-          <span style={{ fontFamily: 'Arial', fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-            YOUR RANK
-          </span>
-          <span className="font-brand" style={{ fontSize: 22, fontWeight: 900 }}>
+          <span className="label-sm">YOUR RANK</span>
+          <span className="font-brand" style={{ fontSize: 24, color: '#000' }}>
             #{currentUserEntry.rank}
           </span>
-          <span style={{ fontFamily: 'Courier New', fontSize: 13, color: '#555' }}>
-            {currentUserEntry.points_balance.toLocaleString()} pts · {currentUserEntry.avg_wpm} avg WPM
+          <span style={{ fontFamily: 'Courier New', fontSize: 14, fontWeight: 700, marginLeft: 'auto' }}>
+            {currentUserEntry.points_balance.toLocaleString()} pts · {currentUserEntry.avg_wpm} avg wpm
           </span>
         </div>
       )}
 
-      {/* Table header */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '60px 1fr 140px 140px 140px 120px',
-        borderBottom: '3px solid #000',
-        padding: '8px 0',
-        background: '#fff'
-      }}>
-        {['RANK', 'TYPIST', 'POINTS', 'AVG WPM', 'ACCURACY', 'ADS DONE'].map((col, i) => (
-          <div key={col} style={{
-            padding: '0 16px',
-            fontFamily: 'Arial',
-            fontSize: 9,
-            fontWeight: 700,
-            color: 'var(--grey-mid)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.15em',
-            textAlign: i > 1 ? 'right' : 'left',
-            borderLeft: i === 0 ? 'none' : '2px solid #eee'
-          }}>
-            {col}
-          </div>
-        ))}
-      </div>
+      {/* Leaderboard Table */}
+      <div className="section-box">
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th style={{ textAlign: 'center', width: 60, borderRight: '3px solid #000' }}>#</th>
+              <th style={{ borderRight: '3px solid #000' }}>TYPIST</th>
+              <th style={{ textAlign: 'right', borderRight: '3px solid #000' }}>POINTS</th>
+              <th style={{ textAlign: 'right', borderRight: '3px solid #000' }}>AVG WPM</th>
+              <th style={{ textAlign: 'right', borderRight: '3px solid #000' }}>ACCURACY</th>
+              <th style={{ textAlign: 'right' }}>ADS DONE</th>
+            </tr>
+          </thead>
+          <tbody>
+            {entries?.map((entry, idx) => {
+              const isCurrentUser = entry.id === user?.id
+              const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : null
 
-      {/* Leaderboard rows */}
-      <div>
-        {entries?.map((entry, idx) => {
-          const isCurrentUser = entry.id === user?.id
-          const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : null
-
-          return (
-            <Link
-              key={entry.id}
-              href={`/profile/${entry.username}`}
-              style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
-            >
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: '60px 1fr 140px 140px 140px 120px',
-                borderBottom: '2px solid #eee',
-                background: isCurrentUser ? '#f5f5f5' : '#fff',
-                transition: 'background 0.1s',
-              }}
-                onMouseEnter={e => (e.currentTarget.style.background = '#eee')}
-                onMouseLeave={e => (e.currentTarget.style.background = isCurrentUser ? '#f5f5f5' : '#fff')}
-              >
-                {/* Rank */}
-                <div style={{
-                  padding: '14px 16px',
-                  fontFamily: 'Arial Black',
-                  fontSize: 16,
-                  fontWeight: 900,
-                  textAlign: 'center',
-                  borderRight: '2px solid #eee',
-                  color: idx < 3 ? '#000' : 'var(--grey-mid)'
-                }}>
-                  {medal ?? `#${entry.rank}`}
-                </div>
-
-                {/* Typist */}
-                <div style={{
-                  padding: '14px 16px',
-                  borderRight: '2px solid #eee',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10
-                }}>
-                  <div style={{
-                    width: 32, height: 32,
-                    border: '2px solid #000',
-                    background: '#eee',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontFamily: 'Arial Black', fontSize: 12, fontWeight: 900,
-                    overflow: 'hidden', flexShrink: 0
-                  }}>
-                    {entry.avatar_url
-                      ? <img src={entry.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      : (entry.username ?? 'U')[0].toUpperCase()
-                    }
-                  </div>
-                  <div>
-                    <div style={{ fontFamily: 'Arial Black', fontSize: 13, fontWeight: 900 }}>
-                      {entry.display_name ?? entry.username}
+              return (
+                <tr key={entry.id} style={{ background: isCurrentUser ? '#ffffcc' : 'transparent' }}>
+                  <td style={{ textAlign: 'center', fontSize: 18, borderRight: '3px solid #000', fontWeight: 900 }}>
+                    {medal ?? entry.rank}
+                  </td>
+                  <td style={{ borderRight: '3px solid #000', padding: '12px 16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div style={{ width: 32, height: 32, border: '3px solid #000', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900 }}>
+                        {entry.avatar_url
+                          ? <img src={entry.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          : (entry.username ?? 'U')[0].toUpperCase()
+                        }
+                      </div>
+                      <div>
+                        <Link href={`/profile/${entry.username}`} style={{ color: '#000', textDecoration: 'none', fontWeight: 900, fontFamily: 'Arial Black', fontSize: 13 }}>
+                          {entry.display_name ?? entry.username}
+                        </Link>
+                        <div style={{ fontFamily: 'Arial', fontSize: 10, color: 'var(--grey-mid)' }}>
+                          @{entry.username}
+                        </div>
+                      </div>
+                      {isCurrentUser && (
+                        <span className="badge badge-solid" style={{ marginLeft: 8 }}>YOU</span>
+                      )}
                     </div>
-                    <div style={{ fontFamily: 'Arial', fontSize: 10, color: 'var(--grey-mid)' }}>
-                      @{entry.username}
-                    </div>
-                  </div>
-                  {isCurrentUser && (
-                    <span className="badge badge-fulfilled" style={{ marginLeft: 8, fontSize: 8 }}>YOU</span>
-                  )}
-                </div>
-
-                {/* Points */}
-                <div style={{
-                  padding: '14px 16px',
-                  fontFamily: 'Arial Black', fontSize: 14, fontWeight: 900,
-                  textAlign: 'right', borderRight: '2px solid #eee',
-                  display: 'flex', alignItems: 'center', justifyContent: 'flex-end'
-                }}>
-                  {entry.points_balance.toLocaleString()}
-                </div>
-
-                {/* Avg WPM */}
-                <div style={{
-                  padding: '14px 16px',
-                  fontFamily: 'Courier New', fontSize: 14,
-                  textAlign: 'right', borderRight: '2px solid #eee',
-                  display: 'flex', alignItems: 'center', justifyContent: 'flex-end'
-                }}>
-                  {entry.avg_wpm}
-                </div>
-
-                {/* Accuracy */}
-                <div style={{
-                  padding: '14px 16px',
-                  fontFamily: 'Courier New', fontSize: 14,
-                  textAlign: 'right', borderRight: '2px solid #eee',
-                  display: 'flex', alignItems: 'center', justifyContent: 'flex-end'
-                }}>
-                  {entry.avg_accuracy}%
-                </div>
-
-                {/* Ads done */}
-                <div style={{
-                  padding: '14px 16px',
-                  fontFamily: 'Courier New', fontSize: 14,
-                  textAlign: 'right',
-                  display: 'flex', alignItems: 'center', justifyContent: 'flex-end'
-                }}>
-                  {entry.total_completions}
-                </div>
-              </div>
-            </Link>
-          )
-        })}
+                  </td>
+                  <td style={{ textAlign: 'right', fontWeight: 900, fontFamily: 'Arial Black', fontSize: 14, borderRight: '3px solid #000' }}>
+                    {entry.points_balance.toLocaleString()}
+                  </td>
+                  <td style={{ textAlign: 'right', fontFamily: 'Courier New', fontWeight: 700, borderRight: '3px solid #000' }}>{entry.avg_wpm}</td>
+                  <td style={{ textAlign: 'right', fontFamily: 'Courier New', fontWeight: 700, borderRight: '3px solid #000' }}>{entry.avg_accuracy}%</td>
+                  <td style={{ textAlign: 'right', fontFamily: 'Courier New', fontWeight: 700 }}>{entry.total_completions}</td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
 
         {(!entries || entries.length === 0) && (
           <div style={{ padding: 64, textAlign: 'center' }}>
-            <p className="font-brand" style={{ fontSize: 18, color: 'var(--grey-mid)' }}>
-              NO ENTRIES YET
-            </p>
-            <p style={{ fontFamily: 'Arial', fontSize: 12, color: 'var(--grey-mid)', marginTop: 8 }}>
-              Complete your first ad to appear on the leaderboard.
-            </p>
-            <Link href="/dashboard" className="btn" style={{ marginTop: 24, display: 'inline-block' }}>
-              START TYPING →
+            <p className="label-sm" style={{ fontSize: 16 }}>NO ENTRIES YET</p>
+            <Link href="/dashboard" className="btn" style={{ marginTop: 24 }}>
+              START TYPING
             </Link>
           </div>
         )}

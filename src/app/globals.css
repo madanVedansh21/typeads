@@ -1,21 +1,14 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=swap');
-
 /* ============================================================
-   TYPEADS — BRUTALISM DESIGN SYSTEM
+   TYPEADS — BRUTALIST UX THEME
    ============================================================ */
 
 :root {
-  --black: #000000;
+  --bg: #eeeeee;
   --white: #ffffff;
-  --grey-light: #eeeeee;
+  --black: #000000;
   --grey-mid: #888888;
-  --grey-dark: #333333;
-  --red-error: #ff4444;
-  --red-bg: #2a0000;
-  --correct: #bbbbbb;
-  --border: 3px solid #000;
-  --border-inner: 2px solid #000;
-  --border-inactive: 2px solid #333;
+  --red-error: #ff0000;
+  --border: 3px solid #000000;
 }
 
 * {
@@ -29,9 +22,9 @@ html {
 }
 
 body {
-  background: var(--white);
+  background: var(--bg);
   color: var(--black);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Arial Black', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -39,11 +32,12 @@ body {
    SCROLLBAR — BRUTALIST
    ============================================================ */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 12px;
+  height: 12px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--grey-light);
+  background: var(--white);
+  border-left: var(--border);
 }
 ::-webkit-scrollbar-thumb {
   background: var(--black);
@@ -55,13 +49,15 @@ body {
 .font-brand {
   font-family: 'Arial Black', Arial, sans-serif;
   font-weight: 900;
+  text-transform: uppercase;
 }
 .font-mono {
-  font-family: 'Courier New', 'IBM Plex Mono', monospace;
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
 }
 .label-sm {
   font-family: 'Arial Black', Arial, sans-serif;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 900;
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -69,48 +65,39 @@ body {
 }
 .stat-number {
   font-family: 'Arial Black', Arial, sans-serif;
-  font-size: 22px;
+  font-size: 28px;
   font-weight: 900;
   color: var(--black);
   line-height: 1;
 }
-.logo {
-  font-family: 'Arial Black', Arial, sans-serif;
-  font-size: 18px;
-  font-weight: 900;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
 
 /* ============================================================
-   BRUTALIST BUTTON
+   BUTTONS
    ============================================================ */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  border: 3px solid var(--black);
+  gap: 8px;
   background: var(--white);
   color: var(--black);
+  border: var(--border);
   font-family: 'Arial Black', Arial, sans-serif;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  padding: 10px 20px;
+  padding: 12px 24px;
   cursor: pointer;
-  border-radius: 0;
-  transition: all 0.1s ease;
   text-decoration: none;
-  white-space: nowrap;
 }
 .btn:hover {
   background: var(--black);
   color: var(--white);
 }
 .btn:disabled {
-  opacity: 0.35;
+  background: var(--grey-mid);
+  color: var(--black);
   cursor: not-allowed;
 }
 .btn-inverted {
@@ -122,20 +109,12 @@ body {
   color: var(--black);
 }
 .btn-sm {
-  font-size: 9px;
-  padding: 6px 12px;
+  font-size: 10px;
+  padding: 8px 16px;
 }
 .btn-lg {
-  font-size: 13px;
-  padding: 14px 28px;
-}
-.btn-danger {
-  border-color: var(--red-error);
-  color: var(--red-error);
-}
-.btn-danger:hover {
-  background: var(--red-error);
-  color: var(--white);
+  font-size: 16px;
+  padding: 16px 32px;
 }
 
 /* ============================================================
@@ -149,98 +128,78 @@ body {
   z-index: 100;
   background: var(--black);
   color: var(--white);
-  border-bottom: 3px solid var(--black);
+  border-bottom: var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
-  height: 52px;
+  height: 60px;
 }
 .topbar-logo {
   color: var(--white);
   text-decoration: none;
-  letter-spacing: 0.08em;
+  padding: 0 24px;
+  font-family: 'Arial Black', Arial, sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 .topbar-nav {
   display: flex;
   align-items: center;
-  gap: 0;
+  height: 100%;
+  flex: 1;
 }
 .topbar-nav a {
-  color: var(--grey-mid);
+  color: var(--white);
   text-decoration: none;
-  font-family: Arial, sans-serif;
+  font-family: 'Arial Black', Arial, sans-serif;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  padding: 0 16px;
-  height: 52px;
+  padding: 0 24px;
+  height: 100%;
   display: flex;
   align-items: center;
-  border-left: 1px solid var(--grey-dark);
-  transition: color 0.1s;
+  border-left: 3px solid var(--black);
+  border-right: 3px solid var(--black);
+  border-bottom: 3px solid var(--black);
+  background: var(--black);
 }
-.topbar-nav a:hover,
+.topbar-nav a:hover {
+  background: var(--white);
+  color: var(--black);
+}
 .topbar-nav a.active {
-  color: var(--white);
+  background: var(--white);
+  color: var(--black);
+  border: 3px solid var(--white);
+}
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  height: 100%;
 }
 .topbar-points {
   display: flex;
   align-items: center;
-  gap: 8px;
-  border: 2px solid var(--grey-dark);
-  padding: 4px 12px;
+  gap: 12px;
+  border-left: 3px solid var(--white);
+  padding: 0 24px;
+  height: 100%;
   color: var(--white);
   font-family: 'Arial Black', Arial, sans-serif;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 900;
-}
-.topbar-points span {
-  font-size: 9px;
-  font-weight: 700;
-  color: var(--grey-mid);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
 }
 
 /* ============================================================
    MAIN LAYOUT
    ============================================================ */
 .page-wrapper {
-  padding-top: 52px;
+  padding-top: 60px;
   min-height: 100vh;
-}
-
-/* ============================================================
-   STATS BAR (4-column)
-   ============================================================ */
-.stats-bar {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  border-bottom: var(--border);
-  background: var(--white);
-}
-.stats-bar-cell {
-  padding: 12px 16px;
-  border-right: var(--border);
-}
-.stats-bar-cell:last-child {
-  border-right: none;
-}
-
-/* ============================================================
-   PROGRESS BAR
-   ============================================================ */
-.progress-bar-track {
-  width: 100%;
-  height: 6px;
-  background: var(--grey-light);
-}
-.progress-bar-fill {
-  height: 6px;
-  background: var(--black);
-  transition: width 0.1s linear;
 }
 
 /* ============================================================
@@ -248,36 +207,50 @@ body {
    ============================================================ */
 .typing-canvas {
   font-family: 'Courier New', monospace;
-  font-size: 15px;
-  line-height: 1.9;
-  color: var(--black);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.8;
+  color: var(--grey-mid);
   user-select: none;
   outline: none;
   white-space: pre-wrap;
   word-break: break-word;
+  max-width: 900px;
+  margin: 0 auto;
 }
 .char {
   position: relative;
 }
 .char-correct {
-  color: var(--correct);
+  color: var(--black);
 }
 .char-error {
   color: var(--white);
-  background: var(--black);
+  background: var(--red-error);
 }
 .char-cursor {
   position: relative;
 }
-.char-cursor::after {
+.char-cursor::before {
   content: '';
   position: absolute;
-  bottom: -2px;
+  top: 0;
+  bottom: 0;
   left: 0;
-  right: 0;
-  height: 3px;
+  width: 14px;
   background: var(--black);
   animation: blink 1s step-end infinite;
+  z-index: -1;
+}
+.char-cursor.char-correct {
+  color: var(--white);
+}
+.char-cursor.char-error {
+  color: var(--white);
+  background: transparent;
+}
+.char-cursor.char-pending {
+  color: var(--white);
 }
 @keyframes blink {
   0%, 100% { opacity: 1; }
@@ -285,164 +258,23 @@ body {
 }
 
 /* ============================================================
-   TILE GRID (Ad Image Reveal)
-   ============================================================ */
-.tile-grid {
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  grid-template-rows: repeat(3, 1fr);
-  border: var(--border);
-  overflow: hidden;
-  aspect-ratio: 8/3;
-  position: relative;
-}
-.tile {
-  transition: background 0.35s ease;
-}
-
-/* ============================================================
-   AD CARD (Dashboard)
-   ============================================================ */
-.ad-card {
-  border: var(--border);
-  background: var(--white);
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.1s, box-shadow 0.1s;
-}
-.ad-card:hover {
-  transform: translate(-3px, -3px);
-  box-shadow: 6px 6px 0 var(--black);
-}
-.ad-card-header {
-  background: var(--black);
-  color: var(--white);
-  padding: 8px 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.ad-card-body {
-  padding: 12px;
-  flex: 1;
-}
-.ad-card-footer {
-  border-top: var(--border-inner);
-  padding: 8px 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-/* ============================================================
-   BRAND TAG
-   ============================================================ */
-.brand-tag {
-  background: var(--black);
-  color: var(--white);
-  font-family: Arial, sans-serif;
-  font-size: 10px;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  padding: 3px 10px;
-  display: inline-block;
-}
-
-/* ============================================================
-   POINTS TAG
-   ============================================================ */
-.points-tag {
-  border: 2px solid var(--black);
-  background: var(--white);
-  color: var(--black);
-  font-family: 'Arial Black', Arial, sans-serif;
-  font-size: 11px;
-  font-weight: 900;
-  padding: 3px 8px;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-/* ============================================================
-   INPUT FIELD (BRUTALIST)
-   ============================================================ */
-.input-brutal {
-  border: 3px solid var(--grey-dark);
-  background: var(--white);
-  color: var(--black);
-  font-family: 'Courier New', monospace;
-  font-size: 14px;
-  font-weight: 700;
-  padding: 10px 14px;
-  outline: none;
-  border-radius: 0;
-  width: 100%;
-  transition: border-color 0.1s;
-}
-.input-brutal:focus {
-  border-color: var(--black);
-}
-.input-brutal::placeholder {
-  color: var(--grey-mid);
-  font-weight: 400;
-}
-
-/* ============================================================
-   SECTION / CARD CONTAINER
+   SECTION CONTAINERS
    ============================================================ */
 .section-box {
   border: var(--border);
   background: var(--white);
+  margin-bottom: 24px;
 }
 .section-header {
   background: var(--black);
   color: var(--white);
-  padding: 10px 16px;
+  padding: 12px 16px;
   font-family: 'Arial Black', Arial, sans-serif;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 900;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-}
-.section-body {
-  padding: 16px;
-}
-
-/* ============================================================
-   COMPLETION OVERLAY
-   ============================================================ */
-.completion-overlay {
-  position: fixed;
-  inset: 0;
-  background: var(--black);
-  z-index: 1000;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  animation: fadeIn 0.3s ease;
-}
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-.completion-points {
-  font-family: 'Arial Black', Arial, sans-serif;
-  font-size: 56px;
-  font-weight: 900;
-  color: var(--white);
-  line-height: 1;
-}
-.completion-sub {
-  font-family: Arial, sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-  color: #555;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
+  border-bottom: var(--border);
 }
 
 /* ============================================================
@@ -453,292 +285,40 @@ body {
   border-collapse: collapse;
 }
 .data-table th {
-  font-family: Arial, sans-serif;
-  font-size: 9px;
-  font-weight: 700;
+  font-family: 'Arial Black', Arial, sans-serif;
+  font-size: 10px;
+  font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.15em;
-  color: var(--grey-mid);
-  padding: 8px 12px;
+  color: var(--black);
+  padding: 12px 16px;
   border-bottom: var(--border);
   text-align: left;
-  background: var(--white);
+  background: var(--bg);
 }
 .data-table td {
-  padding: 10px 12px;
-  border-bottom: var(--border-inner);
-  font-size: 13px;
-  font-family: Arial, sans-serif;
-}
-.data-table tr:last-child td {
-  border-bottom: none;
-}
-.data-table tr:hover td {
-  background: var(--grey-light);
+  padding: 16px;
+  border-bottom: var(--border);
+  font-family: 'Arial', sans-serif;
+  font-size: 14px;
+  background: var(--white);
 }
 
 /* ============================================================
-   STATUS BADGE
+   BADGE
    ============================================================ */
 .badge {
   display: inline-block;
   border: 2px solid var(--black);
-  font-family: Arial, sans-serif;
-  font-size: 9px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  padding: 2px 8px;
-}
-.badge-pending {
-  border-color: var(--grey-mid);
-  color: var(--grey-mid);
-}
-.badge-fulfilled {
-  border-color: var(--black);
-  background: var(--black);
-  color: var(--white);
-}
-.badge-rejected {
-  border-color: var(--red-error);
-  color: var(--red-error);
-}
-.badge-flagged {
-  border-color: var(--red-error);
-  background: var(--red-error);
-  color: var(--white);
-}
-
-/* ============================================================
-   LEADERBOARD ROW
-   ============================================================ */
-.leaderboard-row {
-  display: grid;
-  grid-template-columns: 52px 1fr 120px 120px 120px;
-  border-bottom: var(--border-inner);
-  align-items: center;
-}
-.leaderboard-row:hover {
-  background: var(--grey-light);
-}
-.rank-num {
-  font-family: 'Arial Black', Arial, sans-serif;
-  font-size: 18px;
-  font-weight: 900;
-  text-align: center;
-  padding: 12px 0;
-}
-.rank-1 { color: var(--black); }
-.rank-2 { color: var(--grey-mid); }
-.rank-3 { color: var(--grey-dark); }
-
-/* ============================================================
-   AUTH PAGE
-   ============================================================ */
-.auth-page {
-  min-height: 100vh;
-  display: flex;
-  align-items: stretch;
-}
-.auth-panel {
-  width: 480px;
-  border-right: var(--border);
-  display: flex;
-  flex-direction: column;
-  padding: 40px;
-}
-.auth-brand {
-  flex: 1;
-  background: var(--black);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px;
-}
-
-/* ============================================================
-   CHART CONTAINER
-   ============================================================ */
-.chart-container {
-  border: var(--border-inner);
-  padding: 16px;
   background: var(--white);
-}
-
-/* ============================================================
-   FORM GROUP
-   ============================================================ */
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.form-label {
-  font-family: Arial, sans-serif;
-  font-size: 9px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: var(--grey-mid);
-}
-.form-error {
-  font-family: Arial, sans-serif;
-  font-size: 11px;
-  color: var(--red-error);
-  font-weight: 700;
-}
-
-/* ============================================================
-   MODAL OVERLAY
-   ============================================================ */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.8);
-  z-index: 200;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
-.modal-box {
-  background: var(--white);
-  border: var(--border);
-  width: 100%;
-  max-width: 480px;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-.modal-header {
-  background: var(--black);
-  color: var(--white);
-  padding: 12px 16px;
-  font-family: 'Arial Black', Arial, sans-serif;
-  font-size: 13px;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-/* ============================================================
-   ALERT / ERROR BANNER
-   ============================================================ */
-.alert {
-  border: var(--border-inner);
-  padding: 10px 14px;
-  font-family: Arial, sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-}
-.alert-error {
-  border-color: var(--red-error);
-  background: var(--red-bg);
-  color: var(--red-error);
-}
-.alert-success {
-  border-color: var(--black);
-  background: var(--grey-light);
   color: var(--black);
-}
-
-/* ============================================================
-   ADMIN PANEL
-   ============================================================ */
-.admin-sidebar {
-  width: 200px;
-  border-right: var(--border);
-  min-height: calc(100vh - 52px);
-  background: var(--white);
-}
-.admin-nav-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
-  border-bottom: var(--border-inner);
-  font-family: Arial, sans-serif;
-  font-size: 11px;
-  font-weight: 700;
+  font-family: 'Arial Black', Arial, sans-serif;
+  font-size: 10px;
+  font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--grey-dark);
-  text-decoration: none;
-  transition: background 0.1s, color 0.1s;
+  padding: 4px 8px;
 }
-.admin-nav-item:hover,
-.admin-nav-item.active {
+.badge-solid {
   background: var(--black);
   color: var(--white);
-}
-
-/* ============================================================
-   TEXTAREA
-   ============================================================ */
-textarea.input-brutal {
-  resize: vertical;
-  min-height: 100px;
-}
-
-/* ============================================================
-   SELECT
-   ============================================================ */
-select.input-brutal {
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23000' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  padding-right: 36px;
-  cursor: pointer;
-}
-
-/* ============================================================
-   PROFILE PAGE
-   ============================================================ */
-.profile-header {
-  border-bottom: var(--border);
-  padding: 24px;
-  display: flex;
-  align-items: center;
-  gap: 24px;
-}
-.profile-avatar {
-  width: 72px;
-  height: 72px;
-  border: var(--border);
-  background: var(--grey-light);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Arial Black', Arial, sans-serif;
-  font-size: 28px;
-  font-weight: 900;
-  overflow: hidden;
-}
-.profile-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* ============================================================
-   RESPONSIVE — keep desktop-first per PRD
-   ============================================================ */
-@media (max-width: 768px) {
-  .stats-bar {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .leaderboard-row {
-    grid-template-columns: 40px 1fr 80px 80px;
-  }
-  .auth-brand {
-    display: none;
-  }
-  .auth-panel {
-    width: 100%;
-    border-right: none;
-  }
 }
