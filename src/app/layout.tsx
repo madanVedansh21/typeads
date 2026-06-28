@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
 import { Playfair_Display, IM_Fell_English, Libre_Baskerville, Courier_Prime } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
+
+const canopee = localFont({
+  src: "../../public/fonts/616fd1dd00cf6c70f978fc69_Canopee.woff2",
+  variable: "--font-canopee",
+  display: "swap",
+});
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -41,7 +48,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${playfair.variable} ${imFell.variable} ${libreBaskerville.variable} ${courierPrime.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${playfair.variable} ${imFell.variable} ${libreBaskerville.variable} ${courierPrime.variable} ${canopee.variable}`}>
       <body>
         {children}
       </body>

@@ -3,7 +3,7 @@
    ============================================================ */
 
 :root {
-  --paper: #F2EDE3;
+  --paper: #C4BCB3;
   --paper-dark: #E8E0D0;
   --paper-darker: #D9CEBC;
   --ink: #1A1108;
@@ -54,8 +54,8 @@ body {
    TYPOGRAPHY UTILITIES
    ============================================================ */
 .font-headline {
-  font-family: var(--font-playfair), Georgia, serif;
-  font-weight: 700;
+  font-family: var(--font-canopee), var(--font-playfair), Georgia, serif;
+  font-weight: 400;
   color: var(--ink);
   line-height: 1.15;
 }
@@ -83,6 +83,14 @@ body {
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--ink-faint);
+}
+.nav-item {
+  font-family: var(--font-canopee), Georgia, serif;
+  font-size: 24px;
+  font-weight: 400;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: none;
 }
 .stat-number {
   font-family: var(--font-playfair), Georgia, serif;
@@ -160,10 +168,10 @@ body {
   color: var(--ink);
   text-decoration: none;
   padding: 0 24px;
-  font-family: var(--font-playfair), Georgia, serif;
-  font-size: 24px;
-  font-weight: 900;
-  letter-spacing: 0.05em;
+  font-family: var(--font-canopee), Georgia, serif;
+  font-size: 32px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
 }
 .topbar-nav {
@@ -175,11 +183,11 @@ body {
 .topbar-nav a {
   color: var(--ink-light);
   text-decoration: none;
-  font-family: var(--font-libre), 'Times New Roman', serif;
-  font-size: 10px;
-  font-weight: 700;
+  font-family: var(--font-canopee), Georgia, serif;
+  font-size: 20px;
+  font-weight: 400;
   text-transform: uppercase;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.03em;
   padding: 0 24px;
   height: 100%;
   display: flex;

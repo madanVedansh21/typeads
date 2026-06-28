@@ -427,7 +427,6 @@ export default function TypingInterface({ campaign, userId }: Props) {
       height: 52,
       paddingInline: 32,
     }}>
-      <SlothCharacter triggerThrow={throwTrigger} onPositionReady={throwerReady} />
       {/* Punctuation */}
       <button
         onClick={() => setUsePunctuation(p => !p)}
@@ -468,6 +467,9 @@ export default function TypingInterface({ campaign, userId }: Props) {
         </button>
       ))}
     </div>
+
+    {/* ── Sloth sleeping on the bottom border of the settings bar ── */}
+    <SlothCharacter triggerThrow={throwTrigger} onPositionReady={throwerReady} />
 
     <div style={{ display: 'flex', flex: 1, width: '100%', height: '100%', position: 'relative' }}>
 

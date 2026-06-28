@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function LandingPage() {
@@ -26,16 +27,26 @@ export default async function LandingPage() {
           margin: "0 auto",
         }}
       >
-        <div
-          style={{
-            fontFamily: "var(--font-playfair)",
-            fontSize: 32,
-            fontWeight: 900,
-            textTransform: "uppercase",
-            color: "var(--ink)",
-          }}
-        >
-          TYPEADS
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <Image 
+            src="/sloth.png" 
+            alt="Sloth Mascot" 
+            width={52} 
+            height={52} 
+            style={{ objectFit: 'contain' }} 
+          />
+          <div
+            style={{
+              fontFamily: "var(--font-canopee)",
+              fontSize: 48,
+              fontWeight: 400,
+              textTransform: "uppercase",
+              color: "var(--ink)",
+              transform: "translateY(4px)", // Optical alignment
+            }}
+          >
+            TYPEADS
+          </div>
         </div>
 
         <nav style={{ display: "flex", gap: 32, alignItems: "center" }}>
@@ -49,7 +60,7 @@ export default async function LandingPage() {
                 item === "FOR TYPISTS" ? "#for-typists" : 
                 "#for-advertisers"
               }
-              className="label-sm"
+              className="nav-item"
               style={{ color: "var(--ink)", textDecoration: "none" }}
             >
               {item}

@@ -14,21 +14,16 @@ export default function SlothCharacter({ triggerThrow, onPositionReady }: Props)
 
   // Send hand coordinates to context
   useEffect(() => {
-    if (containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect()
-      // Approximate the sloth's hand position (e.g. bottom right of the image)
-      onPositionReady(rect.left + rect.width * 0.8, rect.bottom - 10)
-    }
-    
-    // Re-calculate on resize
-    const handleResize = () => {
+    const report = () => {
       if (containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect()
-        onPositionReady(rect.left + rect.width * 0.8, rect.bottom - 10)
+        // Hand is roughly at the center-bottom of the sloth image
+        onPositionReady(rect.left + rect.width * 0.5, rect.bottom)
       }
     }
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
+    report()
+    window.addEventListener('resize', report)
+    return () => window.removeEventListener('resize', report)
   }, [onPositionReady])
 
   // Trigger drop animation
@@ -43,14 +38,15 @@ export default function SlothCharacter({ triggerThrow, onPositionReady }: Props)
     <div 
       ref={containerRef}
       style={{
-        position: 'absolute',
-        bottom: '100%', // Sit exactly on the top edge of the container
-        right: '25%', // Move it a bit to the right center
-        width: 160,
-        height: 100,
-        zIndex: 100,
-        transform: animating ? 'translateY(2px)' : 'translateY(0)',
+        position: 'fixed',
+        /* topbar (60px) + settings bar (52px) = 112px; shift up so sloth straddles the border */
+        top: 95,
+        left: '50%',
+        transform: `translateX(-50%) ${animating ? 'translateY(3px)' : 'translateY(0)'}`,
         transition: 'transform 0.1s ease',
+        width: 110,
+        height: 80,
+        zIndex: 200,
         pointerEvents: 'none',
       }}
     >
@@ -58,19 +54,18 @@ export default function SlothCharacter({ triggerThrow, onPositionReady }: Props)
         style={{
           width: '100%', 
           height: '100%', 
-          background: 'var(--paper-darker)', 
-          border: '2px dashed var(--ink-faint)', 
-          borderRadius: 8,
           display: 'flex',
-          alignItems: 'center',
+          alignItems: 'flex-end',
           justifyContent: 'center',
-          color: 'var(--ink-faint)',
-          fontSize: 12,
-          fontWeight: 700,
-          textAlign: 'center',
+          position: 'relative',
         }}
       >
-        SLOTH<br/>IMAGE<br/>HERE
+        <Image
+          src="/sloth.png"
+          alt="Sloth Mascot"
+          fill
+          style={{ objectFit: 'contain', objectPosition: 'bottom center' }}
+        />
       </div>
     </div>
   )
