@@ -35,6 +35,7 @@ export default async function LandingPage() {
             alt="Sloth Mascot"
             width={52}
             height={52}
+            priority
             style={{ objectFit: "contain" }}
           />
           <div
@@ -103,14 +104,14 @@ export default async function LandingPage() {
               className="font-headline"
               style={{ fontSize: 72, marginBottom: 12 }}
             >
-              GET REWARDED TO TYPE ADS.
+              YOU TYPE ANYWAY. WHY NOT GET REWARDED ON THE SIDE.
             </h1>
             <h2
               className="font-subheadline"
               style={{ fontSize: 32, marginBottom: 32 }}
             >
-              The internet's first typing platform where every keystroke earns
-              you rewards.
+              You already spend time typing randomly to test your speed. You are
+              pretty fast. Why not get a little reward for it.
             </h2>
             <hr
               style={{
@@ -133,22 +134,19 @@ export default async function LandingPage() {
                   fontFamily: "var(--font-playfair)",
                 }}
               >
-                T
+                P
               </span>
-              he digital attention economy is broken. You see thousands of ads
-              daily, yet you earn nothing for your time. Brands spend billions,
-              yet have no proof you ever read their copy. TypeAds solves both
-              problems at once by transforming passive scrolling into an active,
-              rewarded task.
+              eople practice typing every day. Mostly just to click clack on
+              their keyboards or procrastinate on doing real work. We figured
+              what if that exact same habit gave you a little bonus?
               <br />
               <br />
-              Every word you type on this platform is a real advertisement. As
-              you type, the ad creative progressively reveals itself. You earn
-              points for your precision and speed, and brands get guaranteed,
-              focused engagement.
+              On TypeAds, every word you type adds points to your balance.
+              Points turn into gift cards. This isn't a job. It is just your
+              normal typing habit, but now you get rewarded for it.
             </div>
             <div className="label-sm" style={{ marginTop: 32 }}>
-              BY THE TYPEADS TEAM · 2025
+              — The TypeAds Team, completely normal people
             </div>
           </div>
 
@@ -175,10 +173,11 @@ export default async function LandingPage() {
               }}
             >
               {[
-                "Brand submits ad copy",
-                "You type it word by word",
-                "The ad image reveals as you go",
-                "Points land in your wallet",
+                "Pick a piece of text from the queue",
+                "Type it out, word by word",
+                "An image slowly reveals as you go",
+                "Points drop into your balance",
+                "Get enough points, get rewarded",
               ].map((step, i) => (
                 <div key={i} style={{ display: "flex", gap: 12 }}>
                   <span
@@ -217,7 +216,7 @@ export default async function LandingPage() {
               className="font-headline"
               style={{ fontSize: 42, marginBottom: 16, textAlign: "center" }}
             >
-              Gamify Your Typing Speed
+              SAME HABIT. SMALL REWARD.
             </h2>
             <div
               className="font-body"
@@ -228,13 +227,11 @@ export default async function LandingPage() {
                 lineHeight: 1.8,
               }}
             >
-              Finally, a typing test that rewards your skill. Whether you're
-              practicing your WPM or just looking for a productive way to kill
-              time, TypeAds turns your spare minutes into real rewards. Each
-              advertisement takes roughly 30 to 60 seconds to complete. Perfect
-              accuracy and high speeds yield bonus multipliers. Once you hit the
-              500 point threshold, redeem instantly for gift cards valid at
-              major retailers.
+              You were going to open a typing site today anyway. You were going
+              to sit there and type random quotes. TypeAds just makes that
+              session give you a little back. Each text takes under a minute.
+              Each one adds to your balance. No pressure, no daily targets. Just
+              type when you feel like it. Get rewarded when you do.
             </div>
             <div style={{ textAlign: "center" }}>
               <Link
@@ -291,7 +288,7 @@ export default async function LandingPage() {
                       marginBottom: 8,
                     }}
                   >
-                    CLIENT: FAIRGIGS.APP
+                    CLIENT: SOMEBODY WITH MONEY
                   </p>
                   <p
                     style={{
@@ -313,19 +310,15 @@ export default async function LandingPage() {
                 className="font-headline"
                 style={{ fontSize: 42, marginBottom: 16 }}
               >
-                Guaranteed Attention.
+                PEOPLE WHO TYPE YOUR AD HAVE READ YOUR AD.
               </h2>
               <div
                 className="font-body"
                 style={{ textAlign: "justify", fontSize: 22, lineHeight: 1.8 }}
               >
-                Stop paying for impressions that no one looks at. In traditional
-                digital advertising, a user scrolls past your banner in
-                milliseconds. On TypeAds, the user is forced to read, process,
-                and physically retype your entire ad copy word for word in order
-                to earn their reward. It is the highest fidelity engagement
-                model on the internet today. You pay exclusively for guaranteed
-                human attention.
+                No skipping. No scrolling past in half a second. The person has
+                typed every single word you wrote because they want their
+                reward. That is the most genuine read your copy will ever get.
               </div>
             </div>
           </div>
@@ -365,15 +358,15 @@ export default async function LandingPage() {
               lineHeight: 1.4,
             }}
           >
-            It feels like I'm doing real work. I'm reading the copy, I'm
-            understanding the product, and I'm earning rewards for it. It beats
-            filling out surveys any day.
+            I used to type out random paragraphs in name of tests just to avoid
+            doing my actual job. Now I type out marketing copy for digital
+            points to avoid doing my actual job. It's called personal growth.
           </div>
           <div
             className="label-sm"
             style={{ marginTop: 24, color: "var(--ink)" }}
           >
-            — fake marketing manager , typeads team...
+            :- just pretending to market & justify ts lol ...
           </div>
           <span
             style={{
@@ -428,7 +421,7 @@ export default async function LandingPage() {
                 letterSpacing: "0.1em",
               }}
             >
-              TYPEADS.FAIRGIGS.APP
+              A TYPING PLATFORM THAT GIVES BACK
             </div>
           </div>
           <div style={{ display: "flex", gap: 24, justifyContent: "center" }}>
@@ -457,7 +450,7 @@ export default async function LandingPage() {
               letterSpacing: "0.15em",
             }}
           >
-            A FAIRGIGS PRODUCT
+            A COMPLETELY NORMAL TYPING SITE
             <br />
             <span
               style={{ opacity: 0.5, marginTop: 4, display: "inline-block" }}

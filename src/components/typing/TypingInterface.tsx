@@ -32,7 +32,7 @@ interface Props {
    Constants
 ───────────────────────────────────────────────────────────── */
 // How many words to keep visible ahead of the active word
-const BASE_LOOKAHEAD = 1;
+const BASE_LOOKAHEAD = 3;
 
 /* ─────────────────────────────────────────────────────────────
    Component
@@ -116,7 +116,7 @@ export default function TypingInterface({ campaign, userId }: Props) {
     setWordPool(wordList);
 
     // Full reset — start with only the first window of words visible
-    const initialCount = 1;
+    const initialCount = 3;
     const initialWords = wordList.slice(0, initialCount);
     poolIndexRef.current = initialCount;
 
@@ -156,11 +156,8 @@ export default function TypingInterface({ campaign, userId }: Props) {
   useEffect(() => {
     if (!started) return;
 
-    // Lookahead scales with wpm: faster = more words pre-loaded
-    const lookahead = Math.max(
-      BASE_LOOKAHEAD,
-      Math.floor(wpm / 15) + BASE_LOOKAHEAD,
-    );
+    // Lookahead is strictly fixed to 3 words ahead to prevent the sloth from running out of frame
+    const lookahead = BASE_LOOKAHEAD;
 
     // How many words ahead of active word are currently in the visible list?
     const wordsAhead = visibleWords.length - activeWordIdx;
@@ -290,9 +287,9 @@ export default function TypingInterface({ campaign, userId }: Props) {
       setCompleted(true);
       setSubmitting(true);
 
-      const duration =
-        finalSecs ?? Math.round((Date.now() - startTimeRef.current) / 1000);
-      const elapsedMin = duration / 60;
+      const rawSecs = (Date.now() - startTimeRef.current) / 1000;
+      const duration = finalSecs ?? Math.max(0.1, rawSecs);
+      const elapsedMin = Math.max(0.001, duration / 60);
       const finalWpm =
         elapsedMin > 0
           ? Math.round(correctCharsRef.current / 5 / elapsedMin)
@@ -381,6 +378,8 @@ export default function TypingInterface({ campaign, userId }: Props) {
       lastKeystrokeTimeRef.current = now;
 
       if (!started) {
+        // Prevent Ghost Starting: If the very first key is Space, ignore it entirely
+        if (e.key === " ") return;
         setStarted(true);
         startTimeRef.current = now;
       }
@@ -406,6 +405,12 @@ export default function TypingInterface({ campaign, userId }: Props) {
       /* ── Space (Advance Word) ── */
       if (e.key === " ") {
         e.preventDefault();
+
+        // Only allow moving to the next word if the current word has been fully typed
+        if (charIdx < currentWord.length) {
+          return;
+        }
+
         const nextWi = activeWordIdx + 1;
 
         // Track total words typed against pool
@@ -415,11 +420,8 @@ export default function TypingInterface({ campaign, userId }: Props) {
         setActiveWordIdx(nextWi);
         setCharIdx(0);
 
-        // Non-timed: complete when all campaign words are typed
-        if (
-          !timeLimitRef.current &&
-          totalTyped >= campaignWordCountRef.current
-        ) {
+        // Complete when all campaign words are typed, regardless of timed or non-timed mode
+        if (totalTyped >= campaignWordCountRef.current) {
           setCompleted(true);
           const secs = (now - startTimeRef.current) / 1000;
           handleComplete(
@@ -696,7 +698,7 @@ export default function TypingInterface({ campaign, userId }: Props) {
                   : wpm <= 80
                     ? "now we talking bud ..."
                     : wpm <= 150
-                      ? "daem dude you are making me run fast, I cant handle ts ! .."
+                      ? "daem dude you are making me throw fast, I cant handle ts ! .."
                       : "my team hasn't even told me how to tease you at this speed"}
               </div>
             )}
@@ -705,6 +707,7 @@ export default function TypingInterface({ campaign, userId }: Props) {
               alt="Sloth"
               width={100}
               height={100}
+              priority
               style={{
                 objectFit: "contain",
                 filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.15))",
@@ -781,6 +784,9 @@ export default function TypingInterface({ campaign, userId }: Props) {
 
         {/* ── Revealed Ad Text ── */}
         <div style={{ padding: "40px 20vw", maxWidth: 800 }}>
+          <div className="label-sm" style={{ marginBottom: 12, color: "var(--ink)" }}>
+            REVEALED AD TEXT
+          </div>
           <div
             className="font-body"
             style={{
@@ -800,14 +806,17 @@ export default function TypingInterface({ campaign, userId }: Props) {
 
         {/* ── Start hint ── */}
         {!started && !completed && !discarded && (
-          <div style={{ 
-            position: 'absolute',
-            left: '50%',
-            bottom: '20%',
-            transform: 'translateX(-50%)',
-            color: "var(--ink)",
-            textAlign: 'center'
-          }} className="label-sm">
+          <div
+            style={{
+              position: "absolute",
+              left: "50%",
+              bottom: "20%",
+              transform: "translateX(-50%)",
+              color: "var(--ink)",
+              textAlign: "center",
+            }}
+            className="label-sm"
+          >
             START TYPING TO BEGIN
           </div>
         )}
