@@ -403,6 +403,13 @@ body {
   display: inline-flex;
   flex-shrink: 0;
   transition: opacity 0.25s ease;
+  animation: throwWord 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes throwWord {
+  0% { transform: translateY(-40px) scale(0.6) rotate(-5deg); opacity: 0; }
+  60% { transform: translateY(5px) scale(1.02) rotate(2deg); opacity: 1; }
+  100% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
 }
 .wl-word.wl-active {
   border-bottom: 3px solid var(--stamp-navy);
@@ -457,12 +464,51 @@ body {
 /* Sloth runner — absolute, rides above the top border of the lane */
 .sloth-runner {
   position: absolute;
-  top: -72px;           /* sits on the top border of the lane */
+  top: -95px;           /* sits on the top border of the lane */
   transform: translateX(-50%);
   z-index: 60;
   pointer-events: none;
   transition: left 0.15s ease-out;
   transform-origin: bottom center;
+}
+
+.sloth-thought-bubble {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 12px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  padding: 8px 14px;
+  border-radius: 16px;
+  font-family: var(--font-courier), monospace;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  pointer-events: none;
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.1);
+  z-index: 65;
+}
+
+.sloth-thought-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 8px 8px 0;
+  border-style: solid;
+  border-color: var(--ink) transparent transparent transparent;
+  display: block;
+  width: 0;
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: translate(-50%, 10px) scale(0.8); }
+  to { opacity: 1; transform: translate(-50%, 0) scale(1); }
 }
 
 /* Waiting message */
