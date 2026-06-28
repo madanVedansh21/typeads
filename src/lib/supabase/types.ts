@@ -45,6 +45,7 @@ export interface Database {
           updated_at?: string
         }
         Update: Partial<Database['public']['Tables']['profiles']['Insert']>
+        Relationships: []
       }
       campaigns: {
         Row: {
@@ -68,6 +69,15 @@ export interface Database {
           updated_at?: string
         }
         Update: Partial<Database['public']['Tables']['campaigns']['Insert']>
+        Relationships: [
+          {
+            foreignKeyName: "campaigns_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       typing_sessions: {
         Row: {
@@ -96,6 +106,22 @@ export interface Database {
           created_at?: string
         }
         Update: Partial<Database['public']['Tables']['typing_sessions']['Insert']>
+        Relationships: [
+          {
+            foreignKeyName: "typing_sessions_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "typing_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       redemption_requests: {
         Row: {
@@ -114,6 +140,15 @@ export interface Database {
           requested_at?: string
         }
         Update: Partial<Database['public']['Tables']['redemption_requests']['Insert']>
+        Relationships: [
+          {
+            foreignKeyName: "redemption_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       points_transactions: {
         Row: {
@@ -130,6 +165,15 @@ export interface Database {
           created_at?: string
         }
         Update: Partial<Database['public']['Tables']['points_transactions']['Insert']>
+        Relationships: [
+          {
+            foreignKeyName: "points_transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       gift_card_options: {
         Row: {
@@ -142,6 +186,7 @@ export interface Database {
         }
         Insert: Omit<Database['public']['Tables']['gift_card_options']['Row'], 'id'> & { id?: string }
         Update: Partial<Database['public']['Tables']['gift_card_options']['Insert']>
+        Relationships: []
       }
     }
     Views: {

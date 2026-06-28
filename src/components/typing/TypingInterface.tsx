@@ -211,17 +211,12 @@ export default function TypingInterface({ campaign, userId }: Props) {
 
       // Sloth exact position: sits above the LAST rendered word!
       const allWords = trackRef.current.querySelectorAll(".wl-word");
-      const lastWordNode = allWords[allWords.length - 1];
-      if (lastWordNode) {
-        const moveThisFrame = next - current;
-        const lastWordRect = lastWordNode.getBoundingClientRect();
-        // we add moveThisFrame because getBoundingClientRect is from the previous frame's layout
-        // Add 120px offset to keep the sloth running AHEAD of the last rendered word
-        const newLastWordCenter =
-          lastWordRect.left + lastWordRect.width / 2 + moveThisFrame + 120;
-        setSlothX(((newLastWordCenter - laneRect.left) / laneRect.width) * 100);
+      if (poolIndexRef.current >= wordPool.length) {
+        // The sloth has delivered all words. Let it sprint off the right side of the screen!
+        setSlothX((prev) => Math.min(prev + (wpm > 0 ? 1.5 : 0), 150));
       } else {
-        setSlothX(20);
+        // Lock the sloth in place (center screen) so it NEVER moves or bounces while the user is typing!
+        setSlothX(50);
       }
 
       scrollRafRef.current = requestAnimationFrame(animateScroll);
@@ -284,6 +279,7 @@ export default function TypingInterface({ campaign, userId }: Props) {
       finalAccuracy: number,
       finalSecs: number | null,
     ) => {
+      if (submitting || completed) return; // Prevent double-submit race conditions
       setCompleted(true);
       setSubmitting(true);
 
@@ -338,6 +334,7 @@ export default function TypingInterface({ campaign, userId }: Props) {
 
   useEffect(() => {
     handleCompleteRef.current = () => {
+      if (completed || submitting) return;
       const secs = Math.round((Date.now() - startTimeRef.current) / 1000);
       handleComplete(
         totalKeystrokesRef.current,
@@ -405,11 +402,6 @@ export default function TypingInterface({ campaign, userId }: Props) {
       /* ── Space (Advance Word) ── */
       if (e.key === " ") {
         e.preventDefault();
-
-        // Only allow moving to the next word if the current word has been fully typed
-        if (charIdx < currentWord.length) {
-          return;
-        }
 
         const nextWi = activeWordIdx + 1;
 
@@ -516,8 +508,11 @@ export default function TypingInterface({ campaign, userId }: Props) {
       >
         {/* Punctuation */}
         <button
+          disabled={started && !completed}
           onClick={() => setUsePunctuation((p) => !p)}
           style={{
+            opacity: started && !completed ? 0.3 : 1,
+            pointerEvents: started && !completed ? "none" : "auto",
             background: "none",
             border: "none",
             display: "flex",
@@ -538,8 +533,11 @@ export default function TypingInterface({ campaign, userId }: Props) {
 
         {/* Case */}
         <button
+          disabled={started && !completed}
           onClick={() => setUseLowercase((l) => !l)}
           style={{
+            opacity: started && !completed ? 0.3 : 1,
+            pointerEvents: started && !completed ? "none" : "auto",
             background: "none",
             border: "none",
             display: "flex",
@@ -566,8 +564,11 @@ export default function TypingInterface({ campaign, userId }: Props) {
         {(["jumbled", "exact"] as const).map((m) => (
           <button
             key={m}
+            disabled={started && !completed}
             onClick={() => setMode(m)}
             style={{
+              opacity: started && !completed ? 0.3 : 1,
+              pointerEvents: started && !completed ? "none" : "auto",
               background: "none",
               border: "none",
               cursor: "pointer",
@@ -596,8 +597,11 @@ export default function TypingInterface({ campaign, userId }: Props) {
         {[15, 30, 60].map((val) => (
           <button
             key={val}
+            disabled={started && !completed}
             onClick={() => setTimeLimit((tl) => (tl === val ? null : val))}
             style={{
+              opacity: started && !completed ? 0.3 : 1,
+              pointerEvents: started && !completed ? "none" : "auto",
               background: "none",
               border: "none",
               cursor: "pointer",
@@ -629,6 +633,7 @@ export default function TypingInterface({ campaign, userId }: Props) {
           height: "100%",
           position: "relative",
           flexDirection: "column",
+          paddingTop: 52, // Clear the fixed settings sub-bar
         }}
       >
         {/* ── Stats bar ── */}
@@ -783,9 +788,14 @@ export default function TypingInterface({ campaign, userId }: Props) {
         </div>
 
         {/* ── Revealed Ad Text ── */}
-        <div style={{ padding: "40px 20vw", maxWidth: 800 }}>
+        <div style={{ 
+          padding: "0 20vw", 
+          maxWidth: 800, 
+          marginTop: "auto", 
+          marginBottom: 60 
+        }}>
           <div className="label-sm" style={{ marginBottom: 12, color: "var(--ink)" }}>
-            REVEALED AD TEXT
+            AD COPY
           </div>
           <div
             className="font-body"
@@ -809,11 +819,11 @@ export default function TypingInterface({ campaign, userId }: Props) {
           <div
             style={{
               position: "absolute",
-              left: "50%",
+              left: "20vw",
               bottom: "20%",
-              transform: "translateX(-50%)",
               color: "var(--ink)",
-              textAlign: "center",
+              fontFamily: "var(--font-courier)",
+              fontWeight: 700,
             }}
             className="label-sm"
           >

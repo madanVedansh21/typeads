@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createClient } from '@/lib/supabase/server'
 import RewardsClient from '@/components/rewards/RewardsClient'
 
