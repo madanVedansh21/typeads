@@ -102,61 +102,58 @@ export default async function ProfilePage({ params }: Props) {
         ))}
       </div>
 
-      {/* Charts + History */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: 32 }}>
-        {/* WPM / Accuracy charts */}
-        <div className="editorial-box" style={{ padding: 32 }}>
-          <div className="label-sm" style={{ marginBottom: 24, borderBottom: '1px solid var(--paper-darker)', paddingBottom: 8 }}>PERFORMANCE HISTORY</div>
-          {sessionChartData.length > 1 ? (
-            <ProfileCharts data={sessionChartData} />
-          ) : (
-            <div style={{ padding: 60, textAlign: 'center' }}>
-              <p className="font-body" style={{ color: 'var(--ink-faint)', fontStyle: 'italic' }}>
-                Complete more ads to see your performance trends.
-              </p>
-            </div>
-          )}
-        </div>
+      {/* Charts */}
+      <div className="editorial-box" style={{ padding: 32, marginBottom: 32 }}>
+        <div className="label-sm" style={{ marginBottom: 24, borderBottom: '1px solid var(--paper-darker)', paddingBottom: 8 }}>PERFORMANCE HISTORY</div>
+        {sessionChartData.length > 1 ? (
+          <ProfileCharts data={sessionChartData} />
+        ) : (
+          <div style={{ padding: 60, textAlign: 'center' }}>
+            <p className="font-body" style={{ color: 'var(--ink-faint)', fontStyle: 'italic' }}>
+              Complete more ads to see your performance trends.
+            </p>
+          </div>
+        )}
+      </div>
 
-        {/* Recent sessions */}
-        <div className="editorial-box" style={{ padding: 0 }}>
-          <div className="box-label" style={{ padding: '16px 24px', margin: 0 }}>RECENT SESSIONS</div>
-          <div style={{ overflowY: 'auto', maxHeight: 400 }}>
-            {sessions?.length === 0 ? (
-              <div style={{ padding: 40, textAlign: 'center' }}>
-                <p className="font-body" style={{ color: 'var(--ink-faint)', fontStyle: 'italic' }}>No sessions yet.</p>
-              </div>
-            ) : (
-              sessions?.map(session => {
-                const campaign = session.campaigns as { brand_name: string } | null
-                return (
-                  <div key={session.id} style={{
-                    display: 'grid', gridTemplateColumns: '1fr 70px 70px',
-                    padding: '16px 24px',
-                    borderBottom: '1px solid var(--paper-darker)',
-                    alignItems: 'center',
-                  }}>
-                    <div>
-                      <div style={{ fontFamily: 'var(--font-playfair)', fontWeight: 700, fontSize: 16 }}>
-                        {campaign?.brand_name ?? 'UNKNOWN'}
-                      </div>
-                      <div style={{ fontSize: 11, color: 'var(--ink-faint)', marginTop: 4, fontFamily: 'var(--font-courier)' }}>
-                        {new Date(session.completed_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-                      </div>
+      {/* Recent sessions */}
+      <div className="editorial-box" style={{ padding: 0 }}>
+        <div className="box-label" style={{ padding: '16px 24px', margin: 0 }}>RECENT SESSIONS</div>
+        <div style={{ overflowY: 'auto', maxHeight: 400 }}>
+          {sessions?.length === 0 ? (
+            <div style={{ padding: 40, textAlign: 'center' }}>
+              <p className="font-body" style={{ color: 'var(--ink-faint)', fontStyle: 'italic' }}>No sessions yet.</p>
+            </div>
+          ) : (
+            sessions?.map(session => {
+              const campaign = session.campaigns as { brand_name: string } | null
+              return (
+                <div key={session.id} style={{
+                  display: 'grid', gridTemplateColumns: '1fr 70px 70px',
+                  padding: '16px 24px',
+                  borderBottom: '1px solid var(--paper-darker)',
+                  alignItems: 'center',
+                }}>
+                  <div>
+                    <div style={{ fontFamily: 'var(--font-playfair)', fontWeight: 700, fontSize: 16 }}>
+                      {campaign?.brand_name ?? 'UNKNOWN'}
                     </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontWeight: 700, fontSize: 16, fontFamily: 'var(--font-courier)' }}>{session.wpm}</div>
-                      <div className="label-sm" style={{ fontSize: 9 }}>WPM</div>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontWeight: 700, fontSize: 16, fontFamily: 'var(--font-courier)' }}>{session.accuracy}%</div>
-                      <div className="label-sm" style={{ fontSize: 9 }}>ACC</div>
+                    <div style={{ fontSize: 11, color: 'var(--ink-faint)', marginTop: 4, fontFamily: 'var(--font-courier)' }}>
+                      {new Date(session.completed_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
                     </div>
                   </div>
-                )
-              })
-            )}
-          </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontWeight: 700, fontSize: 16, fontFamily: 'var(--font-courier)' }}>{session.wpm}</div>
+                    <div className="label-sm" style={{ fontSize: 9 }}>WPM</div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontWeight: 700, fontSize: 16, fontFamily: 'var(--font-courier)' }}>{session.accuracy}%</div>
+                    <div className="label-sm" style={{ fontSize: 9 }}>ACC</div>
+                  </div>
+                </div>
+              )
+            })
+          )}
         </div>
       </div>
     </div>

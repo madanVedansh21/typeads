@@ -62,6 +62,7 @@ export default function TypingInterface({ campaign, userId }: Props) {
     Record<number, CharState[]>
   >({});
   const poolIndexRef = useRef(0); // how many from pool have been added to visibleWords
+  const [armTrigger, setArmTrigger] = useState(0);
 
   /* ── Session lifecycle ── */
   const [started, setStarted] = useState(false);
@@ -171,6 +172,7 @@ export default function TypingInterface({ campaign, userId }: Props) {
       if (toAdd.length > 0) {
         poolIndexRef.current += toAdd.length;
         setVisibleWords((prev) => [...prev, ...toAdd]);
+        setArmTrigger((prev) => prev + 1);
       }
     }
   }, [activeWordIdx, wpm, started, visibleWords.length, wordPool]);
@@ -215,8 +217,17 @@ export default function TypingInterface({ campaign, userId }: Props) {
         // The sloth has delivered all words. Let it sprint off the right side of the screen!
         setSlothX((prev) => Math.min(prev + (wpm > 0 ? 1.5 : 0), 150));
       } else {
-        // Lock the sloth in place (center screen) so it NEVER moves or bounces while the user is typing!
-        setSlothX(50);
+        // Track the last word so the sloth is always exactly above it when it spawns!
+        const lastWord = allWords[allWords.length - 1];
+        if (lastWord) {
+          const lastRect = lastWord.getBoundingClientRect();
+          const pct = ((lastRect.left + lastRect.width / 2) / window.innerWidth) * 100;
+          // Smooth the sloth movement to avoid jerky jumps when new words are added
+          setSlothX((prev) => {
+            const diff = pct - prev;
+            return prev + diff * 0.15;
+          });
+        }
       }
 
       scrollRafRef.current = requestAnimationFrame(animateScroll);
@@ -305,7 +316,7 @@ export default function TypingInterface({ campaign, userId }: Props) {
             accuracy_samples: accuracySamplesRef.current,
             total_keystrokes: finalTotal,
             correct_keystrokes: finalCorrect,
-            duration_seconds: duration,
+            duration_seconds: Math.round(duration),
             test_mode: mode,
             time_limit: timeLimitRef.current,
             use_punctuation: usePunctuation,
@@ -707,6 +718,16 @@ export default function TypingInterface({ campaign, userId }: Props) {
                       : "my team hasn't even told me how to tease you at this speed"}
               </div>
             )}
+            
+            <div className="sloth-arm-container">
+              {armTrigger > 0 && (
+                <div 
+                  key={armTrigger} 
+                  className="sloth-stretching-arm"
+                />
+              )}
+            </div>
+
             <Image
               src="/sloth.png"
               alt="Sloth"
@@ -720,6 +741,8 @@ export default function TypingInterface({ campaign, userId }: Props) {
                 transform: `rotate(${Math.min(wpm / 10, 12)}deg)`,
                 transformOrigin: "bottom center",
                 transition: "transform 0.4s ease",
+                position: "relative",
+                zIndex: 2,
               }}
             />
           </div>
