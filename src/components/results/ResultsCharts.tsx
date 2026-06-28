@@ -13,6 +13,7 @@ import {
 
 interface Sample {
   char_index: number
+  time_sec?: number
   accuracy: number
   wpm: number
 }
@@ -26,7 +27,7 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
     return (
       <div style={{ background: '#fff', border: '2px solid #000', padding: '8px 12px' }}>
         <p style={{ fontFamily: 'Arial', fontSize: 9, fontWeight: 700, color: '#888', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 4 }}>
-          CHAR {label}
+          {label}S
         </p>
         {payload.map((entry) => (
           <p key={entry.name} style={{ fontFamily: 'Arial Black', fontSize: 13, fontWeight: 900, color: entry.color }}>
@@ -40,11 +41,18 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
 }
 
 export default function ResultsCharts({ samples }: Props) {
-  const data = samples.map(s => ({
-    char: s.char_index,
-    ACCURACY: s.accuracy,
-    WPM: s.wpm,
-  }))
+  const data = samples.map(s => {
+    let t = s.time_sec;
+    if (t === undefined) {
+      // Fallback for older sessions: approximate time based on wpm and char_index
+      t = Math.round((s.char_index / 5) / Math.max(s.wpm, 1) * 60);
+    }
+    return {
+      time: t,
+      ACCURACY: s.accuracy,
+      WPM: s.wpm,
+    }
+  })
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, border: '3px solid #000' }}>
@@ -55,11 +63,11 @@ export default function ResultsCharts({ samples }: Props) {
           <LineChart data={data} margin={{ top: 4, right: 12, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
             <XAxis
-              dataKey="char"
+              dataKey="time"
               tick={{ fontFamily: 'Arial', fontSize: 9, fill: '#888' }}
               tickLine={false}
               axisLine={{ stroke: '#000' }}
-              label={{ value: 'Character', position: 'insideBottom', offset: -2, fontFamily: 'Arial', fontSize: 9, fill: '#888' }}
+              label={{ value: 'Time (s)', position: 'insideBottom', offset: -2, fontFamily: 'Arial', fontSize: 9, fill: '#888' }}
             />
             <YAxis
               domain={[0, 100]}
@@ -88,11 +96,11 @@ export default function ResultsCharts({ samples }: Props) {
           <LineChart data={data} margin={{ top: 4, right: 12, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
             <XAxis
-              dataKey="char"
+              dataKey="time"
               tick={{ fontFamily: 'Arial', fontSize: 9, fill: '#888' }}
               tickLine={false}
               axisLine={{ stroke: '#000' }}
-              label={{ value: 'Character', position: 'insideBottom', offset: -2, fontFamily: 'Arial', fontSize: 9, fill: '#888' }}
+              label={{ value: 'Time (s)', position: 'insideBottom', offset: -2, fontFamily: 'Arial', fontSize: 9, fill: '#888' }}
             />
             <YAxis
               tick={{ fontFamily: 'Arial', fontSize: 9, fill: '#888' }}

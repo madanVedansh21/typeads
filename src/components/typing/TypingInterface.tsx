@@ -45,7 +45,7 @@ export default function TypingInterface({ campaign, userId }: Props) {
   const [usePunctuation, setUsePunctuation] = useState(true);
   const [useLowercase, setUseLowercase] = useState(false);
   const [mode, setMode] = useState<"jumbled" | "exact">("jumbled");
-  const [timeLimit, setTimeLimit] = useState<number | null>(null);
+  const [timeLimit, setTimeLimit] = useState<number | null>(30);
 
   /* ── Full word pool (derived from settings) ── */
   const [wordPool, setWordPool] = useState<string[]>([]);
@@ -85,6 +85,7 @@ export default function TypingInterface({ campaign, userId }: Props) {
   const lastKeystrokeTimeRef = useRef(0);
   const startTimeRef = useRef(0);
   const sessionIdRef = useRef(uuidv4());
+  const consecutiveErrorsRef = useRef(0);
 
   /* ── Sloth X position (0–100%) — always 50% (center) ── */
   const [slothX, setSlothX] = useState(50);
@@ -139,6 +140,7 @@ export default function TypingInterface({ campaign, userId }: Props) {
     lastKeystrokeTimeRef.current = 0;
     startTimeRef.current = 0;
     sessionIdRef.current = uuidv4();
+    consecutiveErrorsRef.current = 0;
     // Reset scroll
     scrollXRef.current = 0;
     if (trackRef.current) trackRef.current.style.transform = "translateX(0px)";
@@ -186,6 +188,11 @@ export default function TypingInterface({ campaign, userId }: Props) {
   const scrollRafRef = useRef(0);
 
   useEffect(() => {
+    if (completed || discarded) {
+      setSlothX(50);
+      return;
+    }
+
     const animateScroll = () => {
       if (!activeWordRef.current || !laneRef.current || !trackRef.current)
         return;
@@ -237,7 +244,7 @@ export default function TypingInterface({ campaign, userId }: Props) {
     scrollRafRef.current = requestAnimationFrame(animateScroll);
     return () => cancelAnimationFrame(scrollRafRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeWordIdx, wpm, visibleWords.length]);
+  }, [activeWordIdx, wpm, visibleWords.length, completed, discarded]);
 
   /* ═══════════════════════════════════════════════════════════
      FOCUS INPUT
@@ -414,6 +421,9 @@ export default function TypingInterface({ campaign, userId }: Props) {
       if (e.key === " ") {
         e.preventDefault();
 
+        // Anti-skip: Prevent advancing the word if no characters have been typed yet
+        if (charIdx === 0) return;
+
         const nextWi = activeWordIdx + 1;
 
         // Track total words typed against pool
@@ -450,7 +460,19 @@ export default function TypingInterface({ campaign, userId }: Props) {
       const isCorrect = e.key === currentWord[charIdx];
       const newTotal = totalKeystrokes + 1;
       const newCorrect = correctKeystrokes + (isCorrect ? 1 : 0);
-      if (isCorrect) correctCharsRef.current += 1;
+      
+      if (isCorrect) {
+        correctCharsRef.current += 1;
+        consecutiveErrorsRef.current = 0;
+      } else {
+        consecutiveErrorsRef.current += 1;
+        // Anti-mash detection: Discard session if typing complete gibberish
+        if (consecutiveErrorsRef.current > 15) {
+          setDiscarded(true);
+          setCompleted(true);
+          return;
+        }
+      }
 
       setTotalKeystrokes(newTotal);
       setCorrectKeystrokes(newCorrect);
@@ -462,6 +484,7 @@ export default function TypingInterface({ campaign, userId }: Props) {
         const min = (now - startTimeRef.current) / 60000;
         accuracySamplesRef.current.push({
           char_index: newTotal,
+          time_sec: Math.round((now - startTimeRef.current) / 1000),
           accuracy: newAcc,
           wpm: min > 0 ? Math.round(correctCharsRef.current / 5 / min) : 0,
         });
@@ -553,18 +576,16 @@ export default function TypingInterface({ campaign, userId }: Props) {
             border: "none",
             display: "flex",
             alignItems: "center",
-            gap: 7,
+            gap: 4,
             cursor: "pointer",
             fontFamily: "var(--font-courier)",
-            fontSize: 16,
+            fontSize: 18,
             fontWeight: 700,
-            color: useLowercase ? "var(--ink)" : "var(--ink-faint)",
             letterSpacing: "0.04em",
-            transition: "color 0.15s",
           }}
         >
-          <span style={{ color: "var(--stamp-navy)", fontSize: 18 }}>Aa</span>{" "}
-          case
+          <span style={{ color: !useLowercase ? "var(--ink)" : "var(--ink-faint)", transition: "color 0.15s" }}>A</span>
+          <span style={{ color: useLowercase ? "var(--ink)" : "var(--ink-faint)", transition: "color 0.15s" }}>a</span>
         </button>
 
         <div
@@ -681,7 +702,6 @@ export default function TypingInterface({ campaign, userId }: Props) {
               {timeLimit && (
                 <span
                   style={{
-                    marginLeft: "auto",
                     color:
                       timeLimit && timeLimit - elapsedSeconds <= 5
                         ? "var(--stamp-red)"
@@ -689,6 +709,7 @@ export default function TypingInterface({ campaign, userId }: Props) {
                     fontSize: 24,
                     fontWeight: 900,
                     transition: "color 0.3s",
+                    marginLeft: 16,
                   }}
                 >
                   {formatTime(elapsedSeconds)}
@@ -812,13 +833,16 @@ export default function TypingInterface({ campaign, userId }: Props) {
 
         {/* ── Revealed Ad Text ── */}
         <div style={{ 
-          padding: "0 20vw", 
-          maxWidth: 800, 
+          padding: "0 48px", 
+          maxWidth: "calc(100% - 400px)", 
           marginTop: "auto", 
           marginBottom: 60 
         }}>
-          <div className="label-sm" style={{ marginBottom: 12, color: "var(--ink)" }}>
-            AD COPY
+          <div className="label-sm" style={{ marginBottom: 12, color: "var(--ink)", display: "flex", gap: 24, alignItems: "center" }}>
+            <span>AD COPY</span>
+            {!started && !completed && !discarded && (
+              <span style={{ color: "var(--stamp-navy)" }}>START TYPING TO BEGIN</span>
+            )}
           </div>
           <div
             className="font-body"
@@ -836,23 +860,6 @@ export default function TypingInterface({ campaign, userId }: Props) {
             </span>
           </div>
         </div>
-
-        {/* ── Start hint ── */}
-        {!started && !completed && !discarded && (
-          <div
-            style={{
-              position: "absolute",
-              left: "20vw",
-              bottom: "20%",
-              color: "var(--ink)",
-              fontFamily: "var(--font-courier)",
-              fontWeight: 700,
-            }}
-            className="label-sm"
-          >
-            START TYPING TO BEGIN
-          </div>
-        )}
 
         {/* ── Ad Image ── */}
         <div
