@@ -62,40 +62,42 @@ export default function RewardsClient({ giftCards, pointsBalance, eligible, elig
   return (
     <div>
       {!eligible && eligibilityReason && (
-        <div style={{ border: '3px solid #000', background: '#eee', marginBottom: 24, padding: '12px 16px' }}>
-          <span style={{ fontFamily: 'Arial', fontSize: 12, fontWeight: 700 }}>
-            ⚠ {eligibilityReason}
+        <div style={{ border: '1px solid var(--paper-darker)', background: 'var(--paper-dark)', marginBottom: 24, padding: '12px 16px' }}>
+          <span className="font-body" style={{ fontStyle: 'italic', color: 'var(--ink)' }}>
+            Note: {eligibilityReason}
           </span>
         </div>
       )}
 
       {success && (
-        <div style={{ border: '3px solid #000', background: '#000', color: '#fff', marginBottom: 24, padding: '12px 16px', fontFamily: 'Arial', fontSize: 12, fontWeight: 700 }}>
-          ✓ Redemption request submitted! Your gift card will appear in &ldquo;My Redemptions&rdquo; once fulfilled.
+        <div style={{ border: '1px solid var(--ink)', background: 'var(--paper)', color: 'var(--ink)', marginBottom: 24, padding: '12px 16px' }}>
+          <span className="font-body" style={{ fontWeight: 700 }}>
+            Redemption request submitted. Your gift card will appear in the ledger below once fulfilled.
+          </span>
         </div>
       )}
 
       {error && (
-        <div style={{ border: '3px solid #000', background: 'var(--red-error)', color: '#fff', marginBottom: 24, padding: '12px 16px', fontFamily: 'Arial', fontSize: 12, fontWeight: 700 }}>
-          {error}
+        <div style={{ border: '1px solid var(--stamp-red)', background: 'var(--paper)', color: 'var(--stamp-red)', marginBottom: 24, padding: '12px 16px' }}>
+          <span className="font-body" style={{ fontWeight: 700 }}>{error}</span>
         </div>
       )}
 
       {/* Gift card options */}
-      <div className="section-box">
-        <div className="section-header">SELECT GIFT CARD</div>
+      <div className="editorial-box" style={{ padding: 0 }}>
+        <div className="box-label" style={{ padding: '16px 24px', margin: 0, borderBottom: '1px solid var(--paper-darker)' }}>SELECT GIFT CARD</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 0, padding: 24 }}>
           {giftCards.map((card, i) => (
             <div key={card.id} style={{
-              border: '3px solid #000',
-              marginRight: -3, marginBottom: -3,
+              border: '1px solid var(--ink)',
+              marginRight: -1, marginBottom: -1,
             }}>
-              <div style={{ background: '#000', padding: '10px 16px' }}>
-                <span style={{ fontFamily: 'Arial Black', fontSize: 13, fontWeight: 900, color: '#fff', letterSpacing: '0.08em' }}>
-                  {card.name.toUpperCase()}
+              <div style={{ background: 'var(--ink)', padding: '10px 16px' }}>
+                <span style={{ fontFamily: 'var(--font-libre)', fontSize: 13, fontWeight: 700, color: 'var(--white)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                  {card.name}
                 </span>
               </div>
-              <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 8, background: '#fff' }}>
+              <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 8, background: 'var(--paper)' }}>
                 {card.denominations.map(denom => {
                   const cost = pointsCost(denom)
                   const canAfford = pointsBalance >= cost
@@ -111,19 +113,19 @@ export default function RewardsClient({ giftCards, pointsBalance, eligible, elig
                       disabled={!eligible || !canAfford}
                       style={{
                         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                        border: isSelected ? '3px solid #000' : '2px solid #ddd',
-                        background: isSelected ? '#000' : '#fff',
-                        color: isSelected ? '#fff' : canAfford ? '#000' : '#bbb',
+                        border: isSelected ? '1px solid var(--ink)' : '1px solid var(--paper-darker)',
+                        background: isSelected ? 'var(--paper-dark)' : 'var(--paper)',
+                        color: isSelected ? 'var(--ink)' : canAfford ? 'var(--ink)' : 'var(--ink-faint)',
                         padding: '8px 12px',
                         cursor: eligible && canAfford ? 'pointer' : 'not-allowed',
                         transition: 'all 0.1s',
-                        fontFamily: 'Arial Black',
+                        fontFamily: 'var(--font-libre)',
                         fontSize: 12,
-                        fontWeight: 900,
+                        fontWeight: isSelected ? 700 : 400,
                       }}
                     >
-                      <span>₹{denom}</span>
-                      <span style={{ fontFamily: 'Courier New', fontSize: 11 }}>{cost.toLocaleString()} pts</span>
+                      <span style={{ fontFamily: 'var(--font-im-fell)', fontSize: 16 }}>₹{denom}</span>
+                      <span style={{ fontFamily: 'var(--font-courier)', fontSize: 11 }}>{cost.toLocaleString()} pts</span>
                     </button>
                   )
                 })}
@@ -136,17 +138,18 @@ export default function RewardsClient({ giftCards, pointsBalance, eligible, elig
       {/* Confirm redemption */}
       {selected && (
         <div style={{
-          position: 'sticky', bottom: 0, borderTop: '3px solid #000',
-          background: '#fff', padding: '16px 24px',
+          position: 'sticky', bottom: 0, borderTop: '2px solid var(--ink)',
+          background: 'var(--paper)', padding: '16px 24px',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          borderLeft: '3px solid #000', borderRight: '3px solid #000'
+          borderLeft: '1px solid var(--ink)', borderRight: '1px solid var(--ink)', borderBottom: '1px solid var(--ink)',
+          marginTop: 24, zIndex: 10
         }}>
           <div>
-            <div className="label-sm">SELECTED</div>
-            <div style={{ fontFamily: 'Arial Black', fontSize: 16, fontWeight: 900, color: '#000' }}>
+            <div className="label-sm" style={{ marginBottom: 4 }}>SELECTED</div>
+            <div className="font-headline" style={{ fontSize: 20 }}>
               {selected.card.name} ₹{selected.denomination}
             </div>
-            <div style={{ fontFamily: 'Arial', fontSize: 12, color: 'var(--grey-mid)' }}>
+            <div style={{ fontFamily: 'var(--font-courier)', fontSize: 12, color: 'var(--ink-light)', marginTop: 4 }}>
               Cost: {pointsCost(selected.denomination).toLocaleString()} pts · Remaining: {(pointsBalance - pointsCost(selected.denomination)).toLocaleString()} pts
             </div>
           </div>

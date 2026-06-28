@@ -192,31 +192,40 @@ export default function TypingInterface({ campaign, userId }: Props) {
   const progress = totalChars > 0 ? currentIndex / totalChars : 0
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ display: 'flex', flex: 1, width: '100%', height: '100%', position: 'relative' }}>
       
-      {/* Typing canvas */}
-      <div 
-        className="typing-canvas" 
-        onClick={() => inputRef.current?.focus()}
-        style={{ opacity: started ? 1 : 0.4, transition: 'opacity 0.2s', padding: '0 24px', cursor: 'text' }}
-      >
-        {chars.map((char, i) => {
-          const status = typed[i] || (i === currentIndex ? 'cursor' : 'pending')
-          return (
-            <span
-              key={i}
-              className={`char char-${status === 'correct' ? 'correct' : status === 'error' ? 'error' : status === 'cursor' ? 'cursor' : 'pending'}`}
-            >
-              {char === ' ' && status === 'error' ? '·' : char === '\n' ? (
-                <>↵<br /></>
-              ) : char}
-            </span>
-          )
-        })}
+      {/* Typing text section */}
+      <div style={{ flex: 1, padding: '64px 48px', overflowY: 'auto', paddingRight: '400px' }}>
+        <div 
+          className="typing-canvas" 
+          onClick={() => inputRef.current?.focus()}
+          style={{ opacity: started ? 1 : 0.4, transition: 'opacity 0.2s', cursor: 'text' }}
+        >
+          {chars.map((char, i) => {
+            const status = typed[i] || (i === currentIndex ? 'cursor' : 'pending')
+            return (
+              <span
+                key={i}
+                className={`char char-${status === 'correct' ? 'correct' : status === 'error' ? 'error' : status === 'cursor' ? 'cursor' : 'pending'}`}
+              >
+                {char === ' ' && status === 'error' ? '·' : char === '\n' ? (
+                  <>↵<br /></>
+                ) : char}
+              </span>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Ad Image Placeholder */}
+      <div style={{ position: 'absolute', bottom: 48, right: 48, width: 320, height: 240, border: '2px dashed var(--paper-darker)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--paper-dark)' }}>
+        <div className="label-sm" style={{ color: 'var(--ink-faint)', textAlign: 'center', lineHeight: 1.5 }}>
+          AD IMAGE<br/>PLACEHOLDER
+        </div>
       </div>
 
       {!started && !completed && (
-        <div style={{ position: 'absolute', bottom: 100, color: 'var(--grey-mid)', fontFamily: 'Arial Black', fontSize: 12, letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+        <div style={{ position: 'absolute', bottom: 48, left: 48 }} className="label-sm">
           CLICK OR START TYPING TO BEGIN
         </div>
       )}
@@ -241,13 +250,13 @@ export default function TypingInterface({ campaign, userId }: Props) {
       {completed && (
         <div className="completion-overlay" style={{ 
           position: 'absolute', inset: 0, 
-          background: 'var(--bg)', 
+          background: 'var(--paper)', 
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 10 
         }}>
-          <div style={{ fontFamily: 'Arial Black', fontSize: 32, color: 'var(--black)', marginBottom: 24, textTransform: 'uppercase' }}>
-            {submitting ? 'SAVING RESULTS...' : 'REDIRECTING...'}
+          <div className="font-headline" style={{ fontSize: 32, marginBottom: 24, textTransform: 'uppercase' }}>
+            {submitting ? 'RECORDING SESSION...' : 'REDIRECTING...'}
           </div>
-          <div style={{ width: 48, height: 48, border: '6px solid var(--white)', borderTopColor: 'var(--black)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+          <div style={{ width: 48, height: 48, border: '2px solid var(--paper-darker)', borderTopColor: 'var(--ink)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
           <style dangerouslySetInnerHTML={{ __html: `@keyframes spin { to { transform: rotate(360deg); } }` }} />
         </div>
       )}

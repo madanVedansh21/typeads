@@ -46,17 +46,17 @@ export default function Topbar({ profile }: TopbarProps) {
 
       <div className="topbar-actions">
         <div className="topbar-points">
-          <span>PTS</span>
-          {profile?.points_balance?.toLocaleString() ?? '0'}
+          <span style={{ color: 'var(--ink-faint)' }}>BALANCE</span>
+          <span>{profile?.points_balance?.toLocaleString() ?? '0'} PTS</span>
         </div>
 
         {profile?.is_admin && (
-          <Link href="/admin" className="btn btn-sm btn-inverted" style={{ borderLeft: '3px solid #fff', height: '100%', borderTop: 'none', borderBottom: 'none', borderRight: '3px solid #fff' }}>
+          <Link href="/admin" className="btn btn-sm btn-inverted" style={{ border: 'none', borderLeft: '1px solid var(--paper-darker)', height: '100%' }}>
             ADMIN
           </Link>
         )}
 
-        <button onClick={handleLogout} className="btn btn-sm btn-inverted" style={{ border: 'none', height: '100%', padding: '0 24px' }}>
+        <button onClick={handleLogout} className="btn btn-sm" style={{ border: 'none', borderLeft: '1px solid var(--paper-darker)', height: '100%', padding: '0 24px' }}>
           LOGOUT
         </button>
       </div>

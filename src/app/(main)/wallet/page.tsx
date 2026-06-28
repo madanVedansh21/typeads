@@ -23,16 +23,20 @@ export default async function WalletPage() {
   const totalRedeemed = transactions?.filter(t => t.type === 'redeemed').reduce((sum, t) => sum + t.amount, 0) ?? 0
 
   return (
-    <div style={{ maxWidth: 1000, margin: '0 auto', padding: '40px 24px' }}>
+    <div className="page-wrapper" style={{ maxWidth: 1000, margin: '0 auto', padding: '40px 24px' }}>
       
       {/* Header */}
-      <div className="section-box">
-        <div style={{ padding: '16px 24px', borderBottom: '3px solid #000' }}>
-          <h1 className="font-brand" style={{ fontSize: 24, fontWeight: 900 }}>POINTS WALLET</h1>
-          <p style={{ fontFamily: 'Arial', fontSize: 11, color: 'var(--grey-mid)', marginTop: 4 }}>
-            TRANSACTION HISTORY. 100 POINTS = ₹10 GIFT CARD VALUE.
-          </p>
-        </div>
+      <div style={{ borderBottom: '2px solid var(--ink)', paddingBottom: 16, marginBottom: 32 }}>
+        <div className="label-sm">ACCOUNTING</div>
+        <h1 className="font-headline" style={{ fontSize: 42, marginTop: 12 }}>
+          POINTS WALLET
+        </h1>
+        <p className="font-body" style={{ color: 'var(--ink-light)', marginTop: 8 }}>
+          Transaction history. 100 POINTS = ₹10 GIFT CARD VALUE.
+        </p>
+      </div>
+
+      <div className="editorial-box" style={{ padding: 0, marginBottom: 32 }}>
         {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)' }}>
           {[
@@ -41,8 +45,8 @@ export default async function WalletPage() {
             { label: 'TOTAL REDEEMED', value: totalRedeemed.toLocaleString() },
             { label: 'INR VALUE', value: `₹${Math.floor((profile?.points_balance ?? 0) / 10)}` },
           ].map((stat, i) => (
-            <div key={stat.label} style={{ padding: '24px 16px', borderRight: i < 3 ? '3px solid #000' : 'none', textAlign: 'center' }}>
-              <div className="label-sm" style={{ marginBottom: 8 }}>{stat.label}</div>
+            <div key={stat.label} style={{ padding: '24px 16px', borderRight: i < 3 ? '1px solid var(--paper-darker)' : 'none', textAlign: 'center' }}>
+              <div className="label-sm" style={{ marginBottom: 12 }}>{stat.label}</div>
               <div className="stat-number">{stat.value}</div>
             </div>
           ))}
@@ -50,36 +54,39 @@ export default async function WalletPage() {
       </div>
 
       {/* Transactions table */}
-      <div className="section-box">
+      <div className="editorial-box" style={{ padding: 0 }}>
+        <div className="box-label" style={{ padding: '16px 24px', margin: 0, borderBottom: '2px solid var(--ink)' }}>LEDGER ENTRIES</div>
         <table className="data-table">
           <thead>
             <tr>
-              <th style={{ borderRight: '3px solid #000' }}>TYPE</th>
-              <th style={{ borderRight: '3px solid #000' }}>DESCRIPTION</th>
-              <th style={{ textAlign: 'right', borderRight: '3px solid #000' }}>AMOUNT</th>
-              <th style={{ textAlign: 'right' }}>DATE</th>
+              <th style={{ borderRight: '1px solid var(--paper-darker)', paddingLeft: 24 }}>TYPE</th>
+              <th style={{ borderRight: '1px solid var(--paper-darker)' }}>DESCRIPTION</th>
+              <th style={{ textAlign: 'right', borderRight: '1px solid var(--paper-darker)' }}>AMOUNT</th>
+              <th style={{ textAlign: 'right', paddingRight: 24 }}>DATE</th>
             </tr>
           </thead>
           <tbody>
             {transactions?.length === 0 && (
               <tr>
-                <td colSpan={4} style={{ textAlign: 'center', padding: 40, color: 'var(--grey-mid)', fontFamily: 'Arial', fontSize: 12 }}>
-                  No transactions yet. Start typing ads to earn points.
+                <td colSpan={4} style={{ textAlign: 'center', padding: 60 }}>
+                  <span className="font-body" style={{ color: 'var(--ink-faint)', fontStyle: 'italic' }}>
+                    No transactions yet. Start typing ads to earn points.
+                  </span>
                 </td>
               </tr>
             )}
             {transactions?.map(tx => (
               <tr key={tx.id}>
-                <td style={{ borderRight: '3px solid #000' }}>
-                  <span className={`badge ${tx.type === 'earned' ? 'badge-solid' : ''}`}>
+                <td style={{ borderRight: '1px solid var(--paper-darker)', paddingLeft: 24 }}>
+                  <span className={`badge ${tx.type === 'earned' ? 'badge-solid' : 'badge-stamp'}`}>
                     {tx.type}
                   </span>
                 </td>
-                <td style={{ fontFamily: 'Arial', fontSize: 12, borderRight: '3px solid #000' }}>{tx.description}</td>
-                <td style={{ textAlign: 'right', fontFamily: 'Courier New', fontSize: 14, fontWeight: 900, color: '#000', borderRight: '3px solid #000' }}>
+                <td style={{ fontFamily: 'var(--font-im-fell)', fontSize: 16, borderRight: '1px solid var(--paper-darker)' }}>{tx.description}</td>
+                <td style={{ textAlign: 'right', fontFamily: 'var(--font-courier)', fontSize: 16, fontWeight: 700, color: 'var(--ink)', borderRight: '1px solid var(--paper-darker)' }}>
                   {tx.type === 'earned' ? '+' : '-'}{tx.amount.toLocaleString()}
                 </td>
-                <td style={{ textAlign: 'right', fontFamily: 'Arial', fontSize: 11, color: 'var(--grey-mid)' }}>
+                <td style={{ textAlign: 'right', fontFamily: 'var(--font-courier)', fontSize: 13, color: 'var(--ink-faint)', paddingRight: 24 }}>
                   {new Date(tx.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                 </td>
               </tr>

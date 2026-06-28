@@ -54,25 +54,26 @@ export default async function ProfilePage({ params }: Props) {
   })).reverse() ?? []
 
   return (
-    <div style={{ maxWidth: 1000, margin: '0 auto', padding: '40px 24px' }}>
+    <div className="page-wrapper" style={{ maxWidth: 1000, margin: '0 auto', padding: '40px 24px' }}>
+      
       {/* Profile header */}
-      <div className="section-box" style={{ display: 'flex', alignItems: 'center', gap: 24, padding: 24, marginBottom: 24 }}>
-        <div style={{ width: 80, height: 80, border: '3px solid #000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, fontWeight: 900, fontFamily: 'Arial Black' }}>
+      <div className="editorial-box" style={{ display: 'flex', alignItems: 'center', gap: 32, padding: 32, marginBottom: 32, background: 'var(--paper-dark)' }}>
+        <div style={{ width: 100, height: 100, border: '2px solid var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, fontFamily: 'var(--font-playfair)', background: 'var(--paper)' }}>
           {profile.avatar_url
             ? <img src={profile.avatar_url} alt={profile.display_name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             : (profile.display_name ?? profile.username ?? 'U')[0].toUpperCase()
           }
         </div>
         <div style={{ flex: 1 }}>
-          <h1 className="font-brand" style={{ fontSize: 32, marginBottom: 4 }}>
+          <h1 className="font-headline" style={{ fontSize: 42, marginBottom: 8 }}>
             {profile.display_name ?? profile.username}
           </h1>
-          <p style={{ fontFamily: 'Arial', fontSize: 12, color: 'var(--grey-mid)', textTransform: 'uppercase', fontWeight: 700 }}>
+          <p style={{ fontFamily: 'var(--font-libre)', fontSize: 11, color: 'var(--ink-light)', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
             @{profile.username} · MEMBER SINCE {new Date(profile.created_at).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }).toUpperCase()}
           </p>
           {rankData && (
-            <p style={{ fontFamily: 'Arial Black', fontSize: 14, fontWeight: 900, marginTop: 8 }}>
-              GLOBAL RANK #{rankData.rank}
+            <p style={{ fontFamily: 'var(--font-playfair)', fontSize: 16, marginTop: 12, fontStyle: 'italic' }}>
+              Global Rank: #{rankData.rank}
             </p>
           )}
         </div>
@@ -84,30 +85,30 @@ export default async function ProfilePage({ params }: Props) {
       </div>
 
       {/* Stats row */}
-      <div className="section-box" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)' }}>
+      <div className="editorial-box" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', padding: 0, marginBottom: 32 }}>
         {[
           { label: 'POINTS BALANCE', value: profile.points_balance.toLocaleString() },
           { label: 'ADS COMPLETED', value: profile.total_completions },
           { label: 'AVG WPM', value: avgWpm },
           { label: 'AVG ACCURACY', value: `${avgAccuracy}%` },
         ].map((stat, i) => (
-          <div key={stat.label} style={{ padding: '24px 16px', borderRight: i < 3 ? '3px solid #000' : 'none', textAlign: 'center' }}>
-            <div className="label-sm" style={{ marginBottom: 8 }}>{stat.label}</div>
+          <div key={stat.label} style={{ padding: '24px 16px', borderRight: i < 3 ? '1px solid var(--paper-darker)' : 'none', textAlign: 'center' }}>
+            <div className="label-sm" style={{ marginBottom: 12 }}>{stat.label}</div>
             <div className="stat-number">{stat.value}</div>
           </div>
         ))}
       </div>
 
       {/* Charts + History */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: 32 }}>
         {/* WPM / Accuracy charts */}
-        <div className="section-box" style={{ padding: 24 }}>
-          <div className="label-sm" style={{ marginBottom: 24 }}>PERFORMANCE HISTORY</div>
+        <div className="editorial-box" style={{ padding: 32 }}>
+          <div className="label-sm" style={{ marginBottom: 24, borderBottom: '1px solid var(--paper-darker)', paddingBottom: 8 }}>PERFORMANCE HISTORY</div>
           {sessionChartData.length > 1 ? (
             <ProfileCharts data={sessionChartData} />
           ) : (
-            <div style={{ padding: 40, textAlign: 'center', border: '3px solid #000' }}>
-              <p style={{ fontFamily: 'Arial', fontSize: 12, color: 'var(--grey-mid)' }}>
+            <div style={{ padding: 60, textAlign: 'center' }}>
+              <p className="font-body" style={{ color: 'var(--ink-faint)', fontStyle: 'italic' }}>
                 Complete more ads to see your performance trends.
               </p>
             </div>
@@ -115,38 +116,38 @@ export default async function ProfilePage({ params }: Props) {
         </div>
 
         {/* Recent sessions */}
-        <div className="section-box">
-          <div className="section-header">RECENT SESSIONS</div>
+        <div className="editorial-box" style={{ padding: 0 }}>
+          <div className="box-label" style={{ padding: '16px 24px', margin: 0 }}>RECENT SESSIONS</div>
           <div style={{ overflowY: 'auto', maxHeight: 400 }}>
             {sessions?.length === 0 ? (
               <div style={{ padding: 40, textAlign: 'center' }}>
-                <p style={{ fontFamily: 'Arial', fontSize: 12, color: 'var(--grey-mid)' }}>No sessions yet.</p>
+                <p className="font-body" style={{ color: 'var(--ink-faint)', fontStyle: 'italic' }}>No sessions yet.</p>
               </div>
             ) : (
               sessions?.map(session => {
                 const campaign = session.campaigns as { brand_name: string } | null
                 return (
                   <div key={session.id} style={{
-                    display: 'grid', gridTemplateColumns: '1fr 60px 60px',
+                    display: 'grid', gridTemplateColumns: '1fr 70px 70px',
                     padding: '16px 24px',
-                    borderBottom: '3px solid #000',
+                    borderBottom: '1px solid var(--paper-darker)',
                     alignItems: 'center',
                   }}>
                     <div>
-                      <div style={{ fontWeight: 900, fontSize: 14, fontFamily: 'Arial Black', textTransform: 'uppercase' }}>
+                      <div style={{ fontFamily: 'var(--font-playfair)', fontWeight: 700, fontSize: 16 }}>
                         {campaign?.brand_name ?? 'UNKNOWN'}
                       </div>
-                      <div style={{ fontSize: 11, color: 'var(--grey-mid)', marginTop: 4, fontFamily: 'Arial' }}>
+                      <div style={{ fontSize: 11, color: 'var(--ink-faint)', marginTop: 4, fontFamily: 'var(--font-courier)' }}>
                         {new Date(session.completed_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
                       </div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontWeight: 700, fontSize: 16, fontFamily: 'Courier New' }}>{session.wpm}</div>
-                      <div className="label-sm" style={{ fontSize: 10 }}>WPM</div>
+                      <div style={{ fontWeight: 700, fontSize: 16, fontFamily: 'var(--font-courier)' }}>{session.wpm}</div>
+                      <div className="label-sm" style={{ fontSize: 9 }}>WPM</div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontWeight: 700, fontSize: 16, fontFamily: 'Courier New' }}>{session.accuracy}%</div>
-                      <div className="label-sm" style={{ fontSize: 10 }}>ACC</div>
+                      <div style={{ fontWeight: 700, fontSize: 16, fontFamily: 'var(--font-courier)' }}>{session.accuracy}%</div>
+                      <div className="label-sm" style={{ fontSize: 9 }}>ACC</div>
                     </div>
                   </div>
                 )

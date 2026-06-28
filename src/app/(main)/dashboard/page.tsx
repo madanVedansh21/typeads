@@ -46,13 +46,14 @@ export default async function DashboardPage() {
 
   if (dailyRemaining === 0 || !nextCampaign) {
     return (
-      <div style={{ height: 'calc(100vh - 60px)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
-        <div style={{ border: '3px solid #000', padding: '48px', textAlign: 'center' }}>
-          <p style={{ fontFamily: 'Arial Black', fontSize: 24, color: '#000', margin: 0, textTransform: 'uppercase' }}>
-            {dailyRemaining === 0 ? 'DAILY LIMIT REACHED' : 'NO ADS AVAILABLE RIGHT NOW'}
+      <div className="page-wrapper" style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center' }}>
+        <div className="editorial-box" style={{ padding: '48px', textAlign: 'center', maxWidth: 400 }}>
+          <div className="box-label">DISPATCH</div>
+          <p className="font-headline" style={{ fontSize: 24, margin: '16px 0' }}>
+            {dailyRemaining === 0 ? 'DAILY LIMIT REACHED' : 'NO ADS AVAILABLE'}
           </p>
-          <p style={{ fontFamily: 'Arial Black', fontSize: 12, color: 'var(--grey-mid)', marginTop: 16 }}>
-            {dailyRemaining === 0 ? 'COME BACK TOMORROW TO EARN MORE POINTS.' : 'CHECK BACK LATER FOR NEW CAMPAIGNS.'}
+          <p className="font-body" style={{ color: 'var(--ink-light)' }}>
+            {dailyRemaining === 0 ? 'You have completed your daily quota. Come back tomorrow to earn more points.' : 'There are no campaigns currently available in the system. Check back later.'}
           </p>
         </div>
       </div>
@@ -61,7 +62,7 @@ export default async function DashboardPage() {
 
   // Render TypingInterface for the next campaign
   return (
-    <div style={{ minHeight: 'calc(100vh - 60px)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
+    <div className="page-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <TypingInterface campaign={nextCampaign} userId={user.id} />
     </div>
   )

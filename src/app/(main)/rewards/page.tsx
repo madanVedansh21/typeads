@@ -39,16 +39,20 @@ export default async function RewardsPage() {
   }
 
   return (
-    <div style={{ maxWidth: 1000, margin: '0 auto', padding: '40px 24px' }}>
+    <div className="page-wrapper" style={{ maxWidth: 1000, margin: '0 auto', padding: '40px 24px' }}>
       
       {/* Header */}
-      <div className="section-box">
-        <div style={{ padding: '16px 24px', borderBottom: '3px solid #000' }}>
-          <h1 className="font-brand" style={{ fontSize: 24, fontWeight: 900 }}>REDEEM REWARDS</h1>
-          <p style={{ fontFamily: 'Arial', fontSize: 11, color: 'var(--grey-mid)', marginTop: 4 }}>
-            100 POINTS = ₹10 GIFT CARD VALUE. MINIMUM REDEMPTION: 500 POINTS.
-          </p>
-        </div>
+      <div style={{ borderBottom: '2px solid var(--ink)', paddingBottom: 16, marginBottom: 32 }}>
+        <div className="label-sm">TREASURY</div>
+        <h1 className="font-headline" style={{ fontSize: 42, marginTop: 12 }}>
+          REDEEM REWARDS
+        </h1>
+        <p className="font-body" style={{ color: 'var(--ink-light)', marginTop: 8 }}>
+          100 POINTS = ₹10 GIFT CARD VALUE. MINIMUM REDEMPTION: 500 POINTS.
+        </p>
+      </div>
+
+      <div className="editorial-box" style={{ padding: 0, marginBottom: 32 }}>
         {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)' }}>
           {[
@@ -57,8 +61,8 @@ export default async function RewardsPage() {
             { label: 'MIN TO REDEEM', value: '500 PTS' },
             { label: 'ADS COMPLETED', value: `${profile?.total_completions ?? 0}/10` },
           ].map((stat, i) => (
-            <div key={stat.label} style={{ padding: '24px 16px', borderRight: i < 3 ? '3px solid #000' : 'none', textAlign: 'center' }}>
-              <div className="label-sm" style={{ marginBottom: 8 }}>{stat.label}</div>
+            <div key={stat.label} style={{ padding: '24px 16px', borderRight: i < 3 ? '1px solid var(--paper-darker)' : 'none', textAlign: 'center' }}>
+              <div className="label-sm" style={{ marginBottom: 12 }}>{stat.label}</div>
               <div className="stat-number">{stat.value}</div>
             </div>
           ))}
@@ -73,11 +77,11 @@ export default async function RewardsPage() {
       />
 
       {/* My redemptions */}
-      <div className="section-box" style={{ marginTop: 40 }}>
-        <div className="section-header">MY REDEMPTIONS</div>
+      <div className="editorial-box" style={{ marginTop: 40, padding: 0 }}>
+        <div className="box-label" style={{ padding: '16px 24px', margin: 0, borderBottom: '2px solid var(--ink)' }}>MY REDEMPTIONS</div>
         {!redemptions || redemptions.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center' }}>
-            <p style={{ fontFamily: 'Arial', fontSize: 12, color: 'var(--grey-mid)' }}>
+          <div style={{ padding: 60, textAlign: 'center' }}>
+            <p className="font-body" style={{ color: 'var(--ink-faint)', fontStyle: 'italic' }}>
               No redemptions yet. Complete ads to earn points and redeem above.
             </p>
           </div>
@@ -85,34 +89,34 @@ export default async function RewardsPage() {
           <table className="data-table">
             <thead>
               <tr>
-                <th style={{ borderRight: '3px solid #000' }}>GIFT CARD</th>
-                <th style={{ borderRight: '3px solid #000' }}>DENOMINATION</th>
-                <th style={{ textAlign: 'right', borderRight: '3px solid #000' }}>POINTS COST</th>
-                <th style={{ borderRight: '3px solid #000' }}>STATUS</th>
-                <th style={{ borderRight: '3px solid #000' }}>CODE</th>
-                <th style={{ textAlign: 'right' }}>REQUESTED</th>
+                <th style={{ borderRight: '1px solid var(--paper-darker)', paddingLeft: 24 }}>GIFT CARD</th>
+                <th style={{ borderRight: '1px solid var(--paper-darker)' }}>DENOMINATION</th>
+                <th style={{ textAlign: 'right', borderRight: '1px solid var(--paper-darker)' }}>POINTS COST</th>
+                <th style={{ borderRight: '1px solid var(--paper-darker)' }}>STATUS</th>
+                <th style={{ borderRight: '1px solid var(--paper-darker)' }}>CODE</th>
+                <th style={{ textAlign: 'right', paddingRight: 24 }}>REQUESTED</th>
               </tr>
             </thead>
             <tbody>
               {redemptions.map(r => (
                 <tr key={r.id}>
-                  <td style={{ fontFamily: 'Arial Black', fontWeight: 900, fontSize: 12, borderRight: '3px solid #000' }}>
+                  <td style={{ fontFamily: 'var(--font-playfair)', fontWeight: 700, fontSize: 16, borderRight: '1px solid var(--paper-darker)', paddingLeft: 24 }}>
                     {r.gift_card_type.toUpperCase()}
                   </td>
-                  <td style={{ fontFamily: 'Courier New', borderRight: '3px solid #000', fontWeight: 700 }}>₹{r.denomination}</td>
-                  <td style={{ textAlign: 'right', fontFamily: 'Courier New', borderRight: '3px solid #000', fontWeight: 700 }}>{r.points_cost.toLocaleString()}</td>
-                  <td style={{ borderRight: '3px solid #000' }}>
+                  <td style={{ fontFamily: 'var(--font-courier)', borderRight: '1px solid var(--paper-darker)', fontWeight: 700 }}>₹{r.denomination}</td>
+                  <td style={{ textAlign: 'right', fontFamily: 'var(--font-courier)', borderRight: '1px solid var(--paper-darker)', fontWeight: 700 }}>{r.points_cost.toLocaleString()}</td>
+                  <td style={{ borderRight: '1px solid var(--paper-darker)' }}>
                     <span className={`badge ${r.status === 'fulfilled' ? 'badge-solid' : ''}`}>{r.status.toUpperCase()}</span>
                   </td>
-                  <td style={{ borderRight: '3px solid #000' }}>
-                    <div style={{ fontFamily: 'Courier New', fontSize: 13 }}>
+                  <td style={{ borderRight: '1px solid var(--paper-darker)' }}>
+                    <div style={{ fontFamily: 'var(--font-courier)', fontSize: 13 }}>
                       {r.status === 'fulfilled'
-                        ? <span style={{ fontWeight: 900, background: '#000', color: '#fff', padding: '4px 8px', border: '3px solid #000' }}>{r.gift_card_code}</span>
-                        : <span style={{ color: 'var(--grey-mid)' }}>Processing...</span>
+                        ? <span style={{ fontWeight: 700, background: 'var(--ink)', color: 'var(--white)', padding: '4px 8px' }}>{r.gift_card_code}</span>
+                        : <span style={{ color: 'var(--ink-faint)' }}>Processing...</span>
                       }
                     </div>
                   </td>
-                  <td style={{ textAlign: 'right', fontFamily: 'Arial', fontSize: 11, color: 'var(--grey-mid)' }}>
+                  <td style={{ textAlign: 'right', fontFamily: 'var(--font-courier)', fontSize: 13, color: 'var(--ink-faint)', paddingRight: 24 }}>
                     {new Date(r.requested_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </td>
                 </tr>

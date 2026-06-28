@@ -16,88 +16,88 @@ export default async function LeaderboardPage() {
   const currentUserEntry = entries?.find(e => e.id === user?.id)
 
   return (
-    <div style={{ maxWidth: 1000, margin: '0 auto', padding: '40px 24px' }}>
+    <div className="page-wrapper" style={{ maxWidth: 1000, margin: '0 auto', padding: '40px 24px' }}>
+      
       {/* Header */}
-      <div style={{ borderBottom: '3px solid #000', padding: '16px 24px', background: '#000', color: '#fff', marginBottom: 24 }}>
-        <h1 className="font-brand" style={{ fontSize: 24, fontWeight: 900, letterSpacing: '0.05em' }}>
+      <div style={{ borderBottom: '2px solid var(--ink)', paddingBottom: 16, marginBottom: 32 }}>
+        <div className="label-sm">THE REGISTRY</div>
+        <h1 className="font-headline" style={{ fontSize: 42, marginTop: 12 }}>
           GLOBAL LEADERBOARD
         </h1>
-        <p style={{ fontFamily: 'Arial', fontSize: 11, color: '#ccc', marginTop: 4 }}>
-          TOP TYPISTS RANKED BY TOTAL POINTS BALANCE.
+        <p className="font-body" style={{ color: 'var(--ink-light)', marginTop: 8 }}>
+          Top typists ranked by total points balance.
         </p>
       </div>
 
       {/* Your rank */}
       {currentUserEntry && (
-        <div style={{
-          background: '#fff',
-          border: '3px solid #000',
-          padding: '16px 24px',
+        <div className="editorial-box" style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 16,
-          marginBottom: 32
+          gap: 24,
+          marginBottom: 32,
+          background: 'var(--paper-dark)'
         }}>
           <span className="label-sm">YOUR RANK</span>
-          <span className="font-brand" style={{ fontSize: 24, color: '#000' }}>
+          <span className="font-headline" style={{ fontSize: 32, color: 'var(--ink)' }}>
             #{currentUserEntry.rank}
           </span>
-          <span style={{ fontFamily: 'Courier New', fontSize: 14, fontWeight: 700, marginLeft: 'auto' }}>
+          <span style={{ fontFamily: 'var(--font-courier)', fontSize: 14, fontWeight: 700, marginLeft: 'auto' }}>
             {currentUserEntry.points_balance.toLocaleString()} pts · {currentUserEntry.avg_wpm} avg wpm
           </span>
         </div>
       )}
 
       {/* Leaderboard Table */}
-      <div className="section-box">
+      <div className="editorial-box" style={{ padding: 0 }}>
         <table className="data-table">
           <thead>
             <tr>
-              <th style={{ textAlign: 'center', width: 60, borderRight: '3px solid #000' }}>#</th>
-              <th style={{ borderRight: '3px solid #000' }}>TYPIST</th>
-              <th style={{ textAlign: 'right', borderRight: '3px solid #000' }}>POINTS</th>
-              <th style={{ textAlign: 'right', borderRight: '3px solid #000' }}>AVG WPM</th>
-              <th style={{ textAlign: 'right', borderRight: '3px solid #000' }}>ACCURACY</th>
+              <th style={{ textAlign: 'center', width: 60, borderRight: '1px solid var(--paper-darker)' }}>#</th>
+              <th style={{ borderRight: '1px solid var(--paper-darker)' }}>TYPIST</th>
+              <th style={{ textAlign: 'right', borderRight: '1px solid var(--paper-darker)' }}>POINTS</th>
+              <th style={{ textAlign: 'right', borderRight: '1px solid var(--paper-darker)' }}>AVG WPM</th>
+              <th style={{ textAlign: 'right', borderRight: '1px solid var(--paper-darker)' }}>ACCURACY</th>
               <th style={{ textAlign: 'right' }}>ADS DONE</th>
             </tr>
           </thead>
           <tbody>
             {entries?.map((entry, idx) => {
               const isCurrentUser = entry.id === user?.id
-              const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : null
+              const medal = idx === 0 ? 'I' : idx === 1 ? 'II' : idx === 2 ? 'III' : null
 
               return (
-                <tr key={entry.id} style={{ background: isCurrentUser ? '#ffffcc' : 'transparent' }}>
-                  <td style={{ textAlign: 'center', fontSize: 18, borderRight: '3px solid #000', fontWeight: 900 }}>
+                <tr key={entry.id} style={{ background: isCurrentUser ? 'var(--paper-dark)' : 'transparent' }}>
+                  <td style={{ textAlign: 'center', fontSize: 18, borderRight: '1px solid var(--paper-darker)', fontFamily: 'var(--font-playfair)', fontWeight: 700 }}>
                     {medal ?? entry.rank}
                   </td>
-                  <td style={{ borderRight: '3px solid #000', padding: '12px 16px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{ width: 32, height: 32, border: '3px solid #000', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900 }}>
+                  <td style={{ borderRight: '1px solid var(--paper-darker)', padding: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                      <div style={{ width: 40, height: 40, border: '1px solid var(--ink)', background: 'var(--paper)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-playfair)', fontSize: 18 }}>
                         {entry.avatar_url
                           ? <img src={entry.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           : (entry.username ?? 'U')[0].toUpperCase()
                         }
                       </div>
                       <div>
-                        <Link href={`/profile/${entry.username}`} style={{ color: '#000', textDecoration: 'none', fontWeight: 900, fontFamily: 'Arial Black', fontSize: 13 }}>
+                        <Link href={`/profile/${entry.username}`} style={{ color: 'var(--ink)', textDecoration: 'none', fontWeight: 700, fontFamily: 'var(--font-libre)', fontSize: 14 }}>
                           {entry.display_name ?? entry.username}
                         </Link>
-                        <div style={{ fontFamily: 'Arial', fontSize: 10, color: 'var(--grey-mid)' }}>
+                        <div style={{ fontFamily: 'var(--font-courier)', fontSize: 11, color: 'var(--ink-faint)', marginTop: 4 }}>
                           @{entry.username}
                         </div>
                       </div>
                       {isCurrentUser && (
-                        <span className="badge badge-solid" style={{ marginLeft: 8 }}>YOU</span>
+                        <span className="badge badge-solid" style={{ marginLeft: 16 }}>YOU</span>
                       )}
                     </div>
                   </td>
-                  <td style={{ textAlign: 'right', fontWeight: 900, fontFamily: 'Arial Black', fontSize: 14, borderRight: '3px solid #000' }}>
+                  <td style={{ textAlign: 'right', fontWeight: 700, fontFamily: 'var(--font-courier)', fontSize: 16, borderRight: '1px solid var(--paper-darker)' }}>
                     {entry.points_balance.toLocaleString()}
                   </td>
-                  <td style={{ textAlign: 'right', fontFamily: 'Courier New', fontWeight: 700, borderRight: '3px solid #000' }}>{entry.avg_wpm}</td>
-                  <td style={{ textAlign: 'right', fontFamily: 'Courier New', fontWeight: 700, borderRight: '3px solid #000' }}>{entry.avg_accuracy}%</td>
-                  <td style={{ textAlign: 'right', fontFamily: 'Courier New', fontWeight: 700 }}>{entry.total_completions}</td>
+                  <td style={{ textAlign: 'right', fontFamily: 'var(--font-courier)', fontWeight: 700, borderRight: '1px solid var(--paper-darker)' }}>{entry.avg_wpm}</td>
+                  <td style={{ textAlign: 'right', fontFamily: 'var(--font-courier)', fontWeight: 700, borderRight: '1px solid var(--paper-darker)' }}>{entry.avg_accuracy}%</td>
+                  <td style={{ textAlign: 'right', fontFamily: 'var(--font-courier)', fontWeight: 700 }}>{entry.total_completions}</td>
                 </tr>
               )
             })}
@@ -107,9 +107,6 @@ export default async function LeaderboardPage() {
         {(!entries || entries.length === 0) && (
           <div style={{ padding: 64, textAlign: 'center' }}>
             <p className="label-sm" style={{ fontSize: 16 }}>NO ENTRIES YET</p>
-            <Link href="/dashboard" className="btn" style={{ marginTop: 24 }}>
-              START TYPING
-            </Link>
           </div>
         )}
       </div>
