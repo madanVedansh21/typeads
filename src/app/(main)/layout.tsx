@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import Topbar from '@/components/ui/Topbar'
 import { redirect } from 'next/navigation'
+import MainLayoutClient from './MainLayoutClient'
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -15,11 +16,11 @@ export default async function MainLayout({ children }: { children: React.ReactNo
     .single()
 
   return (
-    <div>
+    <MainLayoutClient>
       <Topbar profile={profile} />
       <div className="page-wrapper">
         {children}
       </div>
-    </div>
+    </MainLayoutClient>
   )
 }

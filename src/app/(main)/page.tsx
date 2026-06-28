@@ -38,9 +38,12 @@ export default async function DashboardPage() {
     .returns<Profile>()
 
   const activeCampaigns = campaigns?.filter(c => c.completions_count < c.completion_cap) ?? []
+  const availableCampaigns = activeCampaigns.filter(c => !completedCampaignIds.has(c.id))
   
-  // Find next available campaign
-  const nextCampaign = activeCampaigns.find(c => !completedCampaignIds.has(c.id))
+  // Pick a random campaign from available ones
+  const nextCampaign = availableCampaigns.length > 0 
+    ? availableCampaigns[Math.floor(Math.random() * availableCampaigns.length)]
+    : undefined
 
   const dailyRemaining = Math.max(0, 20 - (profile?.daily_completions ?? 0))
 

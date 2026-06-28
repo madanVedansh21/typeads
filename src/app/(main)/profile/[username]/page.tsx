@@ -51,6 +51,8 @@ export default async function ProfilePage({ params }: Props) {
     wpm: s.wpm,
     accuracy: s.accuracy,
     brand: (s.campaigns as { brand_name: string } | null)?.brand_name ?? '',
+    test_mode: s.test_mode || 'jumbled',
+    time_limit: s.time_limit || null,
   })).reverse() ?? []
 
   return (

@@ -53,6 +53,19 @@ export default async function ResultsPage({ params }: Props) {
         )}
       </div>
 
+      {/* Metadata Configuration */}
+      <div style={{ display: 'flex', gap: 16, marginBottom: 32, padding: '12px 16px', background: 'var(--paper-dark)', border: '1px solid var(--paper-darker)', borderRadius: 8 }}>
+        <div style={{ display: 'flex', gap: 24, fontFamily: 'var(--font-courier)', fontSize: 14, fontWeight: 700, color: 'var(--ink-faint)' }}>
+          <div>{session.time_limit ? `time ${session.time_limit}` : 'words'}</div>
+          <div>|</div>
+          <div>{session.test_mode || 'jumbled'}</div>
+          <div>|</div>
+          <div>{session.use_punctuation ? '@ punctuation' : 'no punctuation'}</div>
+          <div>|</div>
+          <div>{session.use_lowercase ? 'a lowercase' : 'Aa case'}</div>
+        </div>
+      </div>
+
       {/* Stats ledger */}
       <div className="editorial-box" style={{ marginBottom: 32, padding: 0 }}>
         <div className="box-label" style={{ padding: '12px 16px', margin: 0 }}>PERFORMANCE LEDGER</div>

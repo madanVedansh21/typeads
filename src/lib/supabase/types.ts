@@ -85,6 +85,10 @@ export interface Database {
           is_flagged: boolean
           flag_reason: string | null
           points_earned: number
+          test_mode: string | null
+          time_limit: number | null
+          use_punctuation: boolean | null
+          use_lowercase: boolean | null
           completed_at: string
           created_at: string
         }
@@ -169,6 +173,10 @@ export interface Database {
           p_total_keystrokes: number
           p_correct_keystrokes: number
           p_duration_seconds: number
+          p_test_mode?: string
+          p_time_limit?: number | null
+          p_use_punctuation?: boolean
+          p_use_lowercase?: boolean
         }
         Returns: Json
       }

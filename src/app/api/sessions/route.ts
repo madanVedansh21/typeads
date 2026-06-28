@@ -22,6 +22,10 @@ export async function POST(request: NextRequest) {
       total_keystrokes,
       correct_keystrokes,
       duration_seconds,
+      test_mode,
+      time_limit,
+      use_punctuation,
+      use_lowercase,
     } = body
 
     // Verify user matches authenticated user
@@ -48,8 +52,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Call the complete_session function
-    const { data, error } = await supabase.rpc('complete_session', {
+    // Call the complete_session function (try with metadata first)
+    let { data, error } = await supabase.rpc('complete_session', {
       p_session_id: session_id,
       p_user_id: user_id,
       p_campaign_id: campaign_id,
@@ -60,7 +64,31 @@ export async function POST(request: NextRequest) {
       p_total_keystrokes: total_keystrokes,
       p_correct_keystrokes: correct_keystrokes,
       p_duration_seconds: duration_seconds,
+      p_test_mode: test_mode,
+      p_time_limit: time_limit,
+      p_use_punctuation: use_punctuation,
+      p_use_lowercase: use_lowercase,
     })
+
+    // Fallback: If the database hasn't been migrated yet to accept the metadata fields,
+    // the RPC call will fail with a signature mismatch. Try again with just the original fields.
+    if (error && error.message.includes('could not find the function')) {
+      console.warn('Metadata RPC failed, falling back to legacy RPC signature...')
+      const fallbackResult = await supabase.rpc('complete_session', {
+        p_session_id: session_id,
+        p_user_id: user_id,
+        p_campaign_id: campaign_id,
+        p_wpm: Math.round(wpm),
+        p_accuracy: Math.round(accuracy * 100) / 100,
+        p_keystrokes_data: keystrokes_data,
+        p_accuracy_samples: accuracy_samples,
+        p_total_keystrokes: total_keystrokes,
+        p_correct_keystrokes: correct_keystrokes,
+        p_duration_seconds: duration_seconds,
+      })
+      data = fallbackResult.data
+      error = fallbackResult.error
+    }
 
     if (error) {
       console.error('Session complete error:', error)

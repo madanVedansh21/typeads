@@ -21,7 +21,7 @@ export default function Topbar({ profile }: TopbarProps) {
   }
 
   const navLinks = [
-    { href: '/dashboard', label: 'DASHBOARD' },
+    { href: '/', label: 'DASHBOARD' },
     { href: '/leaderboard', label: 'LEADERBOARD' },
     { href: '/rewards', label: 'REWARDS' },
     { href: '/wallet', label: 'WALLET' },
@@ -30,14 +30,14 @@ export default function Topbar({ profile }: TopbarProps) {
 
   return (
     <header className="topbar">
-      <Link href="/dashboard" className="logo topbar-logo">TYPEADS</Link>
+      <Link href="/" className="logo topbar-logo">TYPEADS</Link>
 
       <nav className="topbar-nav">
         {navLinks.map(link => (
           <Link
             key={link.href}
             href={link.href}
-            className={pathname.startsWith(link.href.split('/').slice(0, 2).join('/')) ? 'active' : ''}
+            className={pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href.split('/').slice(0, 2).join('/'))) ? 'active' : ''}
           >
             {link.label}
           </Link>

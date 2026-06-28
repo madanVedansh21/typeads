@@ -12,85 +12,56 @@ export default async function LandingPage() {
         color: "var(--ink)",
       }}
     >
-      {/* 5.1 MASTHEAD */}
-      <div
+      {/* HEADER */}
+      <header
         style={{
           borderTop: "3px solid var(--ink)",
-          borderBottom: "3px solid var(--ink)",
-          padding: "4px 0",
+          borderBottom: "1px solid var(--paper-darker)",
+          padding: "16px 32px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
           background: "var(--paper)",
+          maxWidth: 1400,
+          margin: "0 auto",
         }}
       >
         <div
           style={{
-            borderTop: "1px solid var(--paper-darker)",
-            borderBottom: "1px solid var(--paper-darker)",
-            padding: "16px 32px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            maxWidth: 1400,
-            margin: "0 auto",
+            fontFamily: "var(--font-playfair)",
+            fontSize: 32,
+            fontWeight: 900,
+            textTransform: "uppercase",
+            color: "var(--ink)",
           }}
         >
-          <div className="label-sm" style={{ flex: 1 }}>
-            {new Date()
-              .toLocaleDateString("en-IN", {
-                weekday: "long",
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-              })
-              .toUpperCase()}{" "}
-            · DAILY EDITION
-          </div>
-          <div
-            style={{
-              fontFamily: "var(--font-playfair)",
-              fontSize: 56,
-              fontWeight: 900,
-              textTransform: "uppercase",
-              textAlign: "center",
-              flex: 1,
-              color: "var(--ink)",
-            }}
-          >
-            TYPEADS
-          </div>
-          <div className="label-sm" style={{ flex: 1, textAlign: "right" }}>
-            TYPEADS.FAIRGIGS.APP · EST. 2025
-          </div>
+          TYPEADS
         </div>
-      </div>
 
-      {/* 5.2 NAVIGATION BAR */}
-      <nav
-        style={{
-          background: "var(--paper-dark)",
-          borderBottom: "1px solid var(--paper-darker)",
-          padding: "12px 32px",
-          display: "flex",
-          justifyContent: "center",
-          gap: 40,
-        }}
-      >
-        {["HOW IT WORKS", "FOR TYPISTS", "FOR ADVERTISERS", user ? "START TYPING" : "SIGN UP"].map(
-          (item) => (
+        <nav style={{ display: "flex", gap: 32, alignItems: "center" }}>
+          {["HOW IT WORKS", "FOR TYPISTS", "FOR ADVERTISERS", user ? "START TYPING" : "SIGN UP"].map((item) => (
             <Link
               key={item}
-              href={item === "SIGN UP" ? "/signup" : item === "START TYPING" ? "/dashboard" : "#"}
+              href={
+                item === "SIGN UP" ? "/signup" : 
+                item === "START TYPING" ? "/" : 
+                item === "HOW IT WORKS" ? "#how-it-works" : 
+                item === "FOR TYPISTS" ? "#for-typists" : 
+                "#for-advertisers"
+              }
               className="label-sm"
-              style={{ color: "var(--ink-light)", textDecoration: "none" }}
+              style={{ color: "var(--ink)", textDecoration: "none" }}
             >
               {item}
             </Link>
-          ),
-        )}
-      </nav>
+          ))}
+        </nav>
+      </header>
 
       <div style={{ maxWidth: 1400, margin: "0 auto" }}>
         {/* 5.3 FRONT PAGE — HERO SECTION */}
         <section
+          id="how-it-works"
           style={{
             display: "grid",
             gridTemplateColumns: "2fr 1fr",
@@ -206,6 +177,7 @@ export default async function LandingPage() {
 
         {/* 5.5 FOR TYPISTS */}
         <section
+          id="for-typists"
           style={{
             background: "var(--paper)",
             borderBottom: "1px solid var(--paper-darker)",
@@ -217,22 +189,22 @@ export default async function LandingPage() {
               className="font-headline"
               style={{ fontSize: 32, marginBottom: 16, textAlign: "center" }}
             >
-              Turn Your Keystrokes Into Cash
+              Gamify Your Typing Speed
             </h2>
             <div
               className="font-body"
               style={{ textAlign: "justify", marginBottom: 32 }}
             >
-              Finally, a typing test that pays. Whether you're practicing your
+              Finally, a typing test that rewards your skill. Whether you're practicing your
               WPM or just looking for a productive way to kill time, TypeAds
               turns your spare minutes into real rewards. Each advertisement
               takes roughly 30 to 60 seconds to complete. Perfect accuracy and
               high speeds yield bonus multipliers. Once you hit the 500 point
-              threshold, cash out instantly for gift cards valid at major
+              threshold, redeem instantly for gift cards valid at major
               retailers.
             </div>
             <div style={{ textAlign: "center" }}>
-              <Link href={user ? "/dashboard" : "/signup"} className="btn btn-inverted">
+              <Link href={user ? "/" : "/signup"} className="btn btn-inverted">
                 START TYPING
               </Link>
             </div>
@@ -241,6 +213,7 @@ export default async function LandingPage() {
 
         {/* 5.6 FOR ADVERTISERS */}
         <section
+          id="for-advertisers"
           style={{
             background: "var(--paper-dark)",
             borderBottom: "1px solid var(--paper-darker)",
@@ -363,7 +336,7 @@ export default async function LandingPage() {
             }}
           >
             It feels like I'm doing real work. I'm reading the copy, I'm
-            understanding the product, and I'm getting paid for it. It beats
+            understanding the product, and I'm earning rewards for it. It beats
             filling out surveys any day.
           </div>
           <div
