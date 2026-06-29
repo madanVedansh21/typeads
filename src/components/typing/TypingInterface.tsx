@@ -17,6 +17,7 @@ interface KeystrokeRecord {
 
 interface AccuracySample {
   char_index: number;
+  time_sec?: number;
   accuracy: number;
   wpm: number;
 }
@@ -228,7 +229,8 @@ export default function TypingInterface({ campaign, userId }: Props) {
         const lastWord = allWords[allWords.length - 1];
         if (lastWord) {
           const lastRect = lastWord.getBoundingClientRect();
-          const pct = ((lastRect.left + lastRect.width / 2) / window.innerWidth) * 100;
+          const pct =
+            ((lastRect.left + lastRect.width / 2) / window.innerWidth) * 100;
           // Smooth the sloth movement to avoid jerky jumps when new words are added
           setSlothX((prev) => {
             const diff = pct - prev;
@@ -424,6 +426,9 @@ export default function TypingInterface({ campaign, userId }: Props) {
         // Anti-skip: Prevent advancing the word if no characters have been typed yet
         if (charIdx === 0) return;
 
+        // Prevent advancing if the word is not fully typed
+        if (charIdx < currentWord.length) return;
+
         const nextWi = activeWordIdx + 1;
 
         // Track total words typed against pool
@@ -460,7 +465,7 @@ export default function TypingInterface({ campaign, userId }: Props) {
       const isCorrect = e.key === currentWord[charIdx];
       const newTotal = totalKeystrokes + 1;
       const newCorrect = correctKeystrokes + (isCorrect ? 1 : 0);
-      
+
       if (isCorrect) {
         correctCharsRef.current += 1;
         consecutiveErrorsRef.current = 0;
@@ -584,8 +589,22 @@ export default function TypingInterface({ campaign, userId }: Props) {
             letterSpacing: "0.04em",
           }}
         >
-          <span style={{ color: !useLowercase ? "var(--ink)" : "var(--ink-faint)", transition: "color 0.15s" }}>A</span>
-          <span style={{ color: useLowercase ? "var(--ink)" : "var(--ink-faint)", transition: "color 0.15s" }}>a</span>
+          <span
+            style={{
+              color: !useLowercase ? "var(--ink)" : "var(--ink-faint)",
+              transition: "color 0.15s",
+            }}
+          >
+            A
+          </span>
+          <span
+            style={{
+              color: useLowercase ? "var(--ink)" : "var(--ink-faint)",
+              transition: "color 0.15s",
+            }}
+          >
+            a
+          </span>
         </button>
 
         <div
@@ -739,13 +758,10 @@ export default function TypingInterface({ campaign, userId }: Props) {
                       : "my team hasn't even told me how to tease you at this speed"}
               </div>
             )}
-            
+
             <div className="sloth-arm-container">
               {armTrigger > 0 && (
-                <div 
-                  key={armTrigger} 
-                  className="sloth-stretching-arm"
-                />
+                <div key={armTrigger} className="sloth-stretching-arm" />
               )}
             </div>
 
@@ -832,16 +848,30 @@ export default function TypingInterface({ campaign, userId }: Props) {
         </div>
 
         {/* ── Revealed Ad Text ── */}
-        <div style={{ 
-          padding: "0 48px", 
-          maxWidth: "calc(100% - 400px)", 
-          marginTop: "auto", 
-          marginBottom: 60 
-        }}>
-          <div className="label-sm" style={{ marginBottom: 12, color: "var(--ink)", display: "flex", gap: 24, alignItems: "center" }}>
+        <div
+          style={{
+            padding: "0 48px",
+            maxWidth: "calc(100% - 400px)",
+            marginTop: "auto",
+            marginBottom: 60,
+          }}
+        >
+          <div
+            className="label-sm"
+            style={{
+              marginBottom: 12,
+              color: "var(--ink)",
+              display: "flex",
+              gap: 24,
+              alignItems: "center",
+            }}
+          >
             <span>AD COPY</span>
             {!started && !completed && !discarded && (
-              <span style={{ color: "var(--stamp-navy)" }}>START TYPING TO BEGIN</span>
+              <span style={{ color: "var(--stamp-navy)" }}>
+                {" "}
+                START TYPING TO BEGIN MORE WORDS WILL APPEAR
+              </span>
             )}
           </div>
           <div
@@ -861,7 +891,7 @@ export default function TypingInterface({ campaign, userId }: Props) {
           </div>
         </div>
 
-        {/* ── Ad Image ── */}
+        {/* ── Ad Image / Placeholder ── */}
         <div
           style={{
             position: "absolute",
@@ -874,20 +904,30 @@ export default function TypingInterface({ campaign, userId }: Props) {
             alignItems: "center",
             justifyContent: "center",
             background: "var(--paper-dark)",
+            zIndex: 9999,
           }}
         >
-          <div
-            className="label-sm"
-            style={{
-              color: "var(--ink-faint)",
-              textAlign: "center",
-              lineHeight: 1.5,
-            }}
-          >
-            AD IMAGE
-            <br />
-            PLACEHOLDER
-          </div>
+          {campaign.image_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img 
+              src={campaign.image_url} 
+              alt="Ad Image" 
+              style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain", borderRadius: 4 }} 
+            />
+          ) : (
+            <div
+              className="label-sm"
+              style={{
+                color: "var(--ink-faint)",
+                textAlign: "center",
+                lineHeight: 1.5,
+              }}
+            >
+              AD IMAGE
+              <br />
+              PLACEHOLDER
+            </div>
+          )}
         </div>
 
         {/* ── Hidden input ── */}

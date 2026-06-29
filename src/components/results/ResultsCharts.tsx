@@ -55,9 +55,40 @@ export default function ResultsCharts({ samples }: Props) {
   })
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, border: '3px solid #000' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 0, border: '3px solid #000' }}>
+      {/* WPM Chart */}
+      <div style={{ borderBottom: '2px solid #000', padding: 16 }}>
+        <div className="label-sm" style={{ marginBottom: 12 }}>WPM OVER SESSION</div>
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={data} margin={{ top: 10, right: 12, left: -20, bottom: 24 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+            <XAxis
+              dataKey="time"
+              tick={{ fontFamily: 'Arial', fontSize: 9, fill: '#888' }}
+              tickLine={false}
+              axisLine={{ stroke: '#000' }}
+              label={{ value: 'Time (s)', position: 'insideBottom', offset: -15, fontFamily: 'Arial', fontSize: 9, fill: '#888' }}
+            />
+            <YAxis
+              tick={{ fontFamily: 'Arial', fontSize: 9, fill: '#888' }}
+              tickLine={false}
+              axisLine={{ stroke: '#000' }}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <Line
+              type="monotone"
+              dataKey="WPM"
+              stroke="#000"
+              strokeWidth={2}
+              dot={false}
+              activeDot={{ r: 4, fill: '#000', stroke: '#fff', strokeWidth: 2 }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+
       {/* Accuracy Chart */}
-      <div style={{ borderRight: '2px solid #000', padding: 16 }}>
+      <div style={{ padding: 16 }}>
         <div className="label-sm" style={{ marginBottom: 12 }}>ACCURACY OVER SESSION</div>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={data} margin={{ top: 10, right: 12, left: -20, bottom: 24 }}>
@@ -80,37 +111,6 @@ export default function ResultsCharts({ samples }: Props) {
             <Line
               type="monotone"
               dataKey="ACCURACY"
-              stroke="#000"
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 4, fill: '#000', stroke: '#fff', strokeWidth: 2 }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* WPM Chart */}
-      <div style={{ padding: 16 }}>
-        <div className="label-sm" style={{ marginBottom: 12 }}>WPM OVER SESSION</div>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={data} margin={{ top: 10, right: 12, left: -20, bottom: 24 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
-            <XAxis
-              dataKey="time"
-              tick={{ fontFamily: 'Arial', fontSize: 9, fill: '#888' }}
-              tickLine={false}
-              axisLine={{ stroke: '#000' }}
-              label={{ value: 'Time (s)', position: 'insideBottom', offset: -15, fontFamily: 'Arial', fontSize: 9, fill: '#888' }}
-            />
-            <YAxis
-              tick={{ fontFamily: 'Arial', fontSize: 9, fill: '#888' }}
-              tickLine={false}
-              axisLine={{ stroke: '#000' }}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Line
-              type="monotone"
-              dataKey="WPM"
               stroke="#000"
               strokeWidth={2}
               dot={false}
