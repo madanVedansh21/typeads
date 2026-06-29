@@ -104,7 +104,7 @@ export default async function LandingPage() {
               className="font-headline"
               style={{ fontSize: 72, marginBottom: 12 }}
             >
-              YOU TYPE ANYWAY. WHY NOT GET REWARDED ON THE SIDE.
+              YOU PRACTICE TYPING ANYWAY. WHY NOT GET REWARDED ON THE SIDE.
             </h1>
             <h2
               className="font-subheadline"
