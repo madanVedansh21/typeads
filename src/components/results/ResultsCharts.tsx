@@ -59,15 +59,15 @@ export default function ResultsCharts({ samples }: Props) {
       {/* Accuracy Chart */}
       <div style={{ borderRight: '2px solid #000', padding: 16 }}>
         <div className="label-sm" style={{ marginBottom: 12 }}>ACCURACY OVER SESSION</div>
-        <ResponsiveContainer width="100%" height={180}>
-          <LineChart data={data} margin={{ top: 4, right: 12, left: -20, bottom: 0 }}>
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={data} margin={{ top: 10, right: 12, left: -20, bottom: 24 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
             <XAxis
               dataKey="time"
               tick={{ fontFamily: 'Arial', fontSize: 9, fill: '#888' }}
               tickLine={false}
               axisLine={{ stroke: '#000' }}
-              label={{ value: 'Time (s)', position: 'insideBottom', offset: -2, fontFamily: 'Arial', fontSize: 9, fill: '#888' }}
+              label={{ value: 'Time (s)', position: 'insideBottom', offset: -15, fontFamily: 'Arial', fontSize: 9, fill: '#888' }}
             />
             <YAxis
               domain={[0, 100]}
@@ -92,15 +92,15 @@ export default function ResultsCharts({ samples }: Props) {
       {/* WPM Chart */}
       <div style={{ padding: 16 }}>
         <div className="label-sm" style={{ marginBottom: 12 }}>WPM OVER SESSION</div>
-        <ResponsiveContainer width="100%" height={180}>
-          <LineChart data={data} margin={{ top: 4, right: 12, left: -20, bottom: 0 }}>
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={data} margin={{ top: 10, right: 12, left: -20, bottom: 24 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
             <XAxis
               dataKey="time"
               tick={{ fontFamily: 'Arial', fontSize: 9, fill: '#888' }}
               tickLine={false}
               axisLine={{ stroke: '#000' }}
-              label={{ value: 'Time (s)', position: 'insideBottom', offset: -2, fontFamily: 'Arial', fontSize: 9, fill: '#888' }}
+              label={{ value: 'Time (s)', position: 'insideBottom', offset: -15, fontFamily: 'Arial', fontSize: 9, fill: '#888' }}
             />
             <YAxis
               tick={{ fontFamily: 'Arial', fontSize: 9, fill: '#888' }}

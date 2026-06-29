@@ -142,11 +142,11 @@ export default async function LandingPage() {
               <br />
               <br />
               On TypeAds, every word you type adds points to your balance.
-              Points turn into gift cards. This isn't a job. It is just your
+              Points turn into gift cards. This isn't a gig. It is just your
               normal typing habit, but now you get rewarded for it.
             </div>
             <div className="label-sm" style={{ marginTop: 32 }}>
-              — The TypeAds Team, completely normal people
+              — The TypeAds Team
             </div>
           </div>
 
@@ -365,9 +365,7 @@ export default async function LandingPage() {
           <div
             className="label-sm"
             style={{ marginTop: 24, color: "var(--ink)" }}
-          >
-            :- just pretending to market & justify ts lol ...
-          </div>
+          ></div>
           <span
             style={{
               position: "absolute",
