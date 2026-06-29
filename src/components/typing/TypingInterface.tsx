@@ -644,35 +644,36 @@ export default function TypingInterface({ campaign, userId }: Props) {
           style={{ width: 1, height: 24, background: "var(--paper-darker)" }}
         />
 
-        {/* Time limits */}
-        {[15, 30, 60].map((val) => (
-          <button
-            key={val}
-            disabled={started && !completed}
-            onClick={() => setTimeLimit((tl) => (tl === val ? null : val))}
-            style={{
-              opacity: started && !completed ? 0.3 : 1,
-              pointerEvents: started && !completed ? "none" : "auto",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              fontFamily: "var(--font-courier)",
-              fontSize: 16,
-              fontWeight: 700,
-              color:
-                timeLimit === val ? "var(--stamp-navy)" : "var(--ink-faint)",
-              letterSpacing: "0.04em",
-              transition: "color 0.15s",
-              borderBottom:
-                timeLimit === val
+        {/* Time limits / Mode selection */}
+        {(["words", 15, 30, 60] as const).map((val) => {
+          const isSelected = val === "words" ? timeLimit === null : timeLimit === val;
+          return (
+            <button
+              key={val}
+              disabled={started && !completed}
+              onClick={() => setTimeLimit(val === "words" ? null : val)}
+              style={{
+                opacity: started && !completed ? 0.3 : 1,
+                pointerEvents: started && !completed ? "none" : "auto",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontFamily: "var(--font-courier)",
+                fontSize: 16,
+                fontWeight: 700,
+                color: isSelected ? "var(--stamp-navy)" : "var(--ink-faint)",
+                letterSpacing: "0.04em",
+                transition: "color 0.15s",
+                borderBottom: isSelected
                   ? "2px solid var(--stamp-navy)"
                   : "2px solid transparent",
-              paddingBottom: 2,
-            }}
-          >
-            {val}
-          </button>
-        ))}
+                paddingBottom: 2,
+              }}
+            >
+              {val}
+            </button>
+          );
+        })}
       </div>
 
       {/* ── Main area ── */}
