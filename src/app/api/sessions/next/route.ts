@@ -11,7 +11,19 @@ export async function GET(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({
+        mode: 'ad',
+        campaign: {
+          id: 'guest_ad',
+          brand_name: 'TYPEADS',
+          ad_text: 'Login to TypeAds to earn real rewards by practicing your typing skills! This is a guest test. Create an account to start earning money.',
+          tile_color: '#222222'
+        },
+        repeatNumber: 1,
+        totalRepeats: 1,
+        quotaExhausted: false,
+        isGuest: true
+      })
     }
 
     const { searchParams } = new URL(request.url)

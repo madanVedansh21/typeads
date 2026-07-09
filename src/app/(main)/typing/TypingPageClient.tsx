@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import TypingInterface from "@/components/typing/TypingInterface";
-import { practiceWords } from "@/lib/practiceWords";
 import { Sparkles, Trophy, X } from "lucide-react";
+import { useWordList } from "@/hooks/useWordList";
+import { WordBuffer } from "@/lib/word-buffer";
+import { Wordset } from "@/lib/words-generator";
 
 interface TypingPageClientProps {
   userId: string;
@@ -15,12 +17,25 @@ interface SessionData {
   repeatNumber?: number;
   totalRepeats?: number;
   quotaExhausted?: boolean;
+  isGuest?: boolean;
 }
 
 export default function TypingPageClient({ userId }: TypingPageClientProps) {
   const [loading, setLoading] = useState(true);
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [showToast, setShowToast] = useState(false);
+  const [practiceText, setPracticeText] = useState("");
+
+  const { words, isLoading: wordsLoading } = useWordList("english");
+
+  useEffect(() => {
+    if (words.length > 0) {
+      const wordset = new Wordset(words);
+      const buffer = new WordBuffer(wordset, { mode: "zipf", orderedByFrequency: true });
+      buffer.reset(50); // generate 50 words for practice
+      setPracticeText(buffer.peekAll().join(" "));
+    }
+  }, [words]);
 
   useEffect(() => {
     async function fetchNextSession() {
@@ -130,6 +145,7 @@ export default function TypingPageClient({ userId }: TypingPageClientProps) {
   }
 
   const isPractice = sessionData.mode === "practice";
+  const isGuest = sessionData.isGuest || false;
 
   return (
     <div
@@ -236,7 +252,7 @@ export default function TypingPageClient({ userId }: TypingPageClientProps) {
       {isPractice ? (
         <TypingInterface
           isPractice={true}
-          practiceWords={practiceWords}
+          practiceText={practiceText || "loading words please wait..."}
         />
       ) : (
         <TypingInterface
@@ -244,6 +260,7 @@ export default function TypingPageClient({ userId }: TypingPageClientProps) {
           userId={userId}
           repeatNumber={sessionData.repeatNumber}
           totalRepeats={sessionData.totalRepeats}
+          isGuest={isGuest}
         />
       )}
     </div>

@@ -182,7 +182,7 @@ export default async function ResultsPage({ params }: Props) {
       {/* Actions */}
       <div style={{ display: "flex", justifyContent: "center", gap: 16, marginTop: 40 }}>
         <Link
-          href="/dashboard"
+          href="/typing"
           className="btn btn-inverted"
           style={{ width: 300, padding: "20px", fontSize: 16, textAlign: "center" }}
         >

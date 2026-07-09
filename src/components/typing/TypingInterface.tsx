@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import Image from "next/image";
 import type { Campaign } from "@/lib/supabase/types";
 import { Sparkles } from "lucide-react";
+import ResultsCharts from "@/components/results/ResultsCharts";
 
 /* ─────────────────────────────────────────────────────────────
    Types
@@ -29,7 +30,8 @@ interface Props {
   campaign?: Campaign;
   userId?: string;
   isPractice?: boolean;
-  practiceWords?: string[];
+  practiceText?: string;
+  isGuest?: boolean;
   repeatNumber?: number;
   totalRepeats?: number;
 }
@@ -60,7 +62,8 @@ export default function TypingInterface({
   campaign,
   userId,
   isPractice = false,
-  practiceWords = [],
+  practiceText = "",
+  isGuest = false,
   repeatNumber = 1,
   totalRepeats = 3,
 }: Props) {
@@ -83,11 +86,15 @@ export default function TypingInterface({
   // visibleWords: the words currently rendered in the lane
   // poolIndexRef: how many words from the pool have been fed in so far
   const [visibleWords, setVisibleWords] = useState<string[]>([]);
+  const [viewMode, setViewMode] = useState<"focus" | "normal">("focus");
   const [activeWordIdx, setActiveWordIdx] = useState(0); // index into visibleWords
   const [charIdx, setCharIdx] = useState(0);
   const [wordCharStates, setWordCharStates] = useState<
     Record<number, CharState[]>
   >({});
+  // wordHasError[wi] = true if word wi had any incorrect keystroke (including uncorrected extras).
+  // Words flagged as having errors are excluded from net WPM (per Monkeytype convention).
+  const [wordHasError, setWordHasError] = useState<Record<number, boolean>>({});
   const poolIndexRef = useRef(0); // how many from pool have been added to visibleWords
   const [armTrigger, setArmTrigger] = useState(0);
 
@@ -114,6 +121,8 @@ export default function TypingInterface({
   const startTimeRef = useRef(0);
   const sessionIdRef = useRef(uuidv4());
   const consecutiveErrorsRef = useRef(0);
+  // Synchronous submit-once guard — immune to stale closures and render-cycle races
+  const submittedRef = useRef(false);
 
   /* ── Sloth X position (0–100%) — always 50% (center) ── */
   const [slothX, setSlothX] = useState(50);
@@ -130,13 +139,7 @@ export default function TypingInterface({
 
     let text = "";
     if (isPractice) {
-      const wordCount = timeLimit ? 150 : 25;
-      const pool = [];
-      for (let i = 0; i < wordCount; i++) {
-        const randWord = practiceWords[Math.floor(Math.random() * practiceWords.length)];
-        pool.push(randWord);
-      }
-      text = pool.join(" ");
+      text = practiceText || rawText;
     } else {
       text = rawText;
     }
@@ -158,15 +161,15 @@ export default function TypingInterface({
     campaignWordCountRef.current = wordList.length;
     setWordPool(wordList);
 
-    // Full reset — start with only the first window of words visible
-    const initialCount = 3;
-    const initialWords = wordList.slice(0, initialCount);
+    // Full reset - start with only the first window of words visible
+    const initialCount = viewMode === "normal" ? Math.min(40, wordList.length) : 3;
+    setVisibleWords(wordList.slice(0, initialCount));
     poolIndexRef.current = initialCount;
 
-    setVisibleWords(initialWords);
     setActiveWordIdx(0);
     setCharIdx(0);
     setWordCharStates({});
+    setWordHasError({});
     setStarted(false);
     setCompleted(false);
     setDiscarded(false);
@@ -177,18 +180,21 @@ export default function TypingInterface({
     setCorrectKeystrokes(0);
     correctCharsRef.current = 0;
     netCorrectCharsRef.current = 0;
+    totalKeystrokesCounterRef.current = 0;
+    correctKeystrokesCounterRef.current = 0;
     keystrokesRef.current = [];
     accuracySamplesRef.current = [];
     lastKeystrokeTimeRef.current = 0;
     startTimeRef.current = 0;
     sessionIdRef.current = uuidv4();
     consecutiveErrorsRef.current = 0;
+    submittedRef.current = false; // allow fresh submission after reset
     // Reset scroll
     scrollXRef.current = 0;
     if (trackRef.current) trackRef.current.style.transform = "translateX(0px)";
     setSlothX(50);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [usePunctuation, useLowercase, mode, rawText, isPractice, practiceTrigger, repeatNumber]);
+  }, [usePunctuation, useLowercase, mode, rawText, isPractice, practiceTrigger, repeatNumber, viewMode]);
 
   useEffect(() => {
     timeLimitRef.current = timeLimit;
@@ -201,14 +207,14 @@ export default function TypingInterface({
   useEffect(() => {
     if (!started) return;
 
-    // Lookahead is strictly fixed to 3 words ahead to prevent the sloth from running out of frame
-    const lookahead = BASE_LOOKAHEAD;
+    // Lookahead is 3 for focus mode, 20 for normal mode
+    const lookahead = viewMode === "normal" ? 20 : BASE_LOOKAHEAD;
 
     // How many words ahead of active word are currently in the visible list?
     const wordsAhead = visibleWords.length - activeWordIdx;
 
     if (wordsAhead < lookahead && poolIndexRef.current < wordPool.length) {
-      const needed = lookahead - wordsAhead;
+      const needed = viewMode === "normal" ? 20 : lookahead - wordsAhead;
       const toAdd = wordPool.slice(
         poolIndexRef.current,
         poolIndexRef.current + needed,
@@ -216,10 +222,12 @@ export default function TypingInterface({
       if (toAdd.length > 0) {
         poolIndexRef.current += toAdd.length;
         setVisibleWords((prev) => [...prev, ...toAdd]);
-        setArmTrigger((prev) => prev + 1);
+        if (viewMode === "focus") {
+          setArmTrigger((prev) => prev + 1);
+        }
       }
     }
-  }, [activeWordIdx, wpm, started, visibleWords.length, wordPool]);
+  }, [activeWordIdx, wpm, started, visibleWords.length, wordPool, viewMode]);
 
   /* ═══════════════════════════════════════════════════════════
      LANE SCROLL — keep the active word always centered in the lane
@@ -236,8 +244,32 @@ export default function TypingInterface({
     }
 
     const animateScroll = () => {
-      if (!activeWordRef.current || !laneRef.current || !trackRef.current)
+      if (!laneRef.current || !activeWordRef.current || !trackRef.current) {
+        scrollRafRef.current = requestAnimationFrame(animateScroll);
         return;
+      }
+
+      if (viewMode === "normal") {
+        // Vertical scroll for normal mode
+        const lineHeight = (40 * 1.5) + 10; // 60px line height + 10px row gap = 70px
+        const currentOffset = activeWordRef.current.offsetTop;
+        
+        let targetY = 0;
+        // Keep active word on the 2nd line (index 1) if we go past it
+        if (currentOffset > lineHeight) {
+          targetY = -(currentOffset - lineHeight);
+        }
+
+        const diff = targetY - (scrollXRef.current || 0);
+        const ease = 0.1;
+        const next = Math.abs(diff) < 0.3 ? targetY : (scrollXRef.current || 0) + diff * ease;
+        
+        scrollXRef.current = next;
+        trackRef.current.style.transform = `translateY(${next}px)`;
+
+        scrollRafRef.current = requestAnimationFrame(animateScroll);
+        return;
+      }
 
       const laneRect = laneRef.current.getBoundingClientRect();
       const wordRect = activeWordRef.current.getBoundingClientRect();
@@ -287,7 +319,7 @@ export default function TypingInterface({
     scrollRafRef.current = requestAnimationFrame(animateScroll);
     return () => cancelAnimationFrame(scrollRafRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeWordIdx, wpm, visibleWords.length, completed, discarded]);
+  }, [activeWordIdx, wpm, visibleWords.length, completed, discarded, viewMode]);
 
   /* ═══════════════════════════════════════════════════════════
      FOCUS INPUT
@@ -340,7 +372,10 @@ export default function TypingInterface({
       finalAccuracy: number,
       finalSecs: number | null,
     ) => {
-      if (submitting || completed) return; // Prevent double-submit race conditions
+      // Synchronous, race-proof guard — submittedRef is set once and never races with renders
+      if (submittedRef.current) return;
+      submittedRef.current = true;
+
       setCompleted(true);
       setSubmitting(true);
 
@@ -352,7 +387,8 @@ export default function TypingInterface({
           ? Math.round(netCorrectCharsRef.current / 5 / elapsedMin)
           : 0;
 
-      if (isPractice) {
+      // Practice mode or guest: show inline results without saving to DB
+      if (isPractice || isGuest) {
         setWpm(finalWpm);
         setAccuracy(finalAccuracy);
         setElapsedSeconds(Math.round(duration));
@@ -360,12 +396,16 @@ export default function TypingInterface({
         return;
       }
 
+      // Real session: capture sessionId NOW before any await (ref is stable, no closure issue)
+      const sessionId = sessionIdRef.current;
+
+      // Real session: save to DB then redirect to /results/[sessionId]
       try {
         const response = await fetch("/api/sessions", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            session_id: sessionIdRef.current,
+            session_id: sessionId,
             user_id: userId,
             campaign_id: campaign?.id,
             wpm: finalWpm,
@@ -383,28 +423,37 @@ export default function TypingInterface({
         });
 
         const data = await response.json();
-        
+
         if (!response.ok || data.error) {
           console.error("Session submit API error:", data.error);
           alert("Error submitting session: " + (data.error || "Please try again."));
+          // Release lock on error so user could retry if needed
+          submittedRef.current = false;
           setSubmitting(false);
-          return; // Do not redirect so user doesn't hit a 404
+          return;
         }
-        
+
         setSubmitting(false);
-        router.push(`/results/${sessionIdRef.current}`);
+        router.push(`/results/${sessionId}`);
       } catch (err) {
         console.error("Session submit network error:", err);
         alert("Network error while submitting session.");
+        submittedRef.current = false;
         setSubmitting(false);
       }
     },
-    [campaign?.id, mode, userId, usePunctuation, useLowercase, router, isPractice],
+    // submitting/completed intentionally removed — handled by submittedRef to avoid stale closures
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [campaign?.id, mode, userId, usePunctuation, useLowercase, router, isPractice, isGuest],
   );
 
   const totalKeystrokesRef = useRef(0);
   const correctKeystrokesRef = useRef(0);
   const accuracyRef = useRef(100);
+
+  // Live counter refs (updated on every keystroke — avoids stale useState closure in hot path)
+  const totalKeystrokesCounterRef = useRef(0);
+  const correctKeystrokesCounterRef = useRef(0);
 
   useEffect(() => {
     totalKeystrokesRef.current = totalKeystrokes;
@@ -412,30 +461,36 @@ export default function TypingInterface({
     accuracyRef.current = accuracy;
   }, [totalKeystrokes, correctKeystrokes, accuracy]);
 
-  const getNetCorrectCharactersCount = (customActiveWordStates?: string[]) => {
+  const getNetCorrectCharactersCount = (
+    customActiveWordStates?: string[],
+    // Optionally pass the word-error map snapshot (for inside setState callbacks)
+    customWordHasError?: Record<number, boolean>
+  ) => {
     let count = 0;
-    for (let wi = 0; wi <= activeWordIdx; wi++) {
+    const errorMap = customWordHasError ?? wordHasError;
+
+    // Completed words — only count if the word had zero errors (Monkeytype convention)
+    for (let wi = 0; wi < activeWordIdx; wi++) {
+      if (errorMap[wi]) continue; // skip error words entirely
       const word = visibleWords[wi];
       if (!word) continue;
-
-      const isCurrent = wi === activeWordIdx;
-      const states = isCurrent && customActiveWordStates 
-        ? customActiveWordStates 
-        : (wordCharStates[wi] ?? []);
-        
-      const limit = isCurrent ? Math.min(charIdx, word.length) : word.length;
-
-      for (let ci = 0; ci < limit; ci++) {
-        if (states[ci] === "correct") {
-          count++;
-        }
+      const states = wordCharStates[wi] ?? [];
+      for (let ci = 0; ci < word.length; ci++) {
+        if (states[ci] === "correct") count++;
       }
-      
-      // If it's a completed word, add 1 character for the space key separating words
-      if (wi < activeWordIdx) {
-        count++;
-      }
+      // +1 for the space after a fully-correct completed word
+      count++;
     }
+
+    // Current active word — count correct chars typed so far (tentative; will be
+    // excluded retroactively if the word turns out to have errors when space is pressed)
+    const currentStates = customActiveWordStates ?? (wordCharStates[activeWordIdx] ?? []);
+    const currentWord = visibleWords[activeWordIdx] ?? "";
+    const limit = Math.min(charIdx, currentWord.length);
+    for (let ci = 0; ci < limit; ci++) {
+      if (currentStates[ci] === "correct") count++;
+    }
+
     return count;
   };
 
@@ -495,14 +550,28 @@ export default function TypingInterface({
       if (e.key === "Backspace") {
         e.preventDefault();
         if (e.ctrlKey) {
-          // Ctrl+Backspace: clear entire active word progress
+          // Ctrl+Backspace: clear entire active word progress.
+          // IMPORTANT: setCharIdx(0) is async, so we can't use charIdx inside the
+          // setState updater below. Instead, manually compute net chars without the
+          // current word's contribution (charIdx is effectively 0 after clear).
           setCharIdx(0);
+          setWordHasError((prevErrors) => ({ ...prevErrors, [activeWordIdx]: false }));
           setWordCharStates((prev) => {
-            netCorrectCharsRef.current = getNetCorrectCharactersCount([]);
-            return {
-              ...prev,
-              [activeWordIdx]: [],
-            };
+            // Recalculate net chars: only completed words that had no errors
+            let count = 0;
+            for (let wi = 0; wi < activeWordIdx; wi++) {
+              if (wordHasError[wi]) continue;
+              const word = visibleWords[wi];
+              if (!word) continue;
+              const states = prev[wi] ?? [];
+              for (let ci = 0; ci < word.length; ci++) {
+                if (states[ci] === "correct") count++;
+              }
+              count++; // space credit
+            }
+            // Current word is cleared — no contribution
+            netCorrectCharsRef.current = count;
+            return { ...prev, [activeWordIdx]: [] };
           });
           return;
         }
@@ -511,7 +580,20 @@ export default function TypingInterface({
           setCharIdx(newCi);
           setWordCharStates((prev) => {
             const ws = [...(prev[activeWordIdx] ?? [])].slice(0, newCi);
-            netCorrectCharsRef.current = getNetCorrectCharactersCount(ws);
+            // After backspace, recheck whether the word still has any errors
+            // so we can clear the dirty flag if the user corrected the last mistake
+            const stillHasError = ws.some(
+              (s) => s !== undefined && s !== "correct"
+            );
+            setWordHasError((prevErrors) => ({
+              ...prevErrors,
+              [activeWordIdx]: stillHasError,
+            }));
+            netCorrectCharsRef.current = getNetCorrectCharactersCount(
+              ws,
+              // Pass current wordHasError with the potentially updated flag
+              { ...wordHasError, [activeWordIdx]: stillHasError }
+            );
             return { ...prev, [activeWordIdx]: ws };
           });
         }
@@ -525,7 +607,7 @@ export default function TypingInterface({
         // Anti-skip: Prevent advancing the word if no characters have been typed yet
         if (charIdx === 0) return;
 
-        // Commit word early: Mark remaining characters of currentWord as missed/errors
+        // Commit word: mark remaining un-typed characters as missed/errors
         const finalWordStates = [...(wordCharStates[activeWordIdx] ?? [])];
         let missedCount = 0;
         for (let i = charIdx; i < currentWord.length; i++) {
@@ -533,19 +615,44 @@ export default function TypingInterface({
           missedCount++;
         }
 
-        setWordCharStates((prev) => {
-          netCorrectCharsRef.current = getNetCorrectCharactersCount(finalWordStates);
-          return {
-            ...prev,
-            [activeWordIdx]: finalWordStates,
-          };
-        });
+        // Determine if this word has ANY error (incorrect chars already tracked + missed chars now)
+        const currentWordAlreadyHadError = wordHasError[activeWordIdx] ?? false;
+        const wordIsError = currentWordAlreadyHadError || missedCount > 0;
 
-        const newTotalKeystrokes = totalKeystrokes + missedCount;
+        // Update live counter refs with missed chars (missed chars are errors in accuracy)
+        totalKeystrokesCounterRef.current += missedCount;
+        // correctKeystrokesCounterRef does NOT increment for missed chars
+
+        const newTotalKeystrokes = totalKeystrokesCounterRef.current;
+        const newCorrectKeystrokes = correctKeystrokesCounterRef.current;
+        const newAcc = newTotalKeystrokes > 0
+          ? Math.round((newCorrectKeystrokes / newTotalKeystrokes) * 100)
+          : 100;
+
+        // Sync state (for display) — these are async but refs above are already updated
         setTotalKeystrokes(newTotalKeystrokes);
-
-        const newAcc = newTotalKeystrokes > 0 ? Math.round((correctKeystrokes / newTotalKeystrokes) * 100) : 100;
         setAccuracy(newAcc);
+
+        // Commit word states and wordHasError, then recalculate net correct chars
+        setWordHasError((prevErrors) => ({ ...prevErrors, [activeWordIdx]: wordIsError }));
+        setWordCharStates((prev) => {
+          // Build updated errorMap including the just-committed word
+          const updatedErrorMap = { ...wordHasError, [activeWordIdx]: wordIsError };
+          // Recalculate net chars for all completed words (activeWordIdx now included as completed)
+          let count = 0;
+          for (let wi = 0; wi <= activeWordIdx; wi++) {
+            if (updatedErrorMap[wi]) continue; // skip error words
+            const word = visibleWords[wi];
+            if (!word) continue;
+            const states = wi === activeWordIdx ? finalWordStates : (prev[wi] ?? []);
+            for (let ci = 0; ci < word.length; ci++) {
+              if (states[ci] === "correct") count++;
+            }
+            count++; // space credit for fully-correct completed word
+          }
+          netCorrectCharsRef.current = count;
+          return { ...prev, [activeWordIdx]: finalWordStates };
+        });
 
         const nextWi = activeWordIdx + 1;
         const totalTyped = poolIndexRef.current - (visibleWords.length - nextWi);
@@ -556,9 +663,10 @@ export default function TypingInterface({
         if (totalTyped >= campaignWordCountRef.current) {
           setCompleted(true);
           const secs = (now - startTimeRef.current) / 1000;
+          // Use live ref values to avoid stale closure bug on the final submit
           handleComplete(
-            newTotalKeystrokes,
-            correctKeystrokes,
+            totalKeystrokesCounterRef.current,
+            correctKeystrokesCounterRef.current,
             newAcc,
             secs,
           );
@@ -584,8 +692,14 @@ export default function TypingInterface({
       });
 
       const isCorrect = !isExtra && e.key === currentWord[charIdx];
-      const newTotal = totalKeystrokes + 1;
-      const newCorrect = correctKeystrokes + (isCorrect ? 1 : 0);
+
+      // Update live counter refs immediately — these are used in handleComplete and
+      // space handler to avoid stale useState closure bugs
+      totalKeystrokesCounterRef.current += 1;
+      if (isCorrect) correctKeystrokesCounterRef.current += 1;
+
+      const newTotal = totalKeystrokesCounterRef.current;
+      const newCorrect = correctKeystrokesCounterRef.current;
 
       if (isCorrect) {
         consecutiveErrorsRef.current = 0;
@@ -597,6 +711,8 @@ export default function TypingInterface({
           setCompleted(true);
           return;
         }
+        // Mark word as dirty — it now has at least one error (extra chars always count as errors)
+        setWordHasError((prevErrors) => ({ ...prevErrors, [activeWordIdx]: true }));
       }
 
       setTotalKeystrokes(newTotal);
@@ -608,7 +724,11 @@ export default function TypingInterface({
       setWordCharStates((prev) => {
         const ws = [...(prev[activeWordIdx] ?? [])];
         ws[charIdx] = isCorrect ? "correct" : `error_${e.key}`;
-        netCorrectCharsRef.current = getNetCorrectCharactersCount(ws);
+        // If incorrect, the word is now dirty — pass updated error map so WPM is accurate
+        const updatedErrorMap = isCorrect
+          ? wordHasError
+          : { ...wordHasError, [activeWordIdx]: true };
+        netCorrectCharsRef.current = getNetCorrectCharactersCount(ws, updatedErrorMap);
         return { ...prev, [activeWordIdx]: ws };
       });
 
@@ -634,6 +754,7 @@ export default function TypingInterface({
       correctKeystrokes,
       handleComplete,
       wordCharStates,
+      wordHasError,
     ],
   );
 
@@ -824,18 +945,18 @@ export default function TypingInterface({
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <span
               style={{
-                background: isPractice ? "var(--paper-darker)" : "var(--stamp-navy)",
-                color: isPractice ? "var(--ink)" : "var(--white)",
+                background: (isPractice || isGuest) ? "var(--paper-darker)" : "var(--stamp-navy)",
+                color: (isPractice || isGuest) ? "var(--ink)" : "var(--white)",
                 padding: "6px 12px",
                 borderRadius: "4px",
                 fontSize: 12,
                 fontFamily: "var(--font-courier)",
                 fontWeight: 700,
                 letterSpacing: "0.05em",
-                border: isPractice ? "1px solid var(--paper-darker)" : "none",
+                border: (isPractice || isGuest) ? "1px solid var(--paper-darker)" : "none",
               }}
             >
-              {isPractice ? "PRACTICE MODE" : "AD MODE"}
+              {isGuest ? "GUEST MODE" : isPractice ? "PRACTICE MODE" : "AD MODE"}
             </span>
             {isPractice && (
               <span
@@ -845,8 +966,56 @@ export default function TypingInterface({
                   color: "var(--ink-light)",
                 }}
               >
-                Unrewarded sandbox typing
               </span>
+            )}
+            <button
+              onClick={() => {
+                const newMode = viewMode === "focus" ? "normal" : "focus";
+                setViewMode(newMode);
+                // Immediately update visible words based on new mode
+                if (newMode === "normal") {
+                  const toShow = Math.max(40, activeWordIdx + 20);
+                  setVisibleWords(wordPool.slice(0, toShow));
+                  poolIndexRef.current = Math.min(toShow, wordPool.length);
+                } else {
+                  const toShow = Math.max(3, activeWordIdx + 3);
+                  setVisibleWords(wordPool.slice(0, toShow));
+                  poolIndexRef.current = toShow;
+                }
+              }}
+              style={{
+                marginLeft: 16,
+                background: "transparent",
+                border: "1px solid var(--ink-faint)",
+                color: "var(--ink-light)",
+                padding: "4px 8px",
+                borderRadius: 4,
+                cursor: "pointer",
+                fontFamily: "var(--font-courier)",
+                fontSize: 10,
+              }}
+            >
+              MODE: {viewMode.toUpperCase()}
+            </button>
+            {isGuest && (
+              <a
+                href="/login"
+                style={{
+                  marginLeft: 16,
+                  background: "var(--ink)",
+                  border: "none",
+                  color: "var(--paper)",
+                  padding: "4px 12px",
+                  borderRadius: 4,
+                  cursor: "pointer",
+                  fontFamily: "var(--font-courier)",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  textDecoration: "none"
+                }}
+              >
+                SIGN UP TO EARN
+              </a>
             )}
           </div>
 
@@ -927,61 +1096,85 @@ export default function TypingInterface({
         {/* ── Horizontal Typing Lane ── */}
         <div style={{ position: "relative", width: "100%", marginTop: 100 }}>
           {/* Sloth rides above the active word, safely outside overflow:hidden */}
-          <div
-            className="sloth-runner"
-            style={{
-              left: `${slothX}%`,
-            }}
-          >
-            {started && !completed && elapsedSeconds >= 1 && (
-              <div className="sloth-thought-bubble">
-                {wpm < 50
-                  ? "the hell dude ! you are slower then me "
-                  : wpm <= 80
-                    ? "now we talking bud ..."
-                    : wpm <= 150
-                      ? "daem dude you are making me throw fast, I cant handle ts ! .."
-                      : "my team hasn't even told me how to tease you at this speed"}
-              </div>
-            )}
-
-            <div className="sloth-arm-container">
-              {armTrigger > 0 && (
-                <div key={armTrigger} className="sloth-stretching-arm" />
-              )}
-            </div>
-
-            <Image
-              src="/sloth.png"
-              alt="Sloth"
-              width={100}
-              height={100}
-              priority
+          {viewMode === "focus" && !completed && !discarded && (
+            <div
+              className="sloth-runner"
               style={{
-                objectFit: "contain",
-                filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.15))",
-                // Tilt forward when typing fast — max 12deg
-                transform: `rotate(${Math.min(wpm / 10, 12)}deg)`,
-                transformOrigin: "bottom center",
-                transition: "transform 0.4s ease",
-                position: "relative",
-                zIndex: 2,
+                left: `${slothX}%`,
               }}
-            />
-          </div>
+            >
+              {started && !completed && elapsedSeconds >= 1 && (
+                <div className="sloth-thought-bubble">
+                  {wpm < 50
+                    ? "the hell dude ! you are slower then me "
+                    : wpm <= 80
+                      ? "now we talking bud ..."
+                      : wpm <= 150
+                        ? "daem dude you are making me throw fast, I cant handle ts ! .."
+                        : "my team hasn't even told me how to tease you at this speed"}
+                </div>
+              )}
+
+              <div className="sloth-arm-container">
+                {armTrigger > 0 && (
+                  <div key={armTrigger} className="sloth-stretching-arm" />
+                )}
+              </div>
+
+              <Image
+                src="/sloth.png"
+                alt="Sloth"
+                width={100}
+                height={100}
+                priority
+                style={{
+                  objectFit: "contain",
+                  filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.15))",
+                  // Tilt forward when typing fast — max 12deg
+                  transform: `rotate(${Math.min(wpm / 10, 12)}deg)`,
+                  transformOrigin: "bottom center",
+                  transition: "transform 0.4s ease",
+                  position: "relative",
+                  zIndex: 2,
+                }}
+              />
+            </div>
+          )}
 
           <div
             ref={laneRef}
             className="typing-lane-wrapper"
-            style={{ marginTop: 0 }} // overriding the css margin-top since wrapper handles it
+            style={{ 
+              marginTop: 0, 
+              height: viewMode === "normal" ? "270px" : undefined, // 4 lines * 60px + 3 gaps * 10px = 270px
+              overflow: viewMode === "normal" ? "hidden" : undefined,
+              position: "relative"
+            }}
             onClick={() => inputRef.current?.focus()}
           >
             {/* Fade masks left & right */}
-            <div className="lane-fade-left" />
-            <div className="lane-fade-right" />
+            {viewMode === "focus" && <div className="lane-fade-left" />}
+            {viewMode === "focus" && <div className="lane-fade-right" />}
 
             {/* The actual word track — JS drives translateX to scroll */}
-            <div ref={trackRef} className="typing-lane-track">
+            <div 
+              ref={trackRef} 
+              className="typing-lane-track"
+              style={viewMode === "normal" ? { 
+                whiteSpace: "pre-wrap", 
+                flexWrap: "wrap", 
+                justifyContent: "flex-start",
+                alignContent: "flex-start",
+                display: "flex",
+                gap: "10px",
+                width: "100%",
+                maxWidth: "1000px",
+                margin: "0 auto",
+                padding: "0",
+                fontSize: "40px",
+                lineHeight: "1.5"
+              } : undefined}
+            >
               {visibleWords.length === 0 ? (
                 <span className="word-lane-waiting">Loading…</span>
               ) : (
@@ -1059,128 +1252,52 @@ export default function TypingInterface({
         </div>
 
         {/* ── Revealed Ad Text ── */}
-        <div
-          style={{
-            padding: "0 48px",
-            maxWidth: "calc(100% - 400px)",
-            marginTop: "auto",
-            marginBottom: 60,
-          }}
-        >
+        {viewMode === "focus" && (
           <div
-            className="label-sm"
             style={{
-              marginBottom: 12,
-              color: "var(--ink)",
-              display: "flex",
-              gap: 24,
-              alignItems: "center",
+              padding: "0 48px",
+              maxWidth: "calc(100% - 400px)",
+              marginTop: "auto",
+              marginBottom: 60,
             }}
           >
-            <span>AD COPY</span>
-            {!started && !completed && !discarded && (
-              <span style={{ color: "var(--stamp-navy)" }}>
-                {" "}
-                START TYPING TO BEGIN MORE WORDS WILL APPEAR
-              </span>
-            )}
-          </div>
-          <div
-            className="font-body"
-            style={{
-              fontSize: 20,
-              color: "var(--ink)",
-              lineHeight: 1.6,
-              minHeight: 64,
-            }}
-          >
-            {visibleWords.slice(0, activeWordIdx).join(" ")}
-            {activeWordIdx > 0 ? " " : ""}
-            <span style={{ color: "var(--ink)" }}>
-              {visibleWords[activeWordIdx]?.substring(0, charIdx)}
-            </span>
-          </div>
-        </div>
-
-        {/* ── Ad Image / Practice card ── */}
-        <div
-          style={{
-            position: "absolute",
-            bottom: 120,
-            right: 48,
-            width: 320,
-            height: 240,
-            border: isPractice ? "1px solid var(--paper-darker)" : "2px dashed var(--paper-darker)",
-            borderRadius: isPractice ? "8px" : "0px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "var(--paper-dark)",
-            padding: isPractice ? "24px" : "0px",
-            zIndex: 9999,
-          }}
-        >
-          {isPractice ? (
-            <div style={{ textAlign: "center" }}>
-              <div
-                style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: "50%",
-                  background: "var(--paper-darker)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  margin: "0 auto 16px auto",
-                  color: "var(--ink-faint)",
-                }}
-              >
-                <Sparkles size={24} />
-              </div>
-              <div
-                className="label-sm"
-                style={{
-                  fontSize: 11,
-                  color: "var(--ink)",
-                  letterSpacing: "0.05em",
-                  marginBottom: 8,
-                }}
-              >
-                TYPING SANDBOX
-              </div>
-              <div
-                style={{
-                  fontFamily: "var(--font-libre)",
-                  fontSize: 11,
-                  color: "var(--ink-faint)",
-                  lineHeight: 1.4,
-                }}
-              >
-                Improve your typing speed. Practice sessions do not award points.
-              </div>
-            </div>
-          ) : campaign?.image_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img 
-              src={campaign.image_url} 
-              alt="Ad Image" 
-              style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain", borderRadius: 4 }} 
-            />
-          ) : (
             <div
               className="label-sm"
               style={{
-                color: "var(--ink-faint)",
-                textAlign: "center",
-                lineHeight: 1.5,
+                marginBottom: 12,
+                color: "var(--ink)",
+                display: "flex",
+                gap: 24,
+                alignItems: "center",
               }}
             >
-              AD IMAGE
-              <br />
-              PLACEHOLDER
+              <span>AD COPY</span>
+              {!started && !completed && !discarded && (
+                <span style={{ color: "var(--stamp-navy)" }}>
+                  {" "}
+                  START TYPING TO BEGIN MORE WORDS WILL APPEAR
+                </span>
+              )}
             </div>
-          )}
-        </div>
+            <div
+              className="font-body"
+              style={{
+                fontSize: 20,
+                color: "var(--ink)",
+                lineHeight: 1.6,
+                minHeight: 64,
+              }}
+            >
+              {visibleWords.slice(0, activeWordIdx).join(" ")}
+              {activeWordIdx > 0 ? " " : ""}
+              <span style={{ color: "var(--ink)" }}>
+                {visibleWords[activeWordIdx]?.substring(0, charIdx)}
+              </span>
+            </div>
+          </div>
+        )}
+
+
 
         {/* ── Hidden input ── */}
         <input
@@ -1209,10 +1326,11 @@ export default function TypingInterface({
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              zIndex: 10,
+              zIndex: 95,
             }}
           >
-            {isPractice ? (
+            {(isPractice || isGuest) ? (
+              /* ── Inline results for practice / guest ── */
               <div
                 style={{
                   display: "flex",
@@ -1226,12 +1344,12 @@ export default function TypingInterface({
                 }}
               >
                 <div className="label-sm" style={{ color: "var(--ink-faint)", marginBottom: 8 }}>
-                  PRACTICE SESSION COMPLETE
+                  {isPractice ? "PRACTICE SESSION COMPLETE" : "SESSION COMPLETE"}
                 </div>
                 <h2 className="font-headline" style={{ fontSize: 36, marginBottom: 32 }}>
                   PERFORMANCE REPORT
                 </h2>
-                
+
                 <div
                   style={{
                     display: "grid",
@@ -1262,6 +1380,10 @@ export default function TypingInterface({
                   </div>
                 </div>
 
+                <div style={{ width: "100%", height: "auto", marginBottom: 40 }}>
+                  <ResultsCharts samples={accuracySamplesRef.current} />
+                </div>
+
                 <div style={{ display: "flex", gap: 16 }}>
                   <button
                     onClick={() => {
@@ -1284,6 +1406,7 @@ export default function TypingInterface({
                 </div>
               </div>
             ) : (
+              /* ── Spinner while saving + redirecting to /results/[sessionId] ── */
               <>
                 <div
                   className="font-headline"
@@ -1321,7 +1444,7 @@ export default function TypingInterface({
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              zIndex: 10,
+              zIndex: 95,
             }}
           >
             <div
