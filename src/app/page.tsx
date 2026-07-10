@@ -203,10 +203,6 @@ export default async function LandingPage({
               rewarded task.
               <br />
               <br />
-              Every word you type on this platform is a real advertisement. As
-              you type, the ad creative progressively reveals itself. You earn
-              points for your precision and speed, and brands get guaranteed,
-              focused engagement.
             </div>
           </div>
 
@@ -437,10 +433,14 @@ export default async function LandingPage({
             </div>
           </div>
           <div style={{ display: "flex", gap: 24, justifyContent: "center" }}>
-            {["HOME", "TERMS", "PRIVACY"].map((link) => (
-              <a
-                key={link}
-                href="#"
+            {[
+              { label: "HOME", href: "/" },
+              { label: "TERMS", href: "/terms" },
+              { label: "PRIVACY", href: "/privacy" },
+            ].map((link) => (
+              <Link
+                key={link.label}
+                href={link.href}
                 style={{
                   color: "var(--paper)",
                   fontFamily: "var(--font-libre)",
@@ -450,8 +450,8 @@ export default async function LandingPage({
                   textDecoration: "none",
                 }}
               >
-                {link}
-              </a>
+                {link.label}
+              </Link>
             ))}
           </div>
           {/* <div
