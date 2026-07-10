@@ -160,8 +160,8 @@ export default function TypingPageClient({ userId }: TypingPageClientProps) {
     );
   }
 
-  const isPractice = sessionData.mode === "practice";
   const isGuest = sessionData.isGuest || false;
+  const isPractice = sessionData.mode === "practice" || isGuest;
 
   return (
     <div

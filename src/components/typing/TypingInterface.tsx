@@ -73,7 +73,7 @@ export default function TypingInterface({
   /* ── Settings ── */
   const [usePunctuation, setUsePunctuation] = useState(true);
   const [useLowercase, setUseLowercase] = useState(false);
-  const [mode, setMode] = useState<"jumbled" | "exact">("jumbled");
+  const mode = "exact";
   const [timeLimit, setTimeLimit] = useState<number | null>(30);
   const [practiceTrigger, setPracticeTrigger] = useState(0);
 
@@ -140,19 +140,39 @@ export default function TypingInterface({
     let text = "";
     if (isPractice) {
       text = practiceText || rawText;
+      // If capitals are selected (!useLowercase), capitalize some words from the JSON list
+      if (!useLowercase) {
+        const wordsArray = text.split(/\s+/);
+        const capitalized = wordsArray.map((w, idx) => {
+          // Capitalize every 3rd word, or first word of sentences
+          if (idx % 3 === 0 && w.length > 0) {
+            return w.charAt(0).toUpperCase() + w.slice(1);
+          }
+          return w;
+        });
+        text = capitalized.join(" ");
+      }
+      
+      // If punctuation is selected, add basic punctuation to some words
+      if (usePunctuation) {
+        const wordsArray = text.split(/\s+/);
+        const punctuated = wordsArray.map((w, idx) => {
+          if (idx % 5 === 4 && w.length > 0) {
+            return w + ".";
+          } else if (idx % 8 === 3 && w.length > 0) {
+            return w + ",";
+          } else if (idx % 12 === 7 && w.length > 0) {
+            return w + "?";
+          }
+          return w;
+        });
+        text = punctuated.join(" ");
+      }
     } else {
       text = rawText;
     }
 
-    if (mode === "jumbled") {
-      const ws = text.split(/\s+/);
-      const rand = seededRandom(`${campaign?.id || "practice"}-${repeatNumber}`);
-      for (let i = ws.length - 1; i > 0; i--) {
-        const j = Math.floor(rand() * (i + 1));
-        [ws[i], ws[j]] = [ws[j], ws[i]];
-      }
-      text = ws.join(" ");
-    }
+
     if (!usePunctuation) text = text.replace(/[^\w\s\d]/g, "");
     if (useLowercase) text = text.toLowerCase();
     text = text.replace(/\s+/g, " ").trim();
@@ -854,47 +874,14 @@ export default function TypingInterface({
           style={{ width: 1, height: 24, background: "var(--paper-darker)" }}
         />
 
-        {/* Mode */}
-        {(["jumbled", "exact"] as const).map((m) => (
-          <button
-            key={m}
-            disabled={started && !completed}
-            onClick={() => setMode(m)}
-            style={{
-              opacity: started && !completed ? 0.3 : 1,
-              pointerEvents: started && !completed ? "none" : "auto",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              fontFamily: "var(--font-courier)",
-              fontSize: 16,
-              fontWeight: 700,
-              color: mode === m ? "var(--stamp-navy)" : "var(--ink-faint)",
-              letterSpacing: "0.04em",
-              transition: "color 0.15s",
-              borderBottom:
-                mode === m
-                  ? "2px solid var(--stamp-navy)"
-                  : "2px solid transparent",
-              paddingBottom: 2,
-            }}
-          >
-            {m}
-          </button>
-        ))}
-
-        <div
-          style={{ width: 1, height: 24, background: "var(--paper-darker)" }}
-        />
-
         {/* Time limits / Mode selection */}
-        {(["words", 15, 30, 60] as const).map((val) => {
-          const isSelected = val === "words" ? timeLimit === null : timeLimit === val;
+        {([15, 30, 60] as const).map((val) => {
+          const isSelected = timeLimit === val;
           return (
             <button
               key={val}
               disabled={started && !completed}
-              onClick={() => setTimeLimit(val === "words" ? null : val)}
+              onClick={() => setTimeLimit(val)}
               style={{
                 opacity: started && !completed ? 0.3 : 1,
                 pointerEvents: started && !completed ? "none" : "auto",
@@ -1277,10 +1264,8 @@ export default function TypingInterface({
               position: "absolute",
               inset: 0,
               background: "var(--paper)",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
+              overflowY: "auto",
+              padding: "40px 24px",
               zIndex: 95,
             }}
           >
@@ -1288,75 +1273,240 @@ export default function TypingInterface({
               /* ── Inline results for practice / guest ── */
               <div
                 style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
+                  maxWidth: 1200,
+                  margin: "0 auto",
                   width: "100%",
-                  maxWidth: 600,
-                  padding: "32px",
-                  background: "var(--paper)",
                 }}
               >
-                <div className="label-sm" style={{ color: "var(--ink-faint)", marginBottom: 8 }}>
-                  {isPractice ? "PRACTICE SESSION COMPLETE" : "SESSION COMPLETE"}
+                {/* Header */}
+                <div
+                  style={{
+                    borderBottom: "2px solid var(--ink)",
+                    paddingBottom: 16,
+                    marginBottom: 32,
+                    textAlign: "left",
+                  }}
+                >
+                  <div className="label-sm">DISPATCH REPORT</div>
+                  <h1 className="font-headline" style={{ fontSize: 48, marginTop: 12 }}>
+                    {isPractice ? "PRACTICE COMPLETE" : "SESSION COMPLETE"}
+                  </h1>
                 </div>
-                <h2 className="font-headline" style={{ fontSize: 36, marginBottom: 32 }}>
-                  PERFORMANCE REPORT
-                </h2>
 
+                {/* Metadata Configuration */}
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 16,
+                    marginBottom: 32,
+                    padding: "12px 16px",
+                    background: "var(--paper-dark)",
+                    border: "1px solid var(--paper-darker)",
+                    borderRadius: 8,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 24,
+                      fontFamily: "var(--font-courier)",
+                      fontSize: 14,
+                      fontWeight: 700,
+                      color: "var(--ink-faint)",
+                    }}
+                  >
+                    <div>{mode || "jumbled"}</div>
+                    <div>|</div>
+                    <div
+                      style={{
+                        color: usePunctuation
+                          ? "var(--ink)"
+                          : "var(--ink-faint)",
+                        opacity: usePunctuation ? 1 : 0.45,
+                      }}
+                    >
+                      punctuation
+                    </div>
+                    <div>|</div>
+                    <div style={{ display: "flex", gap: 6 }}>
+                      <span
+                        style={{
+                          color: !useLowercase
+                            ? "var(--ink)"
+                            : "var(--ink-faint)",
+                          opacity: !useLowercase ? 1 : 0.4,
+                          fontWeight: !useLowercase ? 900 : 700,
+                        }}
+                      >
+                        A
+                      </span>
+                      <span style={{ opacity: 0.3 }}>/</span>
+                      <span
+                        style={{
+                          color: useLowercase
+                            ? "var(--ink)"
+                            : "var(--ink-faint)",
+                          opacity: useLowercase ? 1 : 0.4,
+                          fontWeight: useLowercase ? 900 : 700,
+                        }}
+                      >
+                        a
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2-Column Layout */}
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "1fr 1fr 1fr",
+                    gridTemplateColumns: "320px 1fr",
                     gap: 32,
-                    width: "100%",
-                    marginBottom: 40,
-                    textAlign: "center",
+                    marginBottom: 32,
                   }}
                 >
-                  <div style={{ borderRight: "1px solid var(--paper-darker)" }}>
-                    <div className="label-sm" style={{ fontSize: 11, marginBottom: 8 }}>WPM</div>
-                    <div style={{ fontFamily: "var(--font-courier)", fontSize: 48, fontWeight: 900, color: "var(--stamp-navy)" }}>
-                      {wpm}
+                  {/* Left Column: Stats */}
+                  <div
+                    className="editorial-box"
+                    style={{
+                      padding: 0,
+                      height: "fit-content",
+                      display: "flex",
+                      flexDirection: "column",
+                      background: "var(--paper)",
+                    }}
+                  >
+                    <div
+                      className="box-label"
+                      style={{ padding: "12px 24px", margin: 0 }}
+                    >
+                      STATS
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr" }}>
+                      {[
+                        {
+                          label: "WPM",
+                          value: wpm,
+                          sub: "SESSION SPEED",
+                          highlight: true,
+                        },
+                        {
+                          label: "ACCURACY",
+                          value: `${accuracy}%`,
+                          sub: "TARGET: 90%+",
+                          highlight: true,
+                        },
+                        {
+                          label: "POINTS EARNED",
+                          value: "0",
+                          sub: "SIGN UP TO EARN",
+                        },
+                        {
+                          label: "TIME",
+                          value: `${elapsedSeconds}s`,
+                          sub: "ELAPSED TIME",
+                        },
+                      ].map((stat, i) => (
+                        <div
+                          key={stat.label}
+                          style={{
+                            padding: "24px",
+                            borderBottom:
+                              i < 3 ? "1px solid var(--paper-darker)" : "none",
+                            textAlign: "left",
+                          }}
+                        >
+                          <div className="label-sm" style={{ marginBottom: 8 }}>
+                            {stat.label}
+                          </div>
+                          <div
+                            className="stat-number"
+                            style={{
+                              fontSize: stat.highlight ? 54 : 36,
+                              lineHeight: 1.1,
+                              fontFamily: "var(--font-courier)",
+                              fontWeight: 900,
+                            }}
+                          >
+                            {stat.value}
+                          </div>
+                          {stat.sub && (
+                            <div
+                              style={{
+                                fontFamily: "var(--font-courier)",
+                                fontSize: 11,
+                                color: "var(--ink-faint)",
+                                marginTop: 6,
+                                fontWeight: 700,
+                              }}
+                            >
+                              {stat.sub}
+                            </div>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   </div>
-                  <div style={{ borderRight: "1px solid var(--paper-darker)" }}>
-                    <div className="label-sm" style={{ fontSize: 11, marginBottom: 8 }}>ACCURACY</div>
-                    <div style={{ fontFamily: "var(--font-courier)", fontSize: 48, fontWeight: 900, color: accuracy >= 90 ? "var(--ink)" : "var(--stamp-red)" }}>
-                      {accuracy}%
-                    </div>
-                  </div>
-                  <div>
-                    <div className="label-sm" style={{ fontSize: 11, marginBottom: 8 }}>TIME</div>
-                    <div style={{ fontFamily: "var(--font-courier)", fontSize: 48, fontWeight: 900, color: "var(--ink)" }}>
-                      {elapsedSeconds}s
-                    </div>
-                  </div>
-                </div>
 
-                <div style={{ width: "100%", height: "auto", marginBottom: 40 }}>
-                  <ResultsCharts samples={accuracySamplesRef.current} />
+                  {/* Right Column: Chart */}
+                  {accuracySamplesRef.current && accuracySamplesRef.current.length > 1 ? (
+                    <div className="editorial-box" style={{ background: "var(--paper)" }}>
+                      <div className="box-label">TELEMETRY</div>
+                      <ResultsCharts samples={accuracySamplesRef.current} />
+                    </div>
+                  ) : (
+                    <div
+                      className="editorial-box"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "var(--ink-faint)",
+                        fontFamily: "var(--font-courier)",
+                        fontSize: 14,
+                        background: "var(--paper)",
+                        minHeight: 300,
+                      }}
+                    >
+                      NO TELEMETRY DATA AVAILABLE
+                    </div>
+                  )}
                 </div>
 
                 {/* Sign-up CTA for guests */}
                 {isGuest && (
-                  <div style={{
-                    width: "100%",
-                    background: "var(--ink)",
-                    color: "var(--paper)",
-                    padding: "20px 24px",
-                    marginBottom: 24,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: 16,
-                  }}>
+                  <div
+                    style={{
+                      width: "100%",
+                      background: "var(--ink)",
+                      color: "var(--paper)",
+                      padding: "20px 24px",
+                      marginBottom: 32,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 16,
+                      textAlign: "left",
+                    }}
+                  >
                     <div>
-                      <div style={{ fontFamily: "var(--font-courier)", fontWeight: 700, fontSize: 13, marginBottom: 4 }}>
+                      <div
+                        style={{
+                          fontFamily: "var(--font-courier)",
+                          fontWeight: 700,
+                          fontSize: 13,
+                          marginBottom: 4,
+                        }}
+                      >
                         YOUR RESULTS WERE NOT SAVED
                       </div>
-                      <div style={{ fontFamily: "var(--font-libre)", fontSize: 12, opacity: 0.7 }}>
+                      <div
+                        style={{
+                          fontFamily: "var(--font-libre)",
+                          fontSize: 12,
+                          opacity: 0.7,
+                        }}
+                      >
                         Create a free account to save your sessions and earn real rewards.
                       </div>
                     </div>
@@ -1379,13 +1529,26 @@ export default function TypingInterface({
                   </div>
                 )}
 
-                <div style={{ display: "flex", gap: 16 }}>
+                {/* Actions */}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    gap: 16,
+                    marginTop: 40,
+                    marginBottom: 40,
+                  }}
+                >
                   <button
                     onClick={() => {
-                      setPracticeTrigger(prev => prev + 1);
+                      setPracticeTrigger((prev) => prev + 1);
                     }}
                     className="btn btn-inverted"
-                    style={{ width: 240, padding: "16px", fontSize: 14 }}
+                    style={{
+                      width: 300,
+                      padding: "20px",
+                      fontSize: 16,
+                    }}
                   >
                     PRACTICE AGAIN
                   </button>
@@ -1394,7 +1557,11 @@ export default function TypingInterface({
                       router.push("/");
                     }}
                     className="btn"
-                    style={{ width: 180, padding: "16px", fontSize: 14 }}
+                    style={{
+                      width: 300,
+                      padding: "20px",
+                      fontSize: 16,
+                    }}
                   >
                     EXIT TO HOME
                   </button>

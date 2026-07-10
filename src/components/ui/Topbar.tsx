@@ -23,8 +23,6 @@ export default function Topbar({ profile }: TopbarProps) {
   const navLinks = [
     { href: "/typing", label: "TYPE" },
     { href: "/leaderboard", label: "LEADERBOARD" },
-    { href: "/rewards", label: "REWARDS" },
-    { href: "/wallet", label: "WALLET" },
     { href: "/profile", label: "PROFILE" },
   ];
 

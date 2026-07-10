@@ -80,11 +80,6 @@ export default async function ProfilePage({ params }: Props) {
             </p>
           )}
         </div>
-        {isOwnProfile && (
-          <Link href="/rewards" className="btn btn-inverted">
-            REDEEM POINTS
-          </Link>
-        )}
       </div>
 
       {/* Stats row */}
