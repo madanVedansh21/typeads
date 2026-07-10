@@ -1,8 +1,17 @@
 import Link from "next/link";
-import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
-export default async function LandingPage() {
+export default async function LandingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const resolvedParams = await searchParams;
+  if (resolvedParams.home !== "true") {
+    redirect("/typing");
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -15,76 +24,127 @@ export default async function LandingPage() {
         color: "var(--ink)",
       }}
     >
-      {/* HEADER */}
-      <header
+      {/* Early Access Marquee */}
+      <div
         style={{
-          borderTop: "3px solid var(--ink)",
-          borderBottom: "1px solid var(--paper-darker)",
-          padding: "16px 32px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          background: "var(--paper)",
-          maxWidth: 1400,
-          margin: "0 auto",
+          background: "var(--ink)",
+          color: "var(--paper)",
+          padding: "10px 0",
+          overflow: "hidden",
+          borderBottom: "2px solid var(--ink)",
+          fontFamily: "var(--font-courier)",
+          fontSize: 13,
+          fontWeight: 700,
+          letterSpacing: "0.08em",
+          whiteSpace: "nowrap",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <Image
-            src="/sloth.png"
-            alt="Sloth Mascot"
-            width={52}
-            height={52}
-            priority
-            style={{ objectFit: "contain" }}
-          />
+        <div className="marquee-track">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <span key={i} style={{ paddingRight: 80 }}>
+              &nbsp; EARLY ACCESS &nbsp; — &nbsp; We are currently onboarding
+              our first advertisers. In the meantime, enjoy unlimited free
+              practice typing. Real ads and rewards are coming soon.
+              &nbsp;&nbsp;&nbsp; &nbsp; EARLY ACCESS &nbsp; — &nbsp; We are
+              currently onboarding our first advertisers. In the meantime, enjoy
+              unlimited free practice typing. Real ads and rewards are coming
+              soon. &nbsp;&nbsp;&nbsp; &nbsp; EARLY ACCESS &nbsp; — &nbsp; We
+              are currently onboarding our first advertisers. In the meantime,
+              enjoy unlimited free practice typing. Real ads and rewards are
+              coming soon. &nbsp;&nbsp;&nbsp;
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* 5.1 MASTHEAD */}
+      <div
+        style={{
+          borderTop: "3px solid var(--ink)",
+          borderBottom: "3px solid var(--ink)",
+          padding: "4px 0",
+          background: "var(--paper)",
+        }}
+      >
+        <div
+          style={{
+            borderTop: "1px solid var(--paper-darker)",
+            borderBottom: "1px solid var(--paper-darker)",
+            padding: "16px 32px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            maxWidth: 1400,
+            margin: "0 auto",
+          }}
+        >
+          {/* <div className="label-sm" style={{ flex: 1 }}>
+            {new Date()
+              .toLocaleDateString("en-IN", {
+                weekday: "long",
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+              })
+              .toUpperCase()}{" "}
+            · DAILY EDITION
+          </div> */}
           <div
             style={{
-              fontFamily: "var(--font-canopee)",
-              fontSize: 48,
-              fontWeight: 400,
+              fontFamily: "var(--font-playfair)",
+              fontSize: 56,
+              fontWeight: 900,
               textTransform: "uppercase",
+              textAlign: "center",
+              flex: 1,
               color: "var(--ink)",
-              transform: "translateY(4px)", // Optical alignment
             }}
           >
             TYPEADS
           </div>
+          {/* <div className="label-sm" style={{ flex: 1, textAlign: "right" }}>
+            TYPEADS.FAIRGIGS.APP · EST. 2025
+          </div> */}
         </div>
+      </div>
 
-        <nav style={{ display: "flex", gap: 32, alignItems: "center" }}>
-          {[
-            "HOW IT WORKS",
-            "FOR TYPISTS",
-            "FOR ADVERTISERS",
-            user ? "START TYPING" : "SIGN UP",
-          ].map((item) => (
-            <Link
-              key={item}
-              href={
-                item === "SIGN UP"
-                  ? "/signup"
-                  : item === "START TYPING"
-                    ? "/typing"
-                    : item === "HOW IT WORKS"
-                      ? "#how-it-works"
-                      : item === "FOR TYPISTS"
-                        ? "#for-typists"
-                        : "#for-advertisers"
-              }
-              className="nav-item"
-              style={{ color: "var(--ink)", textDecoration: "none" }}
-            >
-              {item}
-            </Link>
-          ))}
-        </nav>
-      </header>
+      {/* 5.2 NAVIGATION BAR */}
+      <nav
+        style={{
+          background: "var(--paper-dark)",
+          borderBottom: "1px solid var(--paper-darker)",
+          padding: "12px 32px",
+          display: "flex",
+          justifyContent: "center",
+          gap: 40,
+        }}
+      >
+        {[
+          "HOW IT WORKS",
+          "FOR TYPISTS",
+          "FOR ADVERTISERS",
+          user ? "START TYPING" : "SIGN UP",
+        ].map((item) => (
+          <Link
+            key={item}
+            href={
+              item === "SIGN UP"
+                ? "/signup"
+                : item === "START TYPING"
+                  ? "/typing"
+                  : "#"
+            }
+            className="label-sm"
+            style={{ color: "var(--ink-light)", textDecoration: "none" }}
+          >
+            {item}
+          </Link>
+        ))}
+      </nav>
 
       <div style={{ maxWidth: 1400, margin: "0 auto" }}>
         {/* 5.3 FRONT PAGE — HERO SECTION */}
         <section
-          id="how-it-works"
           style={{
             display: "grid",
             gridTemplateColumns: "2fr 1fr",
@@ -102,16 +162,16 @@ export default async function LandingPage() {
           >
             <h1
               className="font-headline"
-              style={{ fontSize: 72, marginBottom: 12 }}
+              style={{ fontSize: 48, marginBottom: 12 }}
             >
-              YOU PRACTICE TYPING ANYWAY. WHY NOT GET REWARDED ON THE SIDE.
+              GET REWARDED TO TYPE ADS.
             </h1>
             <h2
               className="font-subheadline"
-              style={{ fontSize: 32, marginBottom: 32 }}
+              style={{ fontSize: 24, marginBottom: 32 }}
             >
-              You already spend time typing randomly to test your speed. You are
-              pretty fast. Why not get a little reward for it.
+              The internet's first typing platform where every keystroke earns
+              you rewards.
             </h2>
             <hr
               style={{
@@ -122,7 +182,7 @@ export default async function LandingPage() {
             />
             <div
               className="font-body"
-              style={{ textAlign: "justify", fontSize: 22, lineHeight: 1.8 }}
+              style={{ textAlign: "justify", fontSize: 18, lineHeight: 1.8 }}
             >
               <span
                 style={{
@@ -134,19 +194,19 @@ export default async function LandingPage() {
                   fontFamily: "var(--font-playfair)",
                 }}
               >
-                P
+                T
               </span>
-              eople practice typing every day. Mostly just to click clack on
-              their keyboards or procrastinate on doing real work. We figured
-              what if that exact same habit gave you a little bonus?
+              he digital attention economy is broken. You see thousands of ads
+              daily, yet you earn nothing for your time. Brands spend billions,
+              yet have no proof you ever read their copy. TypeAds solves both
+              problems at once by transforming passive scrolling into an active,
+              rewarded task.
               <br />
               <br />
-              On TypeAds, every word you type adds points to your balance.
-              Points turn into gift cards. This isn't a gig. It is just your
-              normal typing habit, but now you get rewarded for it.
-            </div>
-            <div className="label-sm" style={{ marginTop: 32 }}>
-              — The TypeAds Team
+              Every word you type on this platform is a real advertisement. As
+              you type, the ad creative progressively reveals itself. You earn
+              points for your precision and speed, and brands get guaranteed,
+              focused engagement.
             </div>
           </div>
 
@@ -173,27 +233,24 @@ export default async function LandingPage() {
               }}
             >
               {[
-                "Pick a piece of text from the queue",
-                "Type it out, word by word",
-                "An image slowly reveals as you go",
-                "Points drop into your balance",
-                "Get enough points, get rewarded",
+                "Brand submits ad copy",
+                "You type it word by word",
+                "if you complete daily quota of ads you fallback to normal typing ads ",
+                "Points land in your wallet",
+                "you are practicing your typing skills and earn rewards",
               ].map((step, i) => (
                 <div key={i} style={{ display: "flex", gap: 12 }}>
                   <span
                     style={{
                       fontFamily: "var(--font-playfair)",
                       fontStyle: "italic",
-                      fontSize: 24,
+                      fontSize: 18,
                       color: "var(--ink)",
                     }}
                   >
                     {i + 1}.
                   </span>
-                  <span
-                    className="font-body"
-                    style={{ marginTop: 2, fontSize: 22 }}
-                  >
+                  <span className="font-body" style={{ marginTop: 2 }}>
                     {step}
                   </span>
                 </div>
@@ -204,7 +261,6 @@ export default async function LandingPage() {
 
         {/* 5.5 FOR TYPISTS */}
         <section
-          id="for-typists"
           style={{
             background: "var(--paper)",
             borderBottom: "1px solid var(--paper-darker)",
@@ -214,24 +270,19 @@ export default async function LandingPage() {
           <div style={{ padding: 64, maxWidth: 800, margin: "0 auto" }}>
             <h2
               className="font-headline"
-              style={{ fontSize: 42, marginBottom: 16, textAlign: "center" }}
+              style={{ fontSize: 32, marginBottom: 16, textAlign: "center" }}
             >
-              SAME HABIT. SMALL REWARD.
+              Turn Your Keystrokes Into Cash
             </h2>
             <div
               className="font-body"
-              style={{
-                textAlign: "justify",
-                marginBottom: 32,
-                fontSize: 22,
-                lineHeight: 1.8,
-              }}
+              style={{ textAlign: "justify", marginBottom: 32 }}
             >
-              You were going to open a typing site today anyway. You were going
-              to sit there and type random quotes. TypeAds just makes that
-              session give you a little back. Each text takes under a minute.
-              Each one adds to your balance. No pressure, no daily targets. Just
-              type when you feel like it. Get rewarded when you do.
+              Finally, a typing test that rewards. Whether you're practicing
+              your WPM or just looking for a productive way to kill time,
+              TypeAds turns your spare minutes into real rewards. Each
+              advertisement takes roughly 30 to 60 seconds to complete. Perfect
+              accuracy and high speeds yield bonus multipliers.
             </div>
             <div style={{ textAlign: "center" }}>
               <Link
@@ -246,7 +297,6 @@ export default async function LandingPage() {
 
         {/* 5.6 FOR ADVERTISERS */}
         <section
-          id="for-advertisers"
           style={{
             background: "var(--paper-dark)",
             borderBottom: "1px solid var(--paper-darker)",
@@ -259,67 +309,29 @@ export default async function LandingPage() {
             FOR ADVERTISERS
           </div>
           <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              padding: 32,
-              gap: 48,
-            }}
+            style={{ padding: "48px 32px", maxWidth: 1200, margin: "0 auto" }}
           >
-            <div>
-              <div
-                className="editorial-box"
-                style={{ background: "var(--paper)" }}
-              >
-                <div className="box-label">
-                  PRINT ORDER FORM — CAMPAIGN #884
-                </div>
-                <div
-                  style={{
-                    fontFamily: "var(--font-courier)",
-                    fontSize: 13,
-                    color: "var(--ink)",
-                  }}
-                >
-                  <p
-                    style={{
-                      borderBottom: "1px solid var(--paper-darker)",
-                      paddingBottom: 8,
-                      marginBottom: 8,
-                    }}
-                  >
-                    CLIENT: SOMEBODY WITH MONEY
-                  </p>
-                  <p
-                    style={{
-                      borderBottom: "1px solid var(--paper-darker)",
-                      paddingBottom: 8,
-                      marginBottom: 8,
-                    }}
-                  >
-                    REACH: 10,000 VERIFIED READS
-                  </p>
-                  <p style={{ marginTop: 16 }}>
-                    STATUS: [X] APPROVED FOR PRINT
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div>
-              <h2
-                className="font-headline"
-                style={{ fontSize: 42, marginBottom: 16 }}
-              >
-                PEOPLE WHO TYPE YOUR AD HAVE READ YOUR AD.
-              </h2>
-              <div
-                className="font-body"
-                style={{ textAlign: "justify", fontSize: 22, lineHeight: 1.8 }}
-              >
-                No skipping. No scrolling past in half a second. The person has
-                typed every single word you wrote because they want their
-                reward. That is the most genuine read your copy will ever get.
-              </div>
+            <h2
+              className="font-headline"
+              style={{ fontSize: 36, marginBottom: 16 }}
+            >
+              Guaranteed Attention.
+            </h2>
+            <div
+              className="font-body"
+              style={{
+                textAlign: "justify",
+                maxWidth: 760,
+                marginBottom: 48,
+                lineHeight: 1.8,
+                fontSize: 18,
+              }}
+            >
+              Stop paying for impressions that no one looks at. In traditional
+              digital advertising, a user scrolls past your banner in
+              milliseconds. On TypeAds, the user is forced to read, process, and
+              physically retype your entire ad copy word for word in order to
+              earn their reward.
             </div>
           </div>
         </section>
@@ -334,7 +346,7 @@ export default async function LandingPage() {
             position: "relative",
           }}
         >
-          <span
+          {/* <span
             style={{
               position: "absolute",
               left: 40,
@@ -346,27 +358,29 @@ export default async function LandingPage() {
             }}
           >
             "
-          </span>
-          <div
+          </span> */}
+          {/* <div
             style={{
               fontFamily: "var(--font-playfair)",
               fontStyle: "italic",
-              fontSize: 36,
+              fontSize: 28,
               color: "var(--ink)",
               maxWidth: 800,
               margin: "0 auto",
               lineHeight: 1.4,
             }}
           >
-            I used to type out random paragraphs in name of tests just to avoid
-            doing my actual job. Now I type out marketing copy for digital
-            points to avoid doing my actual job. It's called personal growth.
-          </div>
-          <div
+            It feels like I'm doing real work. I'm reading the copy, I'm
+            understanding the product, and I'm getting paid for it. It beats
+            filling out surveys any day.
+          </div> */}
+          {/* <div
             className="label-sm"
             style={{ marginTop: 24, color: "var(--ink)" }}
-          ></div>
-          <span
+          >
+            — EARLY ACCESS USER
+          </div> */}
+          {/* <span
             style={{
               position: "absolute",
               right: 40,
@@ -378,7 +392,7 @@ export default async function LandingPage() {
             }}
           >
             "
-          </span>
+          </span> */}
         </section>
       </div>
 
@@ -419,7 +433,7 @@ export default async function LandingPage() {
                 letterSpacing: "0.1em",
               }}
             >
-              A TYPING PLATFORM THAT GIVES BACK
+              TYPEADS.FAIRGIGS.APP
             </div>
           </div>
           <div style={{ display: "flex", gap: 24, justifyContent: "center" }}>
@@ -440,7 +454,7 @@ export default async function LandingPage() {
               </a>
             ))}
           </div>
-          <div
+          {/* <div
             style={{
               textAlign: "right",
               fontFamily: "var(--font-libre)",
@@ -448,14 +462,14 @@ export default async function LandingPage() {
               letterSpacing: "0.15em",
             }}
           >
-            A COMPLETELY NORMAL TYPING SITE
+            A FAIRGIGS PRODUCT
             <br />
             <span
               style={{ opacity: 0.5, marginTop: 4, display: "inline-block" }}
             >
               © 2026 TYPEADS
             </span>
-          </div>
+          </div> */}
         </div>
       </footer>
     </main>

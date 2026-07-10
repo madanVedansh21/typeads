@@ -17,7 +17,7 @@ export default async function LeaderboardPage() {
   const currentUserEntry = entries?.find(e => e.id === user?.id)
 
   return (
-    <div className="page-wrapper" style={{ maxWidth: 1000, margin: '0 auto', padding: '40px 24px' }}>
+    <div className="page-wrapper" style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 24px' }}>
       
       {/* Header */}
       <div style={{ borderBottom: '2px solid var(--ink)', paddingBottom: 16, marginBottom: 32 }}>

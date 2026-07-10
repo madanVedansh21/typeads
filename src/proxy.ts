@@ -30,7 +30,7 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Protected routes
-  const protectedRoutes = ['/dashboard', '/type', '/results', '/rewards', '/wallet', '/profile', '/leaderboard']
+  const protectedRoutes = ['/results', '/rewards', '/wallet', '/profile', '/leaderboard']
   const adminRoutes = ['/admin']
   const authRoutes = ['/login', '/signup', '/forgot-password']
 
@@ -49,7 +49,7 @@ export async function proxy(request: NextRequest) {
   // Redirect logged-in users away from auth pages
   if (isAuthRoute && user) {
     const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
+    url.pathname = '/typing'
     return NextResponse.redirect(url)
   }
 
@@ -63,7 +63,7 @@ export async function proxy(request: NextRequest) {
 
     if (!profile?.is_admin) {
       const url = request.nextUrl.clone()
-      url.pathname = '/dashboard'
+      url.pathname = '/typing'
       return NextResponse.redirect(url)
     }
   }

@@ -15,7 +15,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     .eq('id', user.id)
     .single()
 
-  if (!profile?.is_admin) redirect('/dashboard')
+  if (!profile?.is_admin) redirect('/typing')
 
   const navItems = [
     { href: '/admin/campaigns', label: 'CAMPAIGNS' },
@@ -46,11 +46,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </Link>
           ))}
         </div>
-        <Link href="/dashboard" style={{
+        <Link href="/typing" style={{
           fontFamily: 'Arial', fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
           letterSpacing: '0.1em', color: '#555', textDecoration: 'none'
         }}>
-          ← USER DASHBOARD
+          ← BACK TO TYPING
         </Link>
       </div>
       {children}

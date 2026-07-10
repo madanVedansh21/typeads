@@ -59,9 +59,7 @@ export default function CampaignsClient({ campaigns }: Props) {
             <thead>
               <tr>
                 <th>BRAND</th>
-                <th>REWARD</th>
                 <th>COMPLETIONS</th>
-                <th>CAP</th>
                 <th>STATUS</th>
                 <th>ACTIONS</th>
               </tr>
@@ -69,7 +67,7 @@ export default function CampaignsClient({ campaigns }: Props) {
             <tbody>
               {campaigns.length === 0 && (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: 40, color: 'var(--grey-mid)' }}>
+                  <td colSpan={4} style={{ textAlign: 'center', padding: 40, color: 'var(--grey-mid)' }}>
                     No campaigns yet. Create one above.
                   </td>
                 </tr>
@@ -82,9 +80,7 @@ export default function CampaignsClient({ campaigns }: Props) {
                       {campaign.ad_text}
                     </div>
                   </td>
-                  <td style={{ fontFamily: 'Courier New' }}>{campaign.points_reward} pts</td>
                   <td style={{ fontFamily: 'Courier New', fontWeight: 700 }}>{campaign.completions_count}</td>
-                  <td style={{ fontFamily: 'Courier New' }}>{campaign.completion_cap}</td>
                   <td>
                     <span className={`badge ${campaign.is_active ? 'badge-fulfilled' : 'badge-pending'}`}>
                       {campaign.is_active ? 'ACTIVE' : 'INACTIVE'}

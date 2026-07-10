@@ -55,9 +55,9 @@ export default function ResultsCharts({ samples }: Props) {
   })
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 0, border: '3px solid #000' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, border: '3px solid #000' }}>
       {/* WPM Chart */}
-      <div style={{ borderBottom: '2px solid #000', padding: 16 }}>
+      <div style={{ borderRight: '2px solid #000', padding: 16 }}>
         <div className="label-sm" style={{ marginBottom: 12 }}>WPM OVER SESSION</div>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={data} margin={{ top: 10, right: 12, left: -20, bottom: 24 }}>

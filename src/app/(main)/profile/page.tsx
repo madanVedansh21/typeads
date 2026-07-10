@@ -24,5 +24,5 @@ export default async function ProfileRedirectPage() {
   }
 
   console.log('Redirecting to dashboard (no username)')
-  redirect('/dashboard')
+  redirect('/typing')
 }

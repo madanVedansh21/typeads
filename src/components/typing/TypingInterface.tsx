@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
 import Image from "next/image";
 import type { Campaign } from "@/lib/supabase/types";
+import { Sparkles } from "lucide-react";
+import ResultsCharts from "@/components/results/ResultsCharts";
 
 /* ─────────────────────────────────────────────────────────────
    Types
@@ -22,11 +24,16 @@ interface AccuracySample {
   wpm: number;
 }
 
-type CharState = "correct" | "error";
+type CharState = "correct" | "error" | string;
 
 interface Props {
-  campaign: Campaign;
-  userId: string;
+  campaign?: Campaign;
+  userId?: string;
+  isPractice?: boolean;
+  practiceText?: string;
+  isGuest?: boolean;
+  repeatNumber?: number;
+  totalRepeats?: number;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -38,15 +45,37 @@ const BASE_LOOKAHEAD = 3;
 /* ─────────────────────────────────────────────────────────────
    Component
 ───────────────────────────────────────────────────────────── */
-export default function TypingInterface({ campaign, userId }: Props) {
+/* ── Seeded random helper for deterministic shuffling ── */
+function seededRandom(seedStr: string) {
+  let h = 0;
+  for (let i = 0; i < seedStr.length; i++) {
+    h = Math.imul(31, h) + seedStr.charCodeAt(i) | 0;
+  }
+  return function() {
+    h = Math.imul(h ^ h >>> 16, 2246822507);
+    h = Math.imul(h ^ h >>> 13, 3266489909);
+    return ((h ^= h >>> 16) >>> 0) / 4294967296;
+  };
+}
+
+export default function TypingInterface({
+  campaign,
+  userId,
+  isPractice = false,
+  practiceText = "",
+  isGuest = false,
+  repeatNumber = 1,
+  totalRepeats = 3,
+}: Props) {
   const router = useRouter();
-  const rawText = campaign.ad_text;
+  const rawText = campaign?.ad_text ?? "";
 
   /* ── Settings ── */
   const [usePunctuation, setUsePunctuation] = useState(true);
   const [useLowercase, setUseLowercase] = useState(false);
-  const [mode, setMode] = useState<"jumbled" | "exact">("jumbled");
+  const mode = "exact";
   const [timeLimit, setTimeLimit] = useState<number | null>(30);
+  const [practiceTrigger, setPracticeTrigger] = useState(0);
 
   /* ── Full word pool (derived from settings) ── */
   const [wordPool, setWordPool] = useState<string[]>([]);
@@ -57,11 +86,15 @@ export default function TypingInterface({ campaign, userId }: Props) {
   // visibleWords: the words currently rendered in the lane
   // poolIndexRef: how many words from the pool have been fed in so far
   const [visibleWords, setVisibleWords] = useState<string[]>([]);
+  const [viewMode, setViewMode] = useState<"focus" | "normal">("focus");
   const [activeWordIdx, setActiveWordIdx] = useState(0); // index into visibleWords
   const [charIdx, setCharIdx] = useState(0);
   const [wordCharStates, setWordCharStates] = useState<
     Record<number, CharState[]>
   >({});
+  // wordHasError[wi] = true if word wi had any incorrect keystroke (including uncorrected extras).
+  // Words flagged as having errors are excluded from net WPM (per Monkeytype convention).
+  const [wordHasError, setWordHasError] = useState<Record<number, boolean>>({});
   const poolIndexRef = useRef(0); // how many from pool have been added to visibleWords
   const [armTrigger, setArmTrigger] = useState(0);
 
@@ -79,6 +112,7 @@ export default function TypingInterface({ campaign, userId }: Props) {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
   const correctCharsRef = useRef(0);
+  const netCorrectCharsRef = useRef(0);
 
   /* ── Anti-fraud refs ── */
   const keystrokesRef = useRef<KeystrokeRecord[]>([]);
@@ -87,6 +121,8 @@ export default function TypingInterface({ campaign, userId }: Props) {
   const startTimeRef = useRef(0);
   const sessionIdRef = useRef(uuidv4());
   const consecutiveErrorsRef = useRef(0);
+  // Synchronous submit-once guard — immune to stale closures and render-cycle races
+  const submittedRef = useRef(false);
 
   /* ── Sloth X position (0–100%) — always 50% (center) ── */
   const [slothX, setSlothX] = useState(50);
@@ -101,15 +137,42 @@ export default function TypingInterface({ campaign, userId }: Props) {
   useEffect(() => {
     timeLimitRef.current = timeLimit;
 
-    let text = rawText;
-    if (mode === "jumbled") {
-      const ws = text.split(/\s+/);
-      for (let i = ws.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [ws[i], ws[j]] = [ws[j], ws[i]];
+    let text = "";
+    if (isPractice) {
+      text = practiceText || rawText;
+      // If capitals are selected (!useLowercase), capitalize some words from the JSON list
+      if (!useLowercase) {
+        const wordsArray = text.split(/\s+/);
+        const capitalized = wordsArray.map((w, idx) => {
+          // Capitalize every 3rd word, or first word of sentences
+          if (idx % 3 === 0 && w.length > 0) {
+            return w.charAt(0).toUpperCase() + w.slice(1);
+          }
+          return w;
+        });
+        text = capitalized.join(" ");
       }
-      text = ws.join(" ");
+      
+      // If punctuation is selected, add basic punctuation to some words
+      if (usePunctuation) {
+        const wordsArray = text.split(/\s+/);
+        const punctuated = wordsArray.map((w, idx) => {
+          if (idx % 5 === 4 && w.length > 0) {
+            return w + ".";
+          } else if (idx % 8 === 3 && w.length > 0) {
+            return w + ",";
+          } else if (idx % 12 === 7 && w.length > 0) {
+            return w + "?";
+          }
+          return w;
+        });
+        text = punctuated.join(" ");
+      }
+    } else {
+      text = rawText;
     }
+
+
     if (!usePunctuation) text = text.replace(/[^\w\s\d]/g, "");
     if (useLowercase) text = text.toLowerCase();
     text = text.replace(/\s+/g, " ").trim();
@@ -118,15 +181,15 @@ export default function TypingInterface({ campaign, userId }: Props) {
     campaignWordCountRef.current = wordList.length;
     setWordPool(wordList);
 
-    // Full reset — start with only the first window of words visible
-    const initialCount = 3;
-    const initialWords = wordList.slice(0, initialCount);
+    // Full reset - start with only the first window of words visible
+    const initialCount = viewMode === "normal" ? Math.min(40, wordList.length) : 3;
+    setVisibleWords(wordList.slice(0, initialCount));
     poolIndexRef.current = initialCount;
 
-    setVisibleWords(initialWords);
     setActiveWordIdx(0);
     setCharIdx(0);
     setWordCharStates({});
+    setWordHasError({});
     setStarted(false);
     setCompleted(false);
     setDiscarded(false);
@@ -136,18 +199,22 @@ export default function TypingInterface({ campaign, userId }: Props) {
     setTotalKeystrokes(0);
     setCorrectKeystrokes(0);
     correctCharsRef.current = 0;
+    netCorrectCharsRef.current = 0;
+    totalKeystrokesCounterRef.current = 0;
+    correctKeystrokesCounterRef.current = 0;
     keystrokesRef.current = [];
     accuracySamplesRef.current = [];
     lastKeystrokeTimeRef.current = 0;
     startTimeRef.current = 0;
     sessionIdRef.current = uuidv4();
     consecutiveErrorsRef.current = 0;
+    submittedRef.current = false; // allow fresh submission after reset
     // Reset scroll
     scrollXRef.current = 0;
     if (trackRef.current) trackRef.current.style.transform = "translateX(0px)";
     setSlothX(50);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [usePunctuation, useLowercase, mode, rawText]);
+  }, [usePunctuation, useLowercase, mode, rawText, isPractice, practiceTrigger, repeatNumber, viewMode]);
 
   useEffect(() => {
     timeLimitRef.current = timeLimit;
@@ -160,14 +227,14 @@ export default function TypingInterface({ campaign, userId }: Props) {
   useEffect(() => {
     if (!started) return;
 
-    // Lookahead is strictly fixed to 3 words ahead to prevent the sloth from running out of frame
-    const lookahead = BASE_LOOKAHEAD;
+    // Lookahead is 3 for focus mode, 20 for normal mode
+    const lookahead = viewMode === "normal" ? 20 : BASE_LOOKAHEAD;
 
     // How many words ahead of active word are currently in the visible list?
     const wordsAhead = visibleWords.length - activeWordIdx;
 
     if (wordsAhead < lookahead && poolIndexRef.current < wordPool.length) {
-      const needed = lookahead - wordsAhead;
+      const needed = viewMode === "normal" ? 20 : lookahead - wordsAhead;
       const toAdd = wordPool.slice(
         poolIndexRef.current,
         poolIndexRef.current + needed,
@@ -175,10 +242,12 @@ export default function TypingInterface({ campaign, userId }: Props) {
       if (toAdd.length > 0) {
         poolIndexRef.current += toAdd.length;
         setVisibleWords((prev) => [...prev, ...toAdd]);
-        setArmTrigger((prev) => prev + 1);
+        if (viewMode === "focus") {
+          setArmTrigger((prev) => prev + 1);
+        }
       }
     }
-  }, [activeWordIdx, wpm, started, visibleWords.length, wordPool]);
+  }, [activeWordIdx, wpm, started, visibleWords.length, wordPool, viewMode]);
 
   /* ═══════════════════════════════════════════════════════════
      LANE SCROLL — keep the active word always centered in the lane
@@ -195,8 +264,32 @@ export default function TypingInterface({ campaign, userId }: Props) {
     }
 
     const animateScroll = () => {
-      if (!activeWordRef.current || !laneRef.current || !trackRef.current)
+      if (!laneRef.current || !activeWordRef.current || !trackRef.current) {
+        scrollRafRef.current = requestAnimationFrame(animateScroll);
         return;
+      }
+
+      if (viewMode === "normal") {
+        // Vertical scroll for normal mode
+        const lineHeight = (40 * 1.5) + 10; // 60px line height + 10px row gap = 70px
+        const currentOffset = activeWordRef.current.offsetTop;
+        
+        let targetY = 0;
+        // Keep active word on the 2nd line (index 1) if we go past it
+        if (currentOffset > lineHeight) {
+          targetY = -(currentOffset - lineHeight);
+        }
+
+        const diff = targetY - (scrollXRef.current || 0);
+        const ease = 0.1;
+        const next = Math.abs(diff) < 0.3 ? targetY : (scrollXRef.current || 0) + diff * ease;
+        
+        scrollXRef.current = next;
+        trackRef.current.style.transform = `translateY(${next}px)`;
+
+        scrollRafRef.current = requestAnimationFrame(animateScroll);
+        return;
+      }
 
       const laneRect = laneRef.current.getBoundingClientRect();
       const wordRect = activeWordRef.current.getBoundingClientRect();
@@ -246,7 +339,7 @@ export default function TypingInterface({ campaign, userId }: Props) {
     scrollRafRef.current = requestAnimationFrame(animateScroll);
     return () => cancelAnimationFrame(scrollRafRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeWordIdx, wpm, visibleWords.length, completed, discarded]);
+  }, [activeWordIdx, wpm, visibleWords.length, completed, discarded, viewMode]);
 
   /* ═══════════════════════════════════════════════════════════
      FOCUS INPUT
@@ -266,7 +359,7 @@ export default function TypingInterface({ campaign, userId }: Props) {
       const elapsedMin = elapsedMs / 60000;
       const liveWpm =
         elapsedMin > 0
-          ? Math.round(correctCharsRef.current / 5 / elapsedMin)
+          ? Math.round(netCorrectCharsRef.current / 5 / elapsedMin)
           : 0;
 
       setElapsedSeconds(Math.floor(elapsedMs / 1000));
@@ -299,7 +392,10 @@ export default function TypingInterface({ campaign, userId }: Props) {
       finalAccuracy: number,
       finalSecs: number | null,
     ) => {
-      if (submitting || completed) return; // Prevent double-submit race conditions
+      // Synchronous, race-proof guard — submittedRef is set once and never races with renders
+      if (submittedRef.current) return;
+      submittedRef.current = true;
+
       setCompleted(true);
       setSubmitting(true);
 
@@ -308,17 +404,30 @@ export default function TypingInterface({ campaign, userId }: Props) {
       const elapsedMin = Math.max(0.001, duration / 60);
       const finalWpm =
         elapsedMin > 0
-          ? Math.round(correctCharsRef.current / 5 / elapsedMin)
+          ? Math.round(netCorrectCharsRef.current / 5 / elapsedMin)
           : 0;
 
+      // Guest only: show inline results without saving to DB
+      if (isGuest) {
+        setWpm(finalWpm);
+        setAccuracy(finalAccuracy);
+        setElapsedSeconds(Math.round(duration));
+        setSubmitting(false);
+        return;
+      }
+
+      // Real session: capture sessionId NOW before any await (ref is stable, no closure issue)
+      const sessionId = sessionIdRef.current;
+
+      // Real session: save to DB then redirect to /results/[sessionId]
       try {
-        await fetch("/api/sessions", {
+        const response = await fetch("/api/sessions", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            session_id: sessionIdRef.current,
+            session_id: sessionId,
             user_id: userId,
-            campaign_id: campaign.id,
+            campaign_id: campaign?.id,
             wpm: finalWpm,
             accuracy: finalAccuracy,
             keystrokes_data: keystrokesRef.current,
@@ -332,25 +441,78 @@ export default function TypingInterface({ campaign, userId }: Props) {
             use_lowercase: useLowercase,
           }),
         });
-      } catch (err) {
-        console.error("Session submit error:", err);
-      } finally {
+
+        const data = await response.json();
+
+        if (!response.ok || data.error) {
+          console.error("Session submit API error:", data.error);
+          alert("Error submitting session: " + (data.error || "Please try again."));
+          // Release lock on error so user could retry if needed
+          submittedRef.current = false;
+          setSubmitting(false);
+          return;
+        }
+
         setSubmitting(false);
-        router.push(`/results/${sessionIdRef.current}`);
+        router.push(`/results/${sessionId}`);
+      } catch (err) {
+        console.error("Session submit network error:", err);
+        alert("Network error while submitting session.");
+        submittedRef.current = false;
+        setSubmitting(false);
       }
     },
-    [campaign.id, mode, userId, usePunctuation, useLowercase, router],
+    // submitting/completed intentionally removed — handled by submittedRef to avoid stale closures
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [campaign?.id, mode, userId, usePunctuation, useLowercase, router, isPractice, isGuest],
   );
 
   const totalKeystrokesRef = useRef(0);
   const correctKeystrokesRef = useRef(0);
   const accuracyRef = useRef(100);
 
+  // Live counter refs (updated on every keystroke — avoids stale useState closure in hot path)
+  const totalKeystrokesCounterRef = useRef(0);
+  const correctKeystrokesCounterRef = useRef(0);
+
   useEffect(() => {
     totalKeystrokesRef.current = totalKeystrokes;
     correctKeystrokesRef.current = correctKeystrokes;
     accuracyRef.current = accuracy;
   }, [totalKeystrokes, correctKeystrokes, accuracy]);
+
+  const getNetCorrectCharactersCount = (
+    customActiveWordStates?: string[],
+    // Optionally pass the word-error map snapshot (for inside setState callbacks)
+    customWordHasError?: Record<number, boolean>
+  ) => {
+    let count = 0;
+    const errorMap = customWordHasError ?? wordHasError;
+
+    // Completed words — only count if the word had zero errors (Monkeytype convention)
+    for (let wi = 0; wi < activeWordIdx; wi++) {
+      if (errorMap[wi]) continue; // skip error words entirely
+      const word = visibleWords[wi];
+      if (!word) continue;
+      const states = wordCharStates[wi] ?? [];
+      for (let ci = 0; ci < word.length; ci++) {
+        if (states[ci] === "correct") count++;
+      }
+      // +1 for the space after a fully-correct completed word
+      count++;
+    }
+
+    // Current active word — count correct chars typed so far (tentative; will be
+    // excluded retroactively if the word turns out to have errors when space is pressed)
+    const currentStates = customActiveWordStates ?? (wordCharStates[activeWordIdx] ?? []);
+    const currentWord = visibleWords[activeWordIdx] ?? "";
+    const limit = Math.min(charIdx, currentWord.length);
+    for (let ci = 0; ci < limit; ci++) {
+      if (currentStates[ci] === "correct") count++;
+    }
+
+    return count;
+  };
 
   useEffect(() => {
     handleCompleteRef.current = () => {
@@ -407,12 +569,51 @@ export default function TypingInterface({ campaign, userId }: Props) {
       /* ── Backspace ── */
       if (e.key === "Backspace") {
         e.preventDefault();
+        if (e.ctrlKey) {
+          // Ctrl+Backspace: clear entire active word progress.
+          // IMPORTANT: setCharIdx(0) is async, so we can't use charIdx inside the
+          // setState updater below. Instead, manually compute net chars without the
+          // current word's contribution (charIdx is effectively 0 after clear).
+          setCharIdx(0);
+          setWordHasError((prevErrors) => ({ ...prevErrors, [activeWordIdx]: false }));
+          setWordCharStates((prev) => {
+            // Recalculate net chars: only completed words that had no errors
+            let count = 0;
+            for (let wi = 0; wi < activeWordIdx; wi++) {
+              if (wordHasError[wi]) continue;
+              const word = visibleWords[wi];
+              if (!word) continue;
+              const states = prev[wi] ?? [];
+              for (let ci = 0; ci < word.length; ci++) {
+                if (states[ci] === "correct") count++;
+              }
+              count++; // space credit
+            }
+            // Current word is cleared — no contribution
+            netCorrectCharsRef.current = count;
+            return { ...prev, [activeWordIdx]: [] };
+          });
+          return;
+        }
         if (charIdx > 0) {
           const newCi = charIdx - 1;
           setCharIdx(newCi);
           setWordCharStates((prev) => {
-            const ws = [...(prev[activeWordIdx] ?? [])];
-            ws.splice(newCi);
+            const ws = [...(prev[activeWordIdx] ?? [])].slice(0, newCi);
+            // After backspace, recheck whether the word still has any errors
+            // so we can clear the dirty flag if the user corrected the last mistake
+            const stillHasError = ws.some(
+              (s) => s !== undefined && s !== "correct"
+            );
+            setWordHasError((prevErrors) => ({
+              ...prevErrors,
+              [activeWordIdx]: stillHasError,
+            }));
+            netCorrectCharsRef.current = getNetCorrectCharactersCount(
+              ws,
+              // Pass current wordHasError with the potentially updated flag
+              { ...wordHasError, [activeWordIdx]: stillHasError }
+            );
             return { ...prev, [activeWordIdx]: ws };
           });
         }
@@ -426,26 +627,67 @@ export default function TypingInterface({ campaign, userId }: Props) {
         // Anti-skip: Prevent advancing the word if no characters have been typed yet
         if (charIdx === 0) return;
 
-        // Prevent advancing if the word is not fully typed
-        if (charIdx < currentWord.length) return;
+        // Commit word: mark remaining un-typed characters as missed/errors
+        const finalWordStates = [...(wordCharStates[activeWordIdx] ?? [])];
+        let missedCount = 0;
+        for (let i = charIdx; i < currentWord.length; i++) {
+          finalWordStates[i] = "error";
+          missedCount++;
+        }
+
+        // Determine if this word has ANY error (incorrect chars already tracked + missed chars now)
+        const currentWordAlreadyHadError = wordHasError[activeWordIdx] ?? false;
+        const wordIsError = currentWordAlreadyHadError || missedCount > 0;
+
+        // Update live counter refs with missed chars (missed chars are errors in accuracy)
+        totalKeystrokesCounterRef.current += missedCount;
+        // correctKeystrokesCounterRef does NOT increment for missed chars
+
+        const newTotalKeystrokes = totalKeystrokesCounterRef.current;
+        const newCorrectKeystrokes = correctKeystrokesCounterRef.current;
+        const newAcc = newTotalKeystrokes > 0
+          ? Math.round((newCorrectKeystrokes / newTotalKeystrokes) * 100)
+          : 100;
+
+        // Sync state (for display) — these are async but refs above are already updated
+        setTotalKeystrokes(newTotalKeystrokes);
+        setAccuracy(newAcc);
+
+        // Commit word states and wordHasError, then recalculate net correct chars
+        setWordHasError((prevErrors) => ({ ...prevErrors, [activeWordIdx]: wordIsError }));
+        setWordCharStates((prev) => {
+          // Build updated errorMap including the just-committed word
+          const updatedErrorMap = { ...wordHasError, [activeWordIdx]: wordIsError };
+          // Recalculate net chars for all completed words (activeWordIdx now included as completed)
+          let count = 0;
+          for (let wi = 0; wi <= activeWordIdx; wi++) {
+            if (updatedErrorMap[wi]) continue; // skip error words
+            const word = visibleWords[wi];
+            if (!word) continue;
+            const states = wi === activeWordIdx ? finalWordStates : (prev[wi] ?? []);
+            for (let ci = 0; ci < word.length; ci++) {
+              if (states[ci] === "correct") count++;
+            }
+            count++; // space credit for fully-correct completed word
+          }
+          netCorrectCharsRef.current = count;
+          return { ...prev, [activeWordIdx]: finalWordStates };
+        });
 
         const nextWi = activeWordIdx + 1;
-
-        // Track total words typed against pool
-        const totalTyped =
-          poolIndexRef.current - (visibleWords.length - nextWi);
+        const totalTyped = poolIndexRef.current - (visibleWords.length - nextWi);
 
         setActiveWordIdx(nextWi);
         setCharIdx(0);
 
-        // Complete when all campaign words are typed, regardless of timed or non-timed mode
         if (totalTyped >= campaignWordCountRef.current) {
           setCompleted(true);
           const secs = (now - startTimeRef.current) / 1000;
+          // Use live ref values to avoid stale closure bug on the final submit
           handleComplete(
-            totalKeystrokes,
-            correctKeystrokes,
-            accuracyRef.current,
+            totalKeystrokesCounterRef.current,
+            correctKeystrokesCounterRef.current,
+            newAcc,
             secs,
           );
         }
@@ -454,7 +696,13 @@ export default function TypingInterface({ campaign, userId }: Props) {
 
       /* ── Ignore non-printable ── */
       if (e.key.length !== 1) return;
-      if (charIdx >= currentWord.length) return;
+
+      // Allow typing extra characters beyond word length up to 10 extra characters
+      const isExtra = charIdx >= currentWord.length;
+      if (isExtra && charIdx >= currentWord.length + 10) {
+        return;
+      }
+
       e.preventDefault();
 
       keystrokesRef.current.push({
@@ -462,12 +710,18 @@ export default function TypingInterface({ campaign, userId }: Props) {
         timestamp: now,
         interval_ms: interval,
       });
-      const isCorrect = e.key === currentWord[charIdx];
-      const newTotal = totalKeystrokes + 1;
-      const newCorrect = correctKeystrokes + (isCorrect ? 1 : 0);
+
+      const isCorrect = !isExtra && e.key === currentWord[charIdx];
+
+      // Update live counter refs immediately — these are used in handleComplete and
+      // space handler to avoid stale useState closure bugs
+      totalKeystrokesCounterRef.current += 1;
+      if (isCorrect) correctKeystrokesCounterRef.current += 1;
+
+      const newTotal = totalKeystrokesCounterRef.current;
+      const newCorrect = correctKeystrokesCounterRef.current;
 
       if (isCorrect) {
-        correctCharsRef.current += 1;
         consecutiveErrorsRef.current = 0;
       } else {
         consecutiveErrorsRef.current += 1;
@@ -477,29 +731,37 @@ export default function TypingInterface({ campaign, userId }: Props) {
           setCompleted(true);
           return;
         }
+        // Mark word as dirty — it now has at least one error (extra chars always count as errors)
+        setWordHasError((prevErrors) => ({ ...prevErrors, [activeWordIdx]: true }));
       }
 
       setTotalKeystrokes(newTotal);
       setCorrectKeystrokes(newCorrect);
-      const newAcc =
-        newTotal > 0 ? Math.round((newCorrect / newTotal) * 100) : 100;
+      
+      const newAcc = newTotal > 0 ? Math.round((newCorrect / newTotal) * 100) : 100;
       setAccuracy(newAcc);
+
+      setWordCharStates((prev) => {
+        const ws = [...(prev[activeWordIdx] ?? [])];
+        ws[charIdx] = isCorrect ? "correct" : `error_${e.key}`;
+        // If incorrect, the word is now dirty — pass updated error map so WPM is accurate
+        const updatedErrorMap = isCorrect
+          ? wordHasError
+          : { ...wordHasError, [activeWordIdx]: true };
+        netCorrectCharsRef.current = getNetCorrectCharactersCount(ws, updatedErrorMap);
+        return { ...prev, [activeWordIdx]: ws };
+      });
 
       if (newTotal % 5 === 0) {
         const min = (now - startTimeRef.current) / 60000;
+        // We use the updated net correct chars ref here
         accuracySamplesRef.current.push({
           char_index: newTotal,
           time_sec: Math.round((now - startTimeRef.current) / 1000),
           accuracy: newAcc,
-          wpm: min > 0 ? Math.round(correctCharsRef.current / 5 / min) : 0,
+          wpm: min > 0 ? Math.round(netCorrectCharsRef.current / 5 / min) : 0,
         });
       }
-
-      setWordCharStates((prev) => {
-        const ws = [...(prev[activeWordIdx] ?? [])];
-        ws[charIdx] = isCorrect ? "correct" : "error";
-        return { ...prev, [activeWordIdx]: ws };
-      });
 
       setCharIdx(charIdx + 1);
     },
@@ -511,6 +773,8 @@ export default function TypingInterface({ campaign, userId }: Props) {
       totalKeystrokes,
       correctKeystrokes,
       handleComplete,
+      wordCharStates,
+      wordHasError,
     ],
   );
 
@@ -566,7 +830,6 @@ export default function TypingInterface({ campaign, userId }: Props) {
             transition: "color 0.15s",
           }}
         >
-          <span style={{ color: "var(--stamp-navy)", fontSize: 18 }}>@</span>{" "}
           punctuation
         </button>
 
@@ -611,68 +874,36 @@ export default function TypingInterface({ campaign, userId }: Props) {
           style={{ width: 1, height: 24, background: "var(--paper-darker)" }}
         />
 
-        {/* Mode */}
-        {(["jumbled", "exact"] as const).map((m) => (
-          <button
-            key={m}
-            disabled={started && !completed}
-            onClick={() => setMode(m)}
-            style={{
-              opacity: started && !completed ? 0.3 : 1,
-              pointerEvents: started && !completed ? "none" : "auto",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              fontFamily: "var(--font-courier)",
-              fontSize: 16,
-              fontWeight: 700,
-              color: mode === m ? "var(--stamp-navy)" : "var(--ink-faint)",
-              letterSpacing: "0.04em",
-              transition: "color 0.15s",
-              borderBottom:
-                mode === m
+        {/* Time limits / Mode selection */}
+        {([15, 30, 60] as const).map((val) => {
+          const isSelected = timeLimit === val;
+          return (
+            <button
+              key={val}
+              disabled={started && !completed}
+              onClick={() => setTimeLimit(val)}
+              style={{
+                opacity: started && !completed ? 0.3 : 1,
+                pointerEvents: started && !completed ? "none" : "auto",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontFamily: "var(--font-courier)",
+                fontSize: 16,
+                fontWeight: 700,
+                color: isSelected ? "var(--stamp-navy)" : "var(--ink-faint)",
+                letterSpacing: "0.04em",
+                transition: "color 0.15s",
+                borderBottom: isSelected
                   ? "2px solid var(--stamp-navy)"
                   : "2px solid transparent",
-              paddingBottom: 2,
-            }}
-          >
-            {m}
-          </button>
-        ))}
-
-        <div
-          style={{ width: 1, height: 24, background: "var(--paper-darker)" }}
-        />
-
-        {/* Time limits */}
-        {[15, 30, 60].map((val) => (
-          <button
-            key={val}
-            disabled={started && !completed}
-            onClick={() => setTimeLimit((tl) => (tl === val ? null : val))}
-            style={{
-              opacity: started && !completed ? 0.3 : 1,
-              pointerEvents: started && !completed ? "none" : "auto",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              fontFamily: "var(--font-courier)",
-              fontSize: 16,
-              fontWeight: 700,
-              color:
-                timeLimit === val ? "var(--stamp-navy)" : "var(--ink-faint)",
-              letterSpacing: "0.04em",
-              transition: "color 0.15s",
-              borderBottom:
-                timeLimit === val
-                  ? "2px solid var(--stamp-navy)"
-                  : "2px solid transparent",
-              paddingBottom: 2,
-            }}
-          >
-            {val}
-          </button>
-        ))}
+                paddingBottom: 2,
+              }}
+            >
+              {val}
+            </button>
+          );
+        })}
       </div>
 
       {/* ── Main area ── */}
@@ -687,6 +918,116 @@ export default function TypingInterface({ campaign, userId }: Props) {
           paddingTop: 52, // Clear the fixed settings sub-bar
         }}
       >
+        {/* Enforced Repetition Progress / Practice Mode Indicator */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "20px 48px 0 48px",
+            height: 36,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <span
+              style={{
+                background: (isPractice || isGuest) ? "var(--paper-darker)" : "var(--stamp-navy)",
+                color: (isPractice || isGuest) ? "var(--ink)" : "var(--white)",
+                padding: "6px 12px",
+                borderRadius: "4px",
+                fontSize: 12,
+                fontFamily: "var(--font-courier)",
+                fontWeight: 700,
+                letterSpacing: "0.05em",
+                border: (isPractice || isGuest) ? "1px solid var(--paper-darker)" : "none",
+              }}
+            >
+              {isGuest ? "GUEST MODE" : isPractice ? "PRACTICE MODE" : "AD MODE"}
+            </span>
+            {isPractice && (
+              <span
+                style={{
+                  fontFamily: "var(--font-libre)",
+                  fontSize: 12,
+                  color: "var(--ink-light)",
+                }}
+              >
+              </span>
+            )}
+            <button
+              onClick={() => {
+                const newMode = viewMode === "focus" ? "normal" : "focus";
+                setViewMode(newMode);
+                // Immediately update visible words based on new mode
+                if (newMode === "normal") {
+                  const toShow = Math.max(40, activeWordIdx + 20);
+                  setVisibleWords(wordPool.slice(0, toShow));
+                  poolIndexRef.current = Math.min(toShow, wordPool.length);
+                } else {
+                  const toShow = Math.max(3, activeWordIdx + 3);
+                  setVisibleWords(wordPool.slice(0, toShow));
+                  poolIndexRef.current = toShow;
+                }
+              }}
+              style={{
+                marginLeft: 16,
+                background: "transparent",
+                border: "1px solid var(--ink-faint)",
+                color: "var(--ink-light)",
+                padding: "4px 8px",
+                borderRadius: 4,
+                cursor: "pointer",
+                fontFamily: "var(--font-courier)",
+                fontSize: 10,
+              }}
+            >
+              MODE: {viewMode.toUpperCase()}
+            </button>
+            {isGuest && (
+              <a
+                href="/login"
+                style={{
+                  marginLeft: 16,
+                  background: "var(--ink)",
+                  border: "none",
+                  color: "var(--paper)",
+                  padding: "4px 12px",
+                  borderRadius: 4,
+                  cursor: "pointer",
+                  fontFamily: "var(--font-courier)",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  textDecoration: "none"
+                }}
+              >
+                SIGN UP TO EARN
+              </a>
+            )}
+          </div>
+
+          {!isPractice && totalRepeats && (
+            <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+              {Array.from({ length: totalRepeats }).map((_, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: "50%",
+                    background:
+                      idx < repeatNumber - 1
+                        ? "var(--stamp-navy)"
+                        : idx === repeatNumber - 1
+                          ? "var(--stamp-navy)"
+                          : "var(--paper-darker)",
+                    border: idx === repeatNumber - 1 ? "2px solid var(--ink)" : "none",
+                    transition: "all 0.3s",
+                  }}
+                />
+              ))}
+            </div>
+          )}
+        </div>
         {/* ── Stats bar ── */}
         <div
           style={{
@@ -741,61 +1082,85 @@ export default function TypingInterface({ campaign, userId }: Props) {
         {/* ── Horizontal Typing Lane ── */}
         <div style={{ position: "relative", width: "100%", marginTop: 100 }}>
           {/* Sloth rides above the active word, safely outside overflow:hidden */}
-          <div
-            className="sloth-runner"
-            style={{
-              left: `${slothX}%`,
-            }}
-          >
-            {started && !completed && elapsedSeconds >= 1 && (
-              <div className="sloth-thought-bubble">
-                {wpm < 50
-                  ? "the hell dude ! you are slower then me "
-                  : wpm <= 80
-                    ? "now we talking bud ..."
-                    : wpm <= 150
-                      ? "daem dude you are making me throw fast, I cant handle ts ! .."
-                      : "my team hasn't even told me how to tease you at this speed"}
-              </div>
-            )}
-
-            <div className="sloth-arm-container">
-              {armTrigger > 0 && (
-                <div key={armTrigger} className="sloth-stretching-arm" />
-              )}
-            </div>
-
-            <Image
-              src="/sloth.png"
-              alt="Sloth"
-              width={100}
-              height={100}
-              priority
+          {viewMode === "focus" && !completed && !discarded && (
+            <div
+              className="sloth-runner"
               style={{
-                objectFit: "contain",
-                filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.15))",
-                // Tilt forward when typing fast — max 12deg
-                transform: `rotate(${Math.min(wpm / 10, 12)}deg)`,
-                transformOrigin: "bottom center",
-                transition: "transform 0.4s ease",
-                position: "relative",
-                zIndex: 2,
+                left: `${slothX}%`,
               }}
-            />
-          </div>
+            >
+              {started && !completed && elapsedSeconds >= 1 && (
+                <div className="sloth-thought-bubble">
+                  {wpm < 50
+                    ? "the hell dude ! you are slower then me "
+                    : wpm <= 80
+                      ? "now we talking bud ..."
+                      : wpm <= 150
+                        ? "daem dude you are making me throw fast, I cant handle ts ! .."
+                        : "my team hasn't even told me how to tease you at this speed"}
+                </div>
+              )}
+
+              <div className="sloth-arm-container">
+                {armTrigger > 0 && (
+                  <div key={armTrigger} className="sloth-stretching-arm" />
+                )}
+              </div>
+
+              <Image
+                src="/sloth.png"
+                alt="Sloth"
+                width={100}
+                height={100}
+                priority
+                style={{
+                  objectFit: "contain",
+                  filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.15))",
+                  // Tilt forward when typing fast — max 12deg
+                  transform: `rotate(${Math.min(wpm / 10, 12)}deg)`,
+                  transformOrigin: "bottom center",
+                  transition: "transform 0.4s ease",
+                  position: "relative",
+                  zIndex: 2,
+                }}
+              />
+            </div>
+          )}
 
           <div
             ref={laneRef}
             className="typing-lane-wrapper"
-            style={{ marginTop: 0 }} // overriding the css margin-top since wrapper handles it
+            style={{ 
+              marginTop: 0, 
+              height: viewMode === "normal" ? "270px" : undefined, // 4 lines * 60px + 3 gaps * 10px = 270px
+              overflow: viewMode === "normal" ? "hidden" : undefined,
+              position: "relative"
+            }}
             onClick={() => inputRef.current?.focus()}
           >
             {/* Fade masks left & right */}
-            <div className="lane-fade-left" />
-            <div className="lane-fade-right" />
+            {viewMode === "focus" && <div className="lane-fade-left" />}
+            {viewMode === "focus" && <div className="lane-fade-right" />}
 
             {/* The actual word track — JS drives translateX to scroll */}
-            <div ref={trackRef} className="typing-lane-track">
+            <div 
+              ref={trackRef} 
+              className="typing-lane-track"
+              style={viewMode === "normal" ? { 
+                whiteSpace: "pre-wrap", 
+                flexWrap: "wrap", 
+                justifyContent: "flex-start",
+                alignContent: "flex-start",
+                display: "flex",
+                gap: "10px",
+                width: "100%",
+                maxWidth: "1000px",
+                margin: "0 auto",
+                padding: "0",
+                fontSize: "40px",
+                lineHeight: "1.5"
+              } : undefined}
+            >
               {visibleWords.length === 0 ? (
                 <span className="word-lane-waiting">Loading…</span>
               ) : (
@@ -821,17 +1186,42 @@ export default function TypingInterface({ campaign, userId }: Props) {
                       {word.split("").map((ch, ci) => {
                         const st = states[ci];
                         const isCaret = isActive && ci === charIdx;
+                        const isError = st === "error" || st?.startsWith("error_");
                         return (
                           <span
                             key={ci}
-                            className={`wl-ch ${st ?? ""} ${isCaret ? "wl-caret" : ""}`}
+                            className={`wl-ch ${st === "correct" ? "correct" : isError ? "error" : ""} ${isCaret ? "wl-caret" : ""}`}
                           >
                             {ch}
                           </span>
                         );
                       })}
-                      {/* Caret past last char */}
-                      {isActive && charIdx >= word.length && (
+                      {/* Caret past last char (only when no extra characters typed yet) */}
+                      {isActive && charIdx === word.length && (
+                        <span
+                          className="wl-ch wl-caret"
+                          style={{ width: 2, display: "inline-block" }}
+                        >
+                          {" "}
+                        </span>
+                      )}
+                      {/* Extra characters typed beyond word length */}
+                      {states.slice(word.length).map((st, extraIdx) => {
+                        const charPos = word.length + extraIdx;
+                        const isCaret = isActive && charPos === charIdx;
+                        const typedChar = st.startsWith("error_") ? st.substring(6) : "?";
+                        return (
+                          <span
+                            key={charPos}
+                            className={`wl-ch error wl-extra-ch ${isCaret ? "wl-caret" : ""}`}
+                            style={{ color: "var(--stamp-red)", background: "none" }}
+                          >
+                            {typedChar}
+                          </span>
+                        );
+                      })}
+                      {/* Caret past all extra characters */}
+                      {isActive && charIdx > word.length && (
                         <span
                           className="wl-ch wl-caret"
                           style={{ width: 2, display: "inline-block" }}
@@ -847,88 +1237,9 @@ export default function TypingInterface({ campaign, userId }: Props) {
           </div>
         </div>
 
-        {/* ── Revealed Ad Text ── */}
-        <div
-          style={{
-            padding: "0 48px",
-            maxWidth: "calc(100% - 400px)",
-            marginTop: "auto",
-            marginBottom: 60,
-          }}
-        >
-          <div
-            className="label-sm"
-            style={{
-              marginBottom: 12,
-              color: "var(--ink)",
-              display: "flex",
-              gap: 24,
-              alignItems: "center",
-            }}
-          >
-            <span>AD COPY</span>
-            {!started && !completed && !discarded && (
-              <span style={{ color: "var(--stamp-navy)" }}>
-                {" "}
-                START TYPING TO BEGIN MORE WORDS WILL APPEAR
-              </span>
-            )}
-          </div>
-          <div
-            className="font-body"
-            style={{
-              fontSize: 20,
-              color: "var(--ink)",
-              lineHeight: 1.6,
-              minHeight: 64,
-            }}
-          >
-            {visibleWords.slice(0, activeWordIdx).join(" ")}
-            {activeWordIdx > 0 ? " " : ""}
-            <span style={{ color: "var(--ink)" }}>
-              {visibleWords[activeWordIdx]?.substring(0, charIdx)}
-            </span>
-          </div>
-        </div>
 
-        {/* ── Ad Image / Placeholder ── */}
-        <div
-          style={{
-            position: "absolute",
-            bottom: 120,
-            right: 48,
-            width: 320,
-            height: 240,
-            border: "2px dashed var(--paper-darker)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "var(--paper-dark)",
-            zIndex: 9999,
-          }}
-        >
-          {campaign.image_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img 
-              src={campaign.image_url} 
-              alt="Ad Image" 
-              style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain", borderRadius: 4 }} 
-            />
-          ) : (
-            <div
-              className="label-sm"
-              style={{
-                color: "var(--ink-faint)",
-                textAlign: "center",
-                lineHeight: 1.5,
-              }}
-            >
-              AD IMAGE
-              <br />
-              PLACEHOLDER
-            </div>
-          )}
-        </div>
+
+
 
         {/* ── Hidden input ── */}
         <input
@@ -953,33 +1264,334 @@ export default function TypingInterface({ campaign, userId }: Props) {
               position: "absolute",
               inset: 0,
               background: "var(--paper)",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 10,
+              overflowY: "auto",
+              padding: "40px 24px",
+              zIndex: 95,
             }}
           >
-            <div
-              className="font-headline"
-              style={{
-                fontSize: 32,
-                marginBottom: 24,
-                textTransform: "uppercase",
-              }}
-            >
-              {submitting ? "RECORDING SESSION…" : "REDIRECTING…"}
-            </div>
-            <div
-              style={{
-                width: 48,
-                height: 48,
-                border: "2px solid var(--paper-darker)",
-                borderTopColor: "var(--ink)",
-                borderRadius: "50%",
-                animation: "spin 1s linear infinite",
-              }}
-            />
+            {(isPractice || isGuest) ? (
+              /* ── Inline results for practice / guest ── */
+              <div
+                style={{
+                  maxWidth: 1200,
+                  margin: "0 auto",
+                  width: "100%",
+                }}
+              >
+                {/* Header */}
+                <div
+                  style={{
+                    borderBottom: "2px solid var(--ink)",
+                    paddingBottom: 16,
+                    marginBottom: 32,
+                    textAlign: "left",
+                  }}
+                >
+                  <div className="label-sm">DISPATCH REPORT</div>
+                  <h1 className="font-headline" style={{ fontSize: 48, marginTop: 12 }}>
+                    {isPractice ? "PRACTICE COMPLETE" : "SESSION COMPLETE"}
+                  </h1>
+                </div>
+
+                {/* Metadata Configuration */}
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 16,
+                    marginBottom: 32,
+                    padding: "12px 16px",
+                    background: "var(--paper-dark)",
+                    border: "1px solid var(--paper-darker)",
+                    borderRadius: 8,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 24,
+                      fontFamily: "var(--font-courier)",
+                      fontSize: 14,
+                      fontWeight: 700,
+                      color: "var(--ink-faint)",
+                    }}
+                  >
+                    <div>{mode || "jumbled"}</div>
+                    <div>|</div>
+                    <div
+                      style={{
+                        color: usePunctuation
+                          ? "var(--ink)"
+                          : "var(--ink-faint)",
+                        opacity: usePunctuation ? 1 : 0.45,
+                      }}
+                    >
+                      punctuation
+                    </div>
+                    <div>|</div>
+                    <div style={{ display: "flex", gap: 6 }}>
+                      <span
+                        style={{
+                          color: !useLowercase
+                            ? "var(--ink)"
+                            : "var(--ink-faint)",
+                          opacity: !useLowercase ? 1 : 0.4,
+                          fontWeight: !useLowercase ? 900 : 700,
+                        }}
+                      >
+                        A
+                      </span>
+                      <span style={{ opacity: 0.3 }}>/</span>
+                      <span
+                        style={{
+                          color: useLowercase
+                            ? "var(--ink)"
+                            : "var(--ink-faint)",
+                          opacity: useLowercase ? 1 : 0.4,
+                          fontWeight: useLowercase ? 900 : 700,
+                        }}
+                      >
+                        a
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2-Column Layout */}
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "320px 1fr",
+                    gap: 32,
+                    marginBottom: 32,
+                  }}
+                >
+                  {/* Left Column: Stats */}
+                  <div
+                    className="editorial-box"
+                    style={{
+                      padding: 0,
+                      height: "fit-content",
+                      display: "flex",
+                      flexDirection: "column",
+                      background: "var(--paper)",
+                    }}
+                  >
+                    <div
+                      className="box-label"
+                      style={{ padding: "12px 24px", margin: 0 }}
+                    >
+                      STATS
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr" }}>
+                      {[
+                        {
+                          label: "WPM",
+                          value: wpm,
+                          sub: "SESSION SPEED",
+                          highlight: true,
+                        },
+                        {
+                          label: "ACCURACY",
+                          value: `${accuracy}%`,
+                          sub: "TARGET: 90%+",
+                          highlight: true,
+                        },
+                        {
+                          label: "POINTS EARNED",
+                          value: "0",
+                          sub: "SIGN UP TO EARN",
+                        },
+                        {
+                          label: "TIME",
+                          value: `${elapsedSeconds}s`,
+                          sub: "ELAPSED TIME",
+                        },
+                      ].map((stat, i) => (
+                        <div
+                          key={stat.label}
+                          style={{
+                            padding: "24px",
+                            borderBottom:
+                              i < 3 ? "1px solid var(--paper-darker)" : "none",
+                            textAlign: "left",
+                          }}
+                        >
+                          <div className="label-sm" style={{ marginBottom: 8 }}>
+                            {stat.label}
+                          </div>
+                          <div
+                            className="stat-number"
+                            style={{
+                              fontSize: stat.highlight ? 54 : 36,
+                              lineHeight: 1.1,
+                              fontFamily: "var(--font-courier)",
+                              fontWeight: 900,
+                            }}
+                          >
+                            {stat.value}
+                          </div>
+                          {stat.sub && (
+                            <div
+                              style={{
+                                fontFamily: "var(--font-courier)",
+                                fontSize: 11,
+                                color: "var(--ink-faint)",
+                                marginTop: 6,
+                                fontWeight: 700,
+                              }}
+                            >
+                              {stat.sub}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Right Column: Chart */}
+                  {accuracySamplesRef.current && accuracySamplesRef.current.length > 1 ? (
+                    <div className="editorial-box" style={{ background: "var(--paper)" }}>
+                      <div className="box-label">TELEMETRY</div>
+                      <ResultsCharts samples={accuracySamplesRef.current} />
+                    </div>
+                  ) : (
+                    <div
+                      className="editorial-box"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "var(--ink-faint)",
+                        fontFamily: "var(--font-courier)",
+                        fontSize: 14,
+                        background: "var(--paper)",
+                        minHeight: 300,
+                      }}
+                    >
+                      NO TELEMETRY DATA AVAILABLE
+                    </div>
+                  )}
+                </div>
+
+                {/* Sign-up CTA for guests */}
+                {isGuest && (
+                  <div
+                    style={{
+                      width: "100%",
+                      background: "var(--ink)",
+                      color: "var(--paper)",
+                      padding: "20px 24px",
+                      marginBottom: 32,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 16,
+                      textAlign: "left",
+                    }}
+                  >
+                    <div>
+                      <div
+                        style={{
+                          fontFamily: "var(--font-courier)",
+                          fontWeight: 700,
+                          fontSize: 13,
+                          marginBottom: 4,
+                        }}
+                      >
+                        YOUR RESULTS WERE NOT SAVED
+                      </div>
+                      <div
+                        style={{
+                          fontFamily: "var(--font-libre)",
+                          fontSize: 12,
+                          opacity: 0.7,
+                        }}
+                      >
+                        Create a free account to save your sessions and earn real rewards.
+                      </div>
+                    </div>
+                    <a
+                      href="/signup"
+                      style={{
+                        fontFamily: "var(--font-courier)",
+                        fontSize: 12,
+                        fontWeight: 700,
+                        background: "var(--paper)",
+                        color: "var(--ink)",
+                        padding: "10px 20px",
+                        textDecoration: "none",
+                        whiteSpace: "nowrap",
+                        flexShrink: 0,
+                      }}
+                    >
+                      CREATE ACCOUNT →
+                    </a>
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    gap: 16,
+                    marginTop: 40,
+                    marginBottom: 40,
+                  }}
+                >
+                  <button
+                    onClick={() => {
+                      setPracticeTrigger((prev) => prev + 1);
+                    }}
+                    className="btn btn-inverted"
+                    style={{
+                      width: 300,
+                      padding: "20px",
+                      fontSize: 16,
+                    }}
+                  >
+                    PRACTICE AGAIN
+                  </button>
+                  <button
+                    onClick={() => {
+                      router.push("/");
+                    }}
+                    className="btn"
+                    style={{
+                      width: 300,
+                      padding: "20px",
+                      fontSize: 16,
+                    }}
+                  >
+                    EXIT TO HOME
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* ── Spinner while saving + redirecting to /results/[sessionId] ── */
+              <>
+                <div
+                  className="font-headline"
+                  style={{
+                    fontSize: 32,
+                    marginBottom: 24,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {submitting ? "RECORDING SESSION…" : "REDIRECTING…"}
+                </div>
+                <div
+                  style={{
+                    width: 48,
+                    height: 48,
+                    border: "2px solid var(--paper-darker)",
+                    borderTopColor: "var(--ink)",
+                    borderRadius: "50%",
+                    animation: "spin 1s linear infinite",
+                  }}
+                />
+              </>
+            )}
           </div>
         )}
 
@@ -994,7 +1606,7 @@ export default function TypingInterface({ campaign, userId }: Props) {
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              zIndex: 10,
+              zIndex: 95,
             }}
           >
             <div
