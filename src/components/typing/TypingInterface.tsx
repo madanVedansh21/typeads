@@ -1200,7 +1200,7 @@ export default function TypingInterface({
                       {word.split("").map((ch, ci) => {
                         const st = states[ci];
                         const isCaret = isActive && ci === charIdx;
-                        const isError = st?.startsWith("error_");
+                        const isError = st === "error" || st?.startsWith("error_");
                         return (
                           <span
                             key={ci}
@@ -1228,7 +1228,7 @@ export default function TypingInterface({
                           <span
                             key={charPos}
                             className={`wl-ch error wl-extra-ch ${isCaret ? "wl-caret" : ""}`}
-                            style={{ color: "var(--stamp-red)" }}
+                            style={{ color: "var(--stamp-red)", background: "none" }}
                           >
                             {typedChar}
                           </span>
@@ -1251,51 +1251,7 @@ export default function TypingInterface({
           </div>
         </div>
 
-        {/* ── Revealed Ad Text ── */}
-        {viewMode === "focus" && (
-          <div
-            style={{
-              padding: "0 48px",
-              maxWidth: "calc(100% - 400px)",
-              marginTop: "auto",
-              marginBottom: 60,
-            }}
-          >
-            <div
-              className="label-sm"
-              style={{
-                marginBottom: 12,
-                color: "var(--ink)",
-                display: "flex",
-                gap: 24,
-                alignItems: "center",
-              }}
-            >
-              <span>AD COPY</span>
-              {!started && !completed && !discarded && (
-                <span style={{ color: "var(--stamp-navy)" }}>
-                  {" "}
-                  START TYPING TO BEGIN MORE WORDS WILL APPEAR
-                </span>
-              )}
-            </div>
-            <div
-              className="font-body"
-              style={{
-                fontSize: 20,
-                color: "var(--ink)",
-                lineHeight: 1.6,
-                minHeight: 64,
-              }}
-            >
-              {visibleWords.slice(0, activeWordIdx).join(" ")}
-              {activeWordIdx > 0 ? " " : ""}
-              <span style={{ color: "var(--ink)" }}>
-                {visibleWords[activeWordIdx]?.substring(0, charIdx)}
-              </span>
-            </div>
-          </div>
-        )}
+
 
 
 
