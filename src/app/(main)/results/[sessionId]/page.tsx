@@ -48,7 +48,7 @@ export default async function ResultsPage({ params }: Props) {
   return (
     <div
       className="page-wrapper"
-      style={{ maxWidth: 900, margin: "0 auto", padding: "32px 24px" }}
+      style={{ maxWidth: 1200, margin: "0 auto", padding: "40px 24px" }}
     >
       {/* Header */}
       <div
@@ -59,7 +59,7 @@ export default async function ResultsPage({ params }: Props) {
         }}
       >
         <div className="label-sm">DISPATCH REPORT</div>
-        <h1 className="font-headline" style={{ fontSize: 42, marginTop: 12 }}>
+        <h1 className="font-headline" style={{ fontSize: 48, marginTop: 12 }}>
           {isFlagged ? "SESSION FLAGGED" : "SESSION COMPLETE"}
         </h1>
         {isFlagged && (
@@ -100,31 +100,67 @@ export default async function ResultsPage({ params }: Props) {
             color: "var(--ink-faint)",
           }}
         >
-          <div>
-            {session.time_limit ? `time ${session.time_limit}` : "words"}
-          </div>
-          <div>|</div>
           <div>{session.test_mode || "jumbled"}</div>
           <div>|</div>
-          <div>
-            {session.use_punctuation ? "@ punctuation" : "no punctuation"}
+          <div style={{ color: session.use_punctuation ? "var(--ink)" : "var(--ink-faint)", opacity: session.use_punctuation ? 1 : 0.45 }}>
+            punctuation
           </div>
           <div>|</div>
-          <div>{session.use_lowercase ? "a lowercase" : "A  a"}</div>
+          <div style={{ display: "flex", gap: 6 }}>
+            <span style={{
+              color: !session.use_lowercase ? "var(--ink)" : "var(--ink-faint)",
+              opacity: !session.use_lowercase ? 1 : 0.4,
+              fontWeight: !session.use_lowercase ? 900 : 700,
+            }}>Aa</span>
+            <span style={{ opacity: 0.3 }}>/</span>
+            <span style={{
+              color: session.use_lowercase ? "var(--ink)" : "var(--ink-faint)",
+              opacity: session.use_lowercase ? 1 : 0.4,
+              fontWeight: session.use_lowercase ? 900 : 700,
+            }}>a</span>
+          </div>
         </div>
       </div>
 
       {/* 2-Column Layout for Ledger and Charts */}
-      <div style={{ display: "grid", gridTemplateColumns: "200px 1fr", gap: 32, marginBottom: 32 }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "320px 1fr",
+          gap: 32,
+          marginBottom: 32,
+        }}
+      >
         {/* Left Side: Stats ledger */}
-        <div className="editorial-box" style={{ padding: 0, height: "fit-content", display: "flex", flexDirection: "column" }}>
-          <div className="box-label" style={{ padding: "12px 16px", margin: 0 }}>
+        <div
+          className="editorial-box"
+          style={{
+            padding: 0,
+            height: "fit-content",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <div
+            className="box-label"
+            style={{ padding: "12px 24px", margin: 0 }}
+          >
             STATS
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr" }}>
             {[
-              { label: "WPM", value: session.wpm, sub: `AVG: ${avgWpm}`, highlight: true },
-              { label: "ACCURACY", value: `${session.accuracy}%`, sub: "", highlight: true },
+              {
+                label: "WPM",
+                value: session.wpm,
+                sub: `AVG: ${avgWpm}`,
+                highlight: true,
+              },
+              {
+                label: "ACCURACY",
+                value: `${session.accuracy}%`,
+                sub: "",
+                highlight: true,
+              },
               {
                 label: "POINTS EARNED",
                 value: isFlagged ? "0*" : `+${session.points_earned}`,
@@ -139,15 +175,22 @@ export default async function ResultsPage({ params }: Props) {
               <div
                 key={stat.label}
                 style={{
-                  padding: "16px",
-                  borderBottom: i < 3 ? "1px solid var(--paper-darker)" : "none",
+                  padding: "24px",
+                  borderBottom:
+                    i < 3 ? "1px solid var(--paper-darker)" : "none",
                   textAlign: "left",
                 }}
               >
-                <div className="label-sm" style={{ marginBottom: 4 }}>
+                <div className="label-sm" style={{ marginBottom: 8 }}>
                   {stat.label}
                 </div>
-                <div className="stat-number" style={{ fontSize: stat.highlight ? 48 : 32, lineHeight: 1 }}>
+                <div
+                  className="stat-number"
+                  style={{
+                    fontSize: stat.highlight ? 54 : 36,
+                    lineHeight: 1.1,
+                  }}
+                >
                   {stat.value}
                 </div>
                 {stat.sub && (
@@ -156,7 +199,7 @@ export default async function ResultsPage({ params }: Props) {
                       fontFamily: "var(--font-courier)",
                       fontSize: 11,
                       color: "var(--ink-faint)",
-                      marginTop: 4,
+                      marginTop: 6,
                       fontWeight: 700,
                     }}
                   >
@@ -180,15 +223,31 @@ export default async function ResultsPage({ params }: Props) {
       </div>
 
       {/* Actions */}
-      <div style={{ display: "flex", justifyContent: "center", gap: 16, marginTop: 40 }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: 16,
+          marginTop: 40,
+        }}
+      >
         <Link
           href="/typing"
           className="btn btn-inverted"
-          style={{ width: 300, padding: "20px", fontSize: 16, textAlign: "center" }}
+          style={{
+            width: 300,
+            padding: "20px",
+            fontSize: 16,
+            textAlign: "center",
+          }}
         >
           NEXT DISPATCH →
         </Link>
-        <Link href="/leaderboard" className="btn" style={{ width: 300, textAlign: "center", padding: "20px" }}>
+        <Link
+          href="/leaderboard"
+          className="btn"
+          style={{ width: 300, textAlign: "center", padding: "20px" }}
+        >
           VIEW LEADERBOARD
         </Link>
       </div>

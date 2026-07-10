@@ -31,7 +31,10 @@ export default function TypingPageClient({ userId }: TypingPageClientProps) {
   useEffect(() => {
     if (words.length > 0) {
       const wordset = new Wordset(words);
-      const buffer = new WordBuffer(wordset, { mode: "zipf", orderedByFrequency: true });
+      const buffer = new WordBuffer(wordset, {
+        mode: "zipf",
+        orderedByFrequency: true,
+      });
       buffer.reset(50); // generate 50 words for practice
       setPracticeText(buffer.peekAll().join(" "));
     }
@@ -94,12 +97,21 @@ export default function TypingPageClient({ userId }: TypingPageClientProps) {
           />
           <style jsx global>{`
             @keyframes spin {
-              0% { transform: rotate(0deg); }
-              100% { transform: rotate(360deg); }
+              0% {
+                transform: rotate(0deg);
+              }
+              100% {
+                transform: rotate(360deg);
+              }
             }
             @keyframes pulse {
-              0%, 100% { opacity: 0.6; }
-              50% { opacity: 1; }
+              0%,
+              100% {
+                opacity: 0.6;
+              }
+              50% {
+                opacity: 1;
+              }
             }
           `}</style>
           <div
@@ -133,11 +145,15 @@ export default function TypingPageClient({ userId }: TypingPageClientProps) {
           style={{ padding: "48px", textAlign: "center", maxWidth: 400 }}
         >
           <div className="box-label">SYSTEM ERROR</div>
-          <p className="font-headline" style={{ fontSize: 24, margin: "16px 0" }}>
+          <p
+            className="font-headline"
+            style={{ fontSize: 24, margin: "16px 0" }}
+          >
             FAILED TO INIT
           </p>
           <p className="font-body" style={{ color: "var(--ink-light)" }}>
-            Something went wrong while connecting to the server. Please refresh or try again later.
+            Something went wrong while connecting to the server. Please refresh
+            or try again later.
           </p>
         </div>
       </div>
@@ -161,7 +177,8 @@ export default function TypingPageClient({ userId }: TypingPageClientProps) {
       {showToast && (
         <div
           style={{
-            background: "linear-gradient(135deg, var(--paper-dark) 0%, var(--paper) 100%)",
+            background:
+              "linear-gradient(135deg, var(--paper-dark) 0%, var(--paper) 100%)",
             border: "2px solid var(--ink)",
             borderRadius: "8px",
             padding: "16px 24px",
@@ -177,8 +194,14 @@ export default function TypingPageClient({ userId }: TypingPageClientProps) {
         >
           <style jsx>{`
             @keyframes slideDown {
-              from { transform: translateY(-20px); opacity: 0; }
-              to { transform: translateY(0); opacity: 1; }
+              from {
+                transform: translateY(-20px);
+                opacity: 0;
+              }
+              to {
+                transform: translateY(0);
+                opacity: 1;
+              }
             }
           `}</style>
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
@@ -216,7 +239,7 @@ export default function TypingPageClient({ userId }: TypingPageClientProps) {
                   marginTop: 2,
                 }}
               >
-                That's it for today's ads — keep practicing below 💪
+                That's it for today's ads — keep practicing below
               </div>
             </div>
           </div>

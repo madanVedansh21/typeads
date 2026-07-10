@@ -44,7 +44,23 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
-        Update: Partial<Database['public']['Tables']['profiles']['Insert']>
+        Update: {
+          id?: string
+          username?: string | null
+          display_name?: string | null
+          avatar_url?: string | null
+          email?: string
+          points_balance?: number
+          total_completions?: number
+          daily_completions?: number
+          last_daily_reset?: string
+          total_wpm_sum?: number
+          total_accuracy_sum?: number
+          is_admin?: boolean
+          is_banned?: boolean
+          created_at?: string
+          updated_at?: string
+        }
         Relationships: []
       }
       campaigns: {
@@ -63,12 +79,36 @@ export interface Database {
           created_at: string
           updated_at: string
         }
-        Insert: Omit<Database['public']['Tables']['campaigns']['Row'], 'id' | 'created_at' | 'updated_at'> & {
+        Insert: {
           id?: string
+          brand_name: string
+          ad_text: string
+          image_url?: string | null
+          points_reward: number
+          completion_cap: number
+          completions_count?: number
+          estimated_time_seconds?: number | null
+          is_active: boolean
+          tile_color: string
+          created_by?: string | null
           created_at?: string
           updated_at?: string
         }
-        Update: Partial<Database['public']['Tables']['campaigns']['Insert']>
+        Update: {
+          id?: string
+          brand_name?: string
+          ad_text?: string
+          image_url?: string | null
+          points_reward?: number
+          completion_cap?: number
+          completions_count?: number
+          estimated_time_seconds?: number | null
+          is_active?: boolean
+          tile_color?: string
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
         Relationships: [
           {
             foreignKeyName: "campaigns_created_by_fkey"
@@ -102,10 +142,50 @@ export interface Database {
           completed_at: string
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['typing_sessions']['Row'], 'created_at'> & {
+        Insert: {
+          id?: string
+          user_id: string
+          campaign_id: string
+          wpm: number
+          accuracy: number
+          keystrokes_data?: Json | null
+          accuracy_samples?: Json | null
+          total_keystrokes: number
+          correct_keystrokes: number
+          duration_seconds?: number | null
+          status: 'completed' | 'abandoned' | 'flagged'
+          is_flagged: boolean
+          flag_reason?: string | null
+          points_earned: number
+          test_mode?: string | null
+          time_limit?: number | null
+          use_punctuation?: boolean | null
+          use_lowercase?: boolean | null
+          completed_at: string
           created_at?: string
         }
-        Update: Partial<Database['public']['Tables']['typing_sessions']['Insert']>
+        Update: {
+          id?: string
+          user_id?: string
+          campaign_id?: string
+          wpm?: number
+          accuracy?: number
+          keystrokes_data?: Json | null
+          accuracy_samples?: Json | null
+          total_keystrokes?: number
+          correct_keystrokes?: number
+          duration_seconds?: number | null
+          status?: 'completed' | 'abandoned' | 'flagged'
+          is_flagged?: boolean
+          flag_reason?: string | null
+          points_earned?: number
+          test_mode?: string | null
+          time_limit?: number | null
+          use_punctuation?: boolean | null
+          use_lowercase?: boolean | null
+          completed_at?: string
+          created_at?: string
+        }
         Relationships: [
           {
             foreignKeyName: "typing_sessions_campaign_id_fkey"
@@ -136,10 +216,30 @@ export interface Database {
           requested_at: string
           fulfilled_at: string | null
         }
-        Insert: Omit<Database['public']['Tables']['redemption_requests']['Row'], 'requested_at'> & {
+        Insert: {
+          id?: string
+          user_id: string
+          gift_card_type: string
+          denomination: number
+          points_cost: number
+          status: 'pending' | 'fulfilled' | 'rejected'
+          gift_card_code?: string | null
+          admin_notes?: string | null
           requested_at?: string
+          fulfilled_at?: string | null
         }
-        Update: Partial<Database['public']['Tables']['redemption_requests']['Insert']>
+        Update: {
+          id?: string
+          user_id?: string
+          gift_card_type?: string
+          denomination?: number
+          points_cost?: number
+          status?: 'pending' | 'fulfilled' | 'rejected'
+          gift_card_code?: string | null
+          admin_notes?: string | null
+          requested_at?: string
+          fulfilled_at?: string | null
+        }
         Relationships: [
           {
             foreignKeyName: "redemption_requests_user_id_fkey"
@@ -160,11 +260,24 @@ export interface Database {
           description: string
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['points_transactions']['Row'], 'id' | 'created_at'> & {
+        Insert: {
           id?: string
+          user_id: string
+          type: 'earned' | 'redeemed'
+          amount: number
+          reference_id?: string | null
+          description: string
           created_at?: string
         }
-        Update: Partial<Database['public']['Tables']['points_transactions']['Insert']>
+        Update: {
+          id?: string
+          user_id?: string
+          type?: 'earned' | 'redeemed'
+          amount?: number
+          reference_id?: string | null
+          description?: string
+          created_at?: string
+        }
         Relationships: [
           {
             foreignKeyName: "points_transactions_user_id_fkey"
@@ -184,8 +297,22 @@ export interface Database {
           is_active: boolean
           sort_order: number
         }
-        Insert: Omit<Database['public']['Tables']['gift_card_options']['Row'], 'id'> & { id?: string }
-        Update: Partial<Database['public']['Tables']['gift_card_options']['Insert']>
+        Insert: {
+          id?: string
+          name: string
+          slug: string
+          denominations: number[]
+          is_active: boolean
+          sort_order: number
+        }
+        Update: {
+          id?: string
+          name?: string
+          slug?: string
+          denominations?: number[]
+          is_active?: boolean
+          sort_order?: number
+        }
         Relationships: []
       }
     }
@@ -234,6 +361,12 @@ export interface Database {
         }
         Returns: Json
       }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
     }
   }
 }

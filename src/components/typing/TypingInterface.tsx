@@ -810,7 +810,6 @@ export default function TypingInterface({
             transition: "color 0.15s",
           }}
         >
-          <span style={{ color: "var(--stamp-navy)", fontSize: 18 }}>@</span>{" "}
           punctuation
         </button>
 

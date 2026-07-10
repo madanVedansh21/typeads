@@ -57,7 +57,7 @@ export default async function ProfilePage({ params }: Props) {
   })).reverse() ?? []
 
   return (
-    <div className="page-wrapper" style={{ maxWidth: 1000, margin: '0 auto', padding: '40px 24px' }}>
+    <div className="page-wrapper" style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 24px' }}>
       
       {/* Profile header */}
       <div className="editorial-box" style={{ display: 'flex', alignItems: 'center', gap: 32, padding: 32, marginBottom: 32, background: 'var(--paper-dark)' }}>
