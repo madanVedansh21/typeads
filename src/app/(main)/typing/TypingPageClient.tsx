@@ -8,7 +8,7 @@ import { WordBuffer } from "@/lib/word-buffer";
 import { Wordset } from "@/lib/words-generator";
 
 interface TypingPageClientProps {
-  userId: string;
+  userId: string | null;
 }
 
 interface SessionData {
@@ -275,12 +275,14 @@ export default function TypingPageClient({ userId }: TypingPageClientProps) {
       {isPractice ? (
         <TypingInterface
           isPractice={true}
+          isGuest={isGuest}
+          userId={userId ?? undefined}
           practiceText={practiceText || "loading words please wait..."}
         />
       ) : (
         <TypingInterface
           campaign={sessionData.campaign}
-          userId={userId}
+          userId={userId ?? undefined}
           repeatNumber={sessionData.repeatNumber}
           totalRepeats={sessionData.totalRepeats}
           isGuest={isGuest}

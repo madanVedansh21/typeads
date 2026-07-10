@@ -102,22 +102,41 @@ export default async function ResultsPage({ params }: Props) {
         >
           <div>{session.test_mode || "jumbled"}</div>
           <div>|</div>
-          <div style={{ color: session.use_punctuation ? "var(--ink)" : "var(--ink-faint)", opacity: session.use_punctuation ? 1 : 0.45 }}>
+          <div
+            style={{
+              color: session.use_punctuation
+                ? "var(--ink)"
+                : "var(--ink-faint)",
+              opacity: session.use_punctuation ? 1 : 0.45,
+            }}
+          >
             punctuation
           </div>
           <div>|</div>
           <div style={{ display: "flex", gap: 6 }}>
-            <span style={{
-              color: !session.use_lowercase ? "var(--ink)" : "var(--ink-faint)",
-              opacity: !session.use_lowercase ? 1 : 0.4,
-              fontWeight: !session.use_lowercase ? 900 : 700,
-            }}>Aa</span>
+            <span
+              style={{
+                color: !session.use_lowercase
+                  ? "var(--ink)"
+                  : "var(--ink-faint)",
+                opacity: !session.use_lowercase ? 1 : 0.4,
+                fontWeight: !session.use_lowercase ? 900 : 700,
+              }}
+            >
+              A
+            </span>
             <span style={{ opacity: 0.3 }}>/</span>
-            <span style={{
-              color: session.use_lowercase ? "var(--ink)" : "var(--ink-faint)",
-              opacity: session.use_lowercase ? 1 : 0.4,
-              fontWeight: session.use_lowercase ? 900 : 700,
-            }}>a</span>
+            <span
+              style={{
+                color: session.use_lowercase
+                  ? "var(--ink)"
+                  : "var(--ink-faint)",
+                opacity: session.use_lowercase ? 1 : 0.4,
+                fontWeight: session.use_lowercase ? 900 : 700,
+              }}
+            >
+              a
+            </span>
           </div>
         </div>
       </div>

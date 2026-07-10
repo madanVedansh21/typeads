@@ -1,7 +1,17 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
-export default async function LandingPage() {
+export default async function LandingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const resolvedParams = await searchParams;
+  if (resolvedParams.home !== "true") {
+    redirect("/typing");
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -14,6 +24,39 @@ export default async function LandingPage() {
         color: "var(--ink)",
       }}
     >
+      {/* Early Access Marquee */}
+      <div
+        style={{
+          background: "var(--ink)",
+          color: "var(--paper)",
+          padding: "10px 0",
+          overflow: "hidden",
+          borderBottom: "2px solid var(--ink)",
+          fontFamily: "var(--font-courier)",
+          fontSize: 13,
+          fontWeight: 700,
+          letterSpacing: "0.08em",
+          whiteSpace: "nowrap",
+        }}
+      >
+        <div className="marquee-track">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <span key={i} style={{ paddingRight: 80 }}>
+              &nbsp; EARLY ACCESS &nbsp; — &nbsp; We are currently onboarding
+              our first advertisers. In the meantime, enjoy unlimited free
+              practice typing. Real ads and rewards are coming soon.
+              &nbsp;&nbsp;&nbsp; &nbsp; EARLY ACCESS &nbsp; — &nbsp; We are
+              currently onboarding our first advertisers. In the meantime, enjoy
+              unlimited free practice typing. Real ads and rewards are coming
+              soon. &nbsp;&nbsp;&nbsp; &nbsp; EARLY ACCESS &nbsp; — &nbsp; We
+              are currently onboarding our first advertisers. In the meantime,
+              enjoy unlimited free practice typing. Real ads and rewards are
+              coming soon. &nbsp;&nbsp;&nbsp;
+            </span>
+          ))}
+        </div>
+      </div>
+
       {/* 5.1 MASTHEAD */}
       <div
         style={{

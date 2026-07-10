@@ -27,7 +27,7 @@ export async function addCampaign(formData: FormData) {
       tile_color: tileColor,
       is_active: isActive,
       estimated_time_seconds: Math.round(adText.length / 5), // Rough estimate: 60 WPM = 5 chars/sec
-    })
+    } as never)
 
     if (error) {
       console.error('Error inserting campaign:', error)

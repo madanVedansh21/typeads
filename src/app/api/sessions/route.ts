@@ -35,7 +35,41 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
-    // Fetch user's daily state
+    // ── Practice mode fast-path (no campaign) ──────────────────────────────
+    // When there are no ads available, users get practice mode with no campaign_id.
+    // We still save the session so they can see their results page.
+    if (!campaign_id) {
+      const { error: insertError } = await supabase
+        .from('typing_sessions')
+        .insert({
+          id: session_id,
+          user_id,
+          campaign_id: null,
+          wpm: Math.round(wpm),
+          accuracy: Math.round(accuracy * 100) / 100,
+          keystrokes_data,
+          accuracy_samples,
+          total_keystrokes,
+          correct_keystrokes,
+          duration_seconds,
+          status: 'completed',
+          is_flagged: false,
+          points_earned: 0,
+          test_mode,
+          time_limit,
+          use_punctuation,
+          use_lowercase,
+          completed_at: new Date().toISOString(),
+        })
+      if (insertError) {
+        console.error('Practice session insert error:', insertError)
+        return NextResponse.json({ error: insertError.message }, { status: 500 })
+      }
+      return NextResponse.json({ success: true, points_earned: 0, is_flagged: false })
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
+    // Fetch user's daily state\n
     const { data: state, error: stateError } = await supabase
       .from('user_daily_states')
       .select('*')
@@ -53,6 +87,7 @@ export async function POST(request: NextRequest) {
     if (state.current_campaign_id !== campaign_id) {
       return NextResponse.json({ error: 'Invalid campaign session order' }, { status: 400 })
     }
+
 
     // Fetch the campaign to get its base reward
     const { data: campaign, error: campaignError } = await supabase

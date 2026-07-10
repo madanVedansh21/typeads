@@ -387,8 +387,8 @@ export default function TypingInterface({
           ? Math.round(netCorrectCharsRef.current / 5 / elapsedMin)
           : 0;
 
-      // Practice mode or guest: show inline results without saving to DB
-      if (isPractice || isGuest) {
+      // Guest only: show inline results without saving to DB
+      if (isGuest) {
         setWpm(finalWpm);
         setAccuracy(finalAccuracy);
         setElapsedSeconds(Math.round(duration));
@@ -1338,6 +1338,46 @@ export default function TypingInterface({
                 <div style={{ width: "100%", height: "auto", marginBottom: 40 }}>
                   <ResultsCharts samples={accuracySamplesRef.current} />
                 </div>
+
+                {/* Sign-up CTA for guests */}
+                {isGuest && (
+                  <div style={{
+                    width: "100%",
+                    background: "var(--ink)",
+                    color: "var(--paper)",
+                    padding: "20px 24px",
+                    marginBottom: 24,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 16,
+                  }}>
+                    <div>
+                      <div style={{ fontFamily: "var(--font-courier)", fontWeight: 700, fontSize: 13, marginBottom: 4 }}>
+                        YOUR RESULTS WERE NOT SAVED
+                      </div>
+                      <div style={{ fontFamily: "var(--font-libre)", fontSize: 12, opacity: 0.7 }}>
+                        Create a free account to save your sessions and earn real rewards.
+                      </div>
+                    </div>
+                    <a
+                      href="/signup"
+                      style={{
+                        fontFamily: "var(--font-courier)",
+                        fontSize: 12,
+                        fontWeight: 700,
+                        background: "var(--paper)",
+                        color: "var(--ink)",
+                        padding: "10px 20px",
+                        textDecoration: "none",
+                        whiteSpace: "nowrap",
+                        flexShrink: 0,
+                      }}
+                    >
+                      CREATE ACCOUNT →
+                    </a>
+                  </div>
+                )}
 
                 <div style={{ display: "flex", gap: 16 }}>
                   <button

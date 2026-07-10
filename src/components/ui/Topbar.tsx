@@ -30,7 +30,7 @@ export default function Topbar({ profile }: TopbarProps) {
 
   return (
     <header className="topbar">
-      <Link href="/" className="logo topbar-logo">
+      <Link href="/?home=true" className="logo topbar-logo">
         TYPEADS
       </Link>
 
