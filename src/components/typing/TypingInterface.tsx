@@ -127,6 +127,9 @@ export default function TypingInterface({
   /* ── Sloth X position (0–100%) — always 50% (center) ── */
   const [slothX, setSlothX] = useState(50);
 
+  /* ── Track whether the hidden input is focused ── */
+  const [isFocused, setIsFocused] = useState(false);
+
   const laneRef = useRef<HTMLDivElement>(null);
   const activeWordRef = useRef<HTMLSpanElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -342,11 +345,23 @@ export default function TypingInterface({
   }, [activeWordIdx, wpm, visibleWords.length, completed, discarded, viewMode]);
 
   /* ═══════════════════════════════════════════════════════════
-     FOCUS INPUT
+     FOCUS INPUT — auto-focus on mount + re-focus on any click
   ═══════════════════════════════════════════════════════════ */
   useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
+    // Focus immediately on mount
+    setTimeout(() => inputRef.current?.focus(), 100);
+
+    // Re-focus when user clicks anywhere on the page (except buttons/links)
+    const handleGlobalClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const isInteractive = target.closest('a, button, select, [role="button"]');
+      if (!isInteractive && !completed && !discarded) {
+        inputRef.current?.focus();
+      }
+    };
+    document.addEventListener('click', handleGlobalClick);
+    return () => document.removeEventListener('click', handleGlobalClick);
+  }, [completed, discarded]);
 
   /* ═══════════════════════════════════════════════════════════
      WPM TICKER + INACTIVITY + TIME LIMIT
@@ -1138,6 +1153,45 @@ export default function TypingInterface({
             }}
             onClick={() => inputRef.current?.focus()}
           >
+            {/* ── Click-to-focus overlay ── */}
+            {!isFocused && !completed && !discarded && (
+              <div
+                onClick={() => inputRef.current?.focus()}
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  zIndex: 50,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "rgba(196, 188, 179, 0.9)",
+                  backdropFilter: "blur(4px)",
+                  cursor: "pointer",
+                  transition: "opacity 0.2s ease",
+                }}
+              >
+                <div style={{ textAlign: "center" }}>
+                  <div
+                    style={{
+                      fontFamily: "var(--font-canopee)",
+                      fontSize: 28,
+                      textTransform: "uppercase",
+                      color: "var(--ink)",
+                      marginBottom: 8,
+                      animation: "pulse 2s ease-in-out infinite",
+                    }}
+                  >
+                    Click here to start typing
+                  </div>
+                  <div
+                    className="font-body"
+                    style={{ fontSize: 14, opacity: 0.6, color: "var(--ink)" }}
+                  >
+                    or press any key
+                  </div>
+                </div>
+              </div>
+            )}
             {/* Fade masks left & right */}
             {viewMode === "focus" && <div className="lane-fade-left" />}
             {viewMode === "focus" && <div className="lane-fade-right" />}
@@ -1249,7 +1303,9 @@ export default function TypingInterface({
           onKeyDown={handleKeyDown}
           onPaste={(e) => e.preventDefault()}
           onChange={() => {}}
-          style={{ position: "absolute", opacity: 0, pointerEvents: "none" }}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          style={{ position: "absolute", opacity: 0, width: 1, height: 1, overflow: "hidden" }}
           disabled={completed || discarded}
           autoComplete="off"
           autoCorrect="off"
