@@ -80,7 +80,7 @@ export default function TileGrid({ imageUrl, progress, tileColor }: Props) {
             fontFamily: 'Arial Black', fontSize: 11, fontWeight: 900,
             letterSpacing: '0.15em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase'
           }}>
-            IMAGE REVEALS AS YOU TYPE
+            SPONSOR CARD
           </span>
         </div>
       )}

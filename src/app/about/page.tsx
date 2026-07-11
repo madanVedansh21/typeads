@@ -175,7 +175,7 @@ export default async function LandingPage() {
               {[
                 "Pick a piece of text from the queue",
                 "Type it out, word by word",
-                "An image slowly reveals as you go",
+                "Complete the text with high accuracy",
                 "Points drop into your balance",
                 "Get enough points, get rewarded",
               ].map((step, i) => (

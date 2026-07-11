@@ -45,7 +45,7 @@ const courierPrime = Courier_Prime({
 export const metadata: Metadata = {
   title: "TypeAds",
   description:
-    "Earn gift cards by typing real ad copy. Progressive image reveal. Real rewards.",
+    "Earn gift cards by typing real ad copy. Real-time typing accuracy. Real rewards.",
 };
 
 export default function RootLayout({
