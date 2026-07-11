@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import ContactForm from "@/components/ui/ContactForm";
+import AdvertiserForm from "@/components/ui/AdvertiserForm";
 
 export default async function LandingPage({
   searchParams,
@@ -43,15 +45,15 @@ export default async function LandingPage({
           {Array.from({ length: 2 }).map((_, i) => (
             <span key={i} style={{ paddingRight: 80 }}>
               &nbsp; EARLY ACCESS &nbsp; — &nbsp; We are currently onboarding
-              our first advertisers. In the meantime, enjoy unlimited free
-              practice typing. Real ads and rewards are coming soon.
+              our first advertisers. In the meantime, enjoy normal practice
+              typing like other platforms. Real ads and rewards are coming soon.
               &nbsp;&nbsp;&nbsp; &nbsp; EARLY ACCESS &nbsp; — &nbsp; We are
               currently onboarding our first advertisers. In the meantime, enjoy
-              unlimited free practice typing. Real ads and rewards are coming
-              soon. &nbsp;&nbsp;&nbsp; &nbsp; EARLY ACCESS &nbsp; — &nbsp; We
-              are currently onboarding our first advertisers. In the meantime,
-              enjoy unlimited free practice typing. Real ads and rewards are
-              coming soon. &nbsp;&nbsp;&nbsp;
+              normal practice typing like other platforms. Real ads and rewards
+              are coming soon. &nbsp;&nbsp;&nbsp; &nbsp; EARLY ACCESS &nbsp; —
+              &nbsp; We are currently onboarding our first advertisers. In the
+              meantime, enjoy normal practice typing like other platforms. Real
+              ads and rewards are coming soon. &nbsp;&nbsp;&nbsp;
             </span>
           ))}
         </div>
@@ -132,7 +134,11 @@ export default async function LandingPage({
                 ? "/signup"
                 : item === "START TYPING"
                   ? "/typing"
-                  : "#"
+                  : item === "HOW IT WORKS"
+                    ? "/?home=true#how-it-works"
+                    : item === "FOR TYPISTS"
+                      ? "/?home=true#for-typists"
+                      : "/?home=true#for-advertisers"
             }
             className="label-sm"
             style={{ color: "var(--ink-light)", textDecoration: "none" }}
@@ -203,11 +209,22 @@ export default async function LandingPage({
               rewarded task.
               <br />
               <br />
+              <span
+                style={{
+                  fontWeight: 700,
+                  color: "#000000",
+                  fontFamily: "var(--font-libre), serif",
+                }}
+              >
+                So get rewarded while practicing your typing skills. <br />{" "}
+                Currently we are trying to contact our first advertisers. Real
+                ads and rewards are coming soon.
+              </span>
             </div>
           </div>
 
           {/* RIGHT COLUMN */}
-          <div>
+          <div id="how-it-works">
             <div
               style={{
                 borderBottom: "2px solid var(--ink)",
@@ -231,9 +248,9 @@ export default async function LandingPage({
               {[
                 "Brand submits ad copy",
                 "You type it word by word",
-                "if you complete daily quota of ads you fallback to normal typing ads ",
-                "Points land in your wallet",
-                "you are practicing your typing skills and earn rewards",
+                "If you complete daily quota of ads you fallback to type normal words mode for which you won't be rewarded .",
+                "you get rewarded for the ads you type along with your typing stats",
+                "You are practicing your typing skills and getting rewarded for it",
               ].map((step, i) => (
                 <div key={i} style={{ display: "flex", gap: 12 }}>
                   <span
@@ -257,6 +274,7 @@ export default async function LandingPage({
 
         {/* 5.5 FOR TYPISTS */}
         <section
+          id="for-typists"
           style={{
             background: "var(--paper)",
             borderBottom: "1px solid var(--paper-darker)",
@@ -293,6 +311,7 @@ export default async function LandingPage({
 
         {/* 5.6 FOR ADVERTISERS */}
         <section
+          id="for-advertisers"
           style={{
             background: "var(--paper-dark)",
             borderBottom: "1px solid var(--paper-darker)",
@@ -305,90 +324,60 @@ export default async function LandingPage({
             FOR ADVERTISERS
           </div>
           <div
-            style={{ padding: "48px 32px", maxWidth: 1200, margin: "0 auto" }}
+            style={{
+              padding: "48px 32px",
+              maxWidth: 1200,
+              margin: "0 auto",
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 48,
+              alignItems: "start",
+            }}
           >
-            <h2
-              className="font-headline"
-              style={{ fontSize: 36, marginBottom: 16 }}
-            >
-              Guaranteed Attention.
-            </h2>
+            <div>
+              <h2
+                className="font-headline"
+                style={{ fontSize: 36, marginBottom: 16 }}
+              >
+                Guaranteed Attention.
+              </h2>
+              <div
+                className="font-body"
+                style={{
+                  textAlign: "justify",
+                  lineHeight: 1.8,
+                  fontSize: 18,
+                }}
+              >
+                Stop paying for impressions that no one looks at. In traditional
+                digital advertising, a user scrolls past your banner in
+                milliseconds. On TypeAds, the user is forced to read, process,
+                and physically retype your entire ad copy word for word in order
+                to earn their reward.
+              </div>
+            </div>
             <div
-              className="font-body"
               style={{
-                textAlign: "justify",
-                maxWidth: 760,
-                marginBottom: 48,
-                lineHeight: 1.8,
-                fontSize: 18,
+                display: "flex",
+                justifyContent: "flex-end",
+                width: "100%",
               }}
             >
-              Stop paying for impressions that no one looks at. In traditional
-              digital advertising, a user scrolls past your banner in
-              milliseconds. On TypeAds, the user is forced to read, process, and
-              physically retype your entire ad copy word for word in order to
-              earn their reward.
+              <AdvertiserForm />
             </div>
           </div>
         </section>
 
-        {/* 5.7 TESTIMONIAL / PULL QUOTE */}
+        {/* 5.7 CONTACT / INQUIRY FORM */}
         <section
+          id="contact"
           style={{
             background: "var(--paper)",
             borderBottom: "1px solid var(--paper-darker)",
             padding: "64px 32px",
-            textAlign: "center",
-            position: "relative",
           }}
         >
-          {/* <span
-            style={{
-              position: "absolute",
-              left: 40,
-              top: 40,
-              fontFamily: "var(--font-playfair)",
-              fontSize: 120,
-              color: "var(--paper-darker)",
-              lineHeight: 0.5,
-            }}
-          >
-            "
-          </span> */}
-          {/* <div
-            style={{
-              fontFamily: "var(--font-playfair)",
-              fontStyle: "italic",
-              fontSize: 28,
-              color: "var(--ink)",
-              maxWidth: 800,
-              margin: "0 auto",
-              lineHeight: 1.4,
-            }}
-          >
-            It feels like I'm doing real work. I'm reading the copy, I'm
-            understanding the product, and I'm getting paid for it. It beats
-            filling out surveys any day.
-          </div> */}
-          {/* <div
-            className="label-sm"
-            style={{ marginTop: 24, color: "var(--ink)" }}
-          >
-            — EARLY ACCESS USER
-          </div> */}
-          {/* <span
-            style={{
-              position: "absolute",
-              right: 40,
-              bottom: 0,
-              fontFamily: "var(--font-playfair)",
-              fontSize: 120,
-              color: "var(--paper-darker)",
-              lineHeight: 0.5,
-            }}
-          >
-            "
-          </span> */}
+          <ContactForm />
         </section>
       </div>
 
@@ -435,8 +424,8 @@ export default async function LandingPage({
           <div style={{ display: "flex", gap: 24, justifyContent: "center" }}>
             {[
               { label: "HOME", href: "/" },
-              { label: "TERMS", href: "/terms" },
-              { label: "PRIVACY", href: "/privacy" },
+              { label: "TERMS OF SERVICE", href: "/terms" },
+              { label: "PRIVACY POLICY", href: "/privacy" },
             ].map((link) => (
               <Link
                 key={link.label}

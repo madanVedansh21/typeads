@@ -56,32 +56,69 @@ export default function Topbar({ profile }: TopbarProps) {
           <span>{profile?.points_balance?.toLocaleString() ?? "0"} PTS</span>
         </div>
 
-        {profile?.is_admin && (
-          <Link
-            href="/admin"
-            className="btn btn-sm btn-inverted"
-            style={{
-              border: "none",
-              borderLeft: "1px solid var(--paper-darker)",
-              height: "100%",
-            }}
-          >
-            ADMIN
-          </Link>
+        {profile ? (
+          <>
+            {profile.is_admin && (
+              <Link
+                href="/admin"
+                className="btn btn-sm btn-inverted"
+                style={{
+                  border: "none",
+                  borderLeft: "1px solid var(--paper-darker)",
+                  height: "100%",
+                  padding: "0 24px",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                ADMIN
+              </Link>
+            )}
+            <button
+              onClick={handleLogout}
+              className="btn btn-sm"
+              style={{
+                border: "none",
+                borderLeft: "1px solid var(--paper-darker)",
+                height: "100%",
+                padding: "0 24px",
+              }}
+            >
+              LOGOUT
+            </button>
+          </>
+        ) : (
+          <>
+            <Link
+              href="/login"
+              className="btn btn-sm btn-inverted"
+              style={{
+                border: "none",
+                borderLeft: "1px solid var(--paper-darker)",
+                height: "100%",
+                padding: "0 24px",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              LOGIN
+            </Link>
+            <Link
+              href="/signup"
+              className="btn btn-sm"
+              style={{
+                border: "none",
+                borderLeft: "1px solid var(--paper-darker)",
+                height: "100%",
+                padding: "0 24px",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              SIGN UP
+            </Link>
+          </>
         )}
-
-        <button
-          onClick={handleLogout}
-          className="btn btn-sm"
-          style={{
-            border: "none",
-            borderLeft: "1px solid var(--paper-darker)",
-            height: "100%",
-            padding: "0 24px",
-          }}
-        >
-          LOGOUT
-        </button>
       </div>
     </header>
   );

@@ -111,10 +111,10 @@ export default function TermsPage() {
                 <strong>No Cash Value:</strong> Points are promotional tokens. They do not constitute currency, have no inherent cash value outside the platform, and cannot be purchased or transferred.
               </li>
               <li>
-                <strong>Eligibility for First Redemption:</strong> To prevent abuse, your account must be active for at least <strong>seven (7) days</strong> and you must have completed at least <strong>ten (10) ad campaigns</strong> before you are eligible to request your first gift card redemption.
+                <strong>Redemption Eligibility:</strong> To be eligible for redemption, your account must meet the minimum points balance threshold required for the selected reward. The administration reserves the right to establish and adjust additional validation criteria, such as a minimum account age or ad completion requirements, before processing redemptions.
               </li>
               <li>
-                <strong>Daily Completion Cap:</strong> You may earn points for a maximum of <strong>twenty (20) completed typing sessions</strong> per calendar day. Sessions completed beyond this limit will not award points.
+                <strong>Daily Completion Cap:</strong> The maximum number of rewarded typing sessions you can complete per calendar day is determined by the administration and is subject to change at our discretion. Sessions completed beyond this limit will not award points.
               </li>
               <li>
                 <strong>Manual Verification & Fulfillment:</strong> All redemption requests are processed and verified manually by our administration team. Fulfillment is not instantaneous and can take up to <strong>7 business days</strong>. We reserve the right to deny redemptions if fraud, bot usage, or manipulation is suspected.
@@ -174,7 +174,11 @@ export default function TermsPage() {
 
           <section style={{ borderTop: "1px solid var(--paper-darker)", paddingTop: 24, textAlign: "center" }}>
             <p className="font-body" style={{ fontSize: 14 }}>
-              Questions about these Terms? Contact us via the interest form on our main page.
+              Questions about these Terms? Contact us via the{" "}
+              <Link href="/?home=true#contact" style={{ color: "var(--ink)", fontWeight: 700, textDecoration: "underline" }}>
+                interest form on our main page
+              </Link>
+              .
             </p>
           </section>
         </div>

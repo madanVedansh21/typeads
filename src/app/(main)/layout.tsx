@@ -13,7 +13,8 @@ export default async function MainLayout({
   } = await supabase.auth.getUser();
 
   const profile = user
-    ? (await supabase.from("profiles").select("*").eq("id", user.id).single()).data
+    ? (await supabase.from("profiles").select("*").eq("id", user.id).single())
+        .data
     : null;
 
   return (
@@ -44,15 +45,15 @@ export default async function MainLayout({
           {Array.from({ length: 2 }).map((_, i) => (
             <span key={i} style={{ paddingRight: 80 }}>
               &nbsp; EARLY ACCESS &nbsp; — &nbsp; We are currently onboarding
-              our first advertisers. In the meantime, enjoy unlimited free
-              practice typing. Real ads and rewards are coming soon.
+              our first advertisers. In the meantime, enjoy normal practice
+              typing like other platforms. Real ads and rewards are coming soon.
               &nbsp;&nbsp;&nbsp; &nbsp; EARLY ACCESS &nbsp; — &nbsp; We are
               currently onboarding our first advertisers. In the meantime, enjoy
-              unlimited free practice typing. Real ads and rewards are coming
-              soon. &nbsp;&nbsp;&nbsp; &nbsp; EARLY ACCESS &nbsp; — &nbsp; We
-              are currently onboarding our first advertisers. In the meantime,
-              enjoy unlimited free practice typing. Real ads and rewards are
-              coming soon. &nbsp;&nbsp;&nbsp;
+              normal practice typing like other platforms. Real ads and rewards
+              are coming soon. &nbsp;&nbsp;&nbsp; &nbsp; EARLY ACCESS &nbsp; —
+              &nbsp; We are currently onboarding our first advertisers. In the
+              meantime, enjoy normal practice typing like other platforms. Real
+              ads and rewards are coming soon. &nbsp;&nbsp;&nbsp;
             </span>
           ))}
         </div>

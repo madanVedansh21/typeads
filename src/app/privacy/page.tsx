@@ -157,16 +157,38 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="font-subheadline" style={{ fontSize: 24, marginBottom: 12, fontWeight: "bold" }}>
-              6. Your Privacy Rights
+              6. Your Data, Your Choice
             </h2>
             <p className="font-body">
-              Depending on your location, you may have rights under local privacy regulations (such as GDPR or CCPA) to access, correct, or request deletion of the personal data we hold about you. You can initiate these requests by reaching out through the inquiry form on the home page.
+              Here is exactly what you can do regarding your data on TypeAds:
+            </p>
+            <ul className="font-body" style={{ paddingLeft: 24, marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
+              <li>
+                <strong>Request Your Data:</strong> You can ask us what personal data we have stored about you. We will respond via email with a summary.
+              </li>
+              <li>
+                <strong>Request Deletion:</strong> You can ask us to permanently delete your account and all associated data (typing history, points, redemption records). Once deleted, this action cannot be undone.
+              </li>
+              <li>
+                <strong>Correct Your Information:</strong> If any of your account details (email, username, display name) are incorrect, you can update them from your profile or contact us.
+              </li>
+            </ul>
+            <p className="font-body" style={{ marginTop: 16 }}>
+              To make any of these requests, use the{" "}
+              <Link href="/?home=true#contact" style={{ color: "var(--ink)", fontWeight: 700, textDecoration: "underline" }}>
+                contact form on our main page
+              </Link>
+              . We will process your request and respond to your email.
             </p>
           </section>
 
           <section style={{ borderTop: "1px solid var(--paper-darker)", paddingTop: 24, textAlign: "center" }}>
             <p className="font-body" style={{ fontSize: 14 }}>
-              Questions about our privacy practices? Contact us via the contact form on our main page.
+              Questions about our privacy practices? Contact us via the{" "}
+              <Link href="/?home=true#contact" style={{ color: "var(--ink)", fontWeight: 700, textDecoration: "underline" }}>
+                contact form on our main page
+              </Link>
+              .
             </p>
           </section>
         </div>
