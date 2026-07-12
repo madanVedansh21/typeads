@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { REPEAT_COUNT, REPEAT_REWARD_FACTOR, DAILY_AD_LIMIT } from '@/lib/config'
 
 export async function POST(request: NextRequest) {
@@ -65,6 +65,38 @@ export async function POST(request: NextRequest) {
         console.error('Practice session insert error:', insertError)
         return NextResponse.json({ error: insertError.message }, { status: 500 })
       }
+
+      // Update user's profile stats using Admin Client to bypass client RLS/trigger limits
+      try {
+        const adminSupabase = await createAdminClient()
+        
+        // Get the current profile stats to increment them
+        const { data: profile, error: fetchError } = await adminSupabase
+          .from('profiles')
+          .select('total_completions, total_wpm_sum, total_accuracy_sum')
+          .eq('id', user_id)
+          .single()
+
+        if (profile && !fetchError) {
+          const { error: updateError } = await adminSupabase
+            .from('profiles')
+            .update({
+              total_completions: (profile.total_completions || 0) + 1,
+              total_wpm_sum: (profile.total_wpm_sum || 0) + Math.round(wpm),
+              total_accuracy_sum: (profile.total_accuracy_sum || 0) + (Math.round(accuracy * 100) / 100),
+            })
+            .eq('id', user_id)
+          
+          if (updateError) {
+            console.error('Failed to update profile stats for practice session:', updateError)
+          }
+        } else if (fetchError) {
+          console.error('Failed to fetch profile for stats update:', fetchError)
+        }
+      } catch (adminErr) {
+        console.error('Admin client update error in practice session:', adminErr)
+      }
+
       return NextResponse.json({ success: true, points_earned: 0, is_flagged: false })
     }
     // ────────────────────────────────────────────────────────────────────────

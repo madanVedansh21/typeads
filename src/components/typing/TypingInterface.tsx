@@ -129,6 +129,7 @@ export default function TypingInterface({
 
   /* ── Track whether the hidden input is focused ── */
   const [isFocused, setIsFocused] = useState(false);
+  const [inputValue, setInputValue] = useState(" ");
 
   const laneRef = useRef<HTMLDivElement>(null);
   const activeWordRef = useRef<HTMLSpanElement>(null);
@@ -545,6 +546,198 @@ export default function TypingInterface({
   /* ═══════════════════════════════════════════════════════════
      KEYBOARD HANDLER
   ═══════════════════════════════════════════════════════════ */
+  const processBackspace = useCallback(() => {
+    if (charIdx > 0) {
+      const newCi = charIdx - 1;
+      setCharIdx(newCi);
+      setWordCharStates((prev) => {
+        const ws = [...(prev[activeWordIdx] ?? [])].slice(0, newCi);
+        const stillHasError = ws.some(
+          (s) => s !== undefined && s !== "correct"
+        );
+        setWordHasError((prevErrors) => ({
+          ...prevErrors,
+          [activeWordIdx]: stillHasError,
+        }));
+        netCorrectCharsRef.current = getNetCorrectCharactersCount(
+          ws,
+          { ...wordHasError, [activeWordIdx]: stillHasError }
+        );
+        return { ...prev, [activeWordIdx]: ws };
+      });
+    }
+  }, [charIdx, activeWordIdx, wordHasError]);
+
+  const processSpace = useCallback(() => {
+    const currentWord = visibleWords[activeWordIdx];
+    if (!currentWord) return;
+
+    if (charIdx === 0) return;
+
+    const finalWordStates = [...(wordCharStates[activeWordIdx] ?? [])];
+    let missedCount = 0;
+    for (let i = charIdx; i < currentWord.length; i++) {
+      finalWordStates[i] = "error";
+      missedCount++;
+    }
+
+    const currentWordAlreadyHadError = wordHasError[activeWordIdx] ?? false;
+    const wordIsError = currentWordAlreadyHadError || missedCount > 0;
+
+    totalKeystrokesCounterRef.current += missedCount;
+
+    const newTotalKeystrokes = totalKeystrokesCounterRef.current;
+    const newCorrectKeystrokes = correctKeystrokesCounterRef.current;
+    const newAcc = newTotalKeystrokes > 0
+      ? Math.round((newCorrectKeystrokes / newTotalKeystrokes) * 100)
+      : 100;
+
+    setTotalKeystrokes(newTotalKeystrokes);
+    setAccuracy(newAcc);
+
+    setWordHasError((prevErrors) => ({ ...prevErrors, [activeWordIdx]: wordIsError }));
+    setWordCharStates((prev) => {
+      const updatedErrorMap = { ...wordHasError, [activeWordIdx]: wordIsError };
+      let count = 0;
+      for (let wi = 0; wi <= activeWordIdx; wi++) {
+        if (updatedErrorMap[wi]) continue;
+        const word = visibleWords[wi];
+        if (!word) continue;
+        const states = wi === activeWordIdx ? finalWordStates : (prev[wi] ?? []);
+        for (let ci = 0; ci < word.length; ci++) {
+          if (states[ci] === "correct") count++;
+        }
+        count++;
+      }
+      netCorrectCharsRef.current = count;
+      return { ...prev, [activeWordIdx]: finalWordStates };
+    });
+
+    const nextWi = activeWordIdx + 1;
+    const totalTyped = poolIndexRef.current - (visibleWords.length - nextWi);
+
+    setActiveWordIdx(nextWi);
+    setCharIdx(0);
+
+    if (totalTyped >= campaignWordCountRef.current) {
+      setCompleted(true);
+      const now = Date.now();
+      const secs = (now - startTimeRef.current) / 1000;
+      handleComplete(
+        totalKeystrokesCounterRef.current,
+        correctKeystrokesCounterRef.current,
+        newAcc,
+        secs,
+      );
+    }
+  }, [
+    activeWordIdx,
+    charIdx,
+    visibleWords,
+    wordCharStates,
+    wordHasError,
+    handleComplete,
+  ]);
+
+  const processCharacter = useCallback((key: string) => {
+    const currentWord = visibleWords[activeWordIdx];
+    if (!currentWord) return;
+
+    const now = Date.now();
+    const interval = lastKeystrokeTimeRef.current
+      ? now - lastKeystrokeTimeRef.current
+      : 0;
+    lastKeystrokeTimeRef.current = now;
+
+    if (!started) {
+      if (key === " ") return;
+      setStarted(true);
+      startTimeRef.current = now;
+    }
+
+    const isExtra = charIdx >= currentWord.length;
+    if (isExtra && charIdx >= currentWord.length + 10) {
+      return;
+    }
+
+    keystrokesRef.current.push({
+      key: key,
+      timestamp: now,
+      interval_ms: interval,
+    });
+
+    const isCorrect = !isExtra && key === currentWord[charIdx];
+
+    totalKeystrokesCounterRef.current += 1;
+    if (isCorrect) correctKeystrokesCounterRef.current += 1;
+
+    const newTotal = totalKeystrokesCounterRef.current;
+    const newCorrect = correctKeystrokesCounterRef.current;
+
+    if (isCorrect) {
+      consecutiveErrorsRef.current = 0;
+    } else {
+      consecutiveErrorsRef.current += 1;
+      if (consecutiveErrorsRef.current > 15) {
+        setDiscarded(true);
+        setCompleted(true);
+        return;
+      }
+      setWordHasError((prevErrors) => ({ ...prevErrors, [activeWordIdx]: true }));
+    }
+
+    setTotalKeystrokes(newTotal);
+    setCorrectKeystrokes(newCorrect);
+    
+    const newAcc = newTotal > 0 ? Math.round((newCorrect / newTotal) * 100) : 100;
+    setAccuracy(newAcc);
+
+    setWordCharStates((prev) => {
+      const ws = [...(prev[activeWordIdx] ?? [])];
+      ws[charIdx] = isCorrect ? "correct" : `error_${key}`;
+      const updatedErrorMap = isCorrect
+        ? wordHasError
+        : { ...wordHasError, [activeWordIdx]: true };
+      netCorrectCharsRef.current = getNetCorrectCharactersCount(ws, updatedErrorMap);
+      return { ...prev, [activeWordIdx]: ws };
+    });
+
+    if (newTotal % 5 === 0) {
+      const min = (now - startTimeRef.current) / 60000;
+      accuracySamplesRef.current.push({
+        char_index: newTotal,
+        time_sec: Math.round((now - startTimeRef.current) / 1000),
+        accuracy: newAcc,
+        wpm: min > 0 ? Math.round(netCorrectCharsRef.current / 5 / min) : 0,
+      });
+    }
+
+    setCharIdx(charIdx + 1);
+  }, [
+    started,
+    activeWordIdx,
+    charIdx,
+    visibleWords,
+    wordHasError,
+  ]);
+
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    if (val.length > 1) {
+      const chs = val.slice(1);
+      for (const ch of chs) {
+        if (ch === " ") {
+          processSpace();
+        } else {
+          processCharacter(ch);
+        }
+      }
+    } else if (val.length === 0) {
+      processBackspace();
+    }
+    setInputValue(" ");
+  }, [processBackspace, processSpace, processCharacter]);
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.ctrlKey && e.key === "v") {
@@ -565,34 +758,13 @@ export default function TypingInterface({
         return;
       }
 
-      const now = Date.now();
-      const interval = lastKeystrokeTimeRef.current
-        ? now - lastKeystrokeTimeRef.current
-        : 0;
-      lastKeystrokeTimeRef.current = now;
-
-      if (!started) {
-        // Prevent Ghost Starting: If the very first key is Space, ignore it entirely
-        if (e.key === " ") return;
-        setStarted(true);
-        startTimeRef.current = now;
-      }
-
-      const currentWord = visibleWords[activeWordIdx];
-      if (!currentWord) return;
-
-      /* ── Backspace ── */
       if (e.key === "Backspace") {
         e.preventDefault();
         if (e.ctrlKey) {
           // Ctrl+Backspace: clear entire active word progress.
-          // IMPORTANT: setCharIdx(0) is async, so we can't use charIdx inside the
-          // setState updater below. Instead, manually compute net chars without the
-          // current word's contribution (charIdx is effectively 0 after clear).
           setCharIdx(0);
           setWordHasError((prevErrors) => ({ ...prevErrors, [activeWordIdx]: false }));
           setWordCharStates((prev) => {
-            // Recalculate net chars: only completed words that had no errors
             let count = 0;
             for (let wi = 0; wi < activeWordIdx; wi++) {
               if (wordHasError[wi]) continue;
@@ -602,194 +774,36 @@ export default function TypingInterface({
               for (let ci = 0; ci < word.length; ci++) {
                 if (states[ci] === "correct") count++;
               }
-              count++; // space credit
+              count++;
             }
-            // Current word is cleared — no contribution
             netCorrectCharsRef.current = count;
             return { ...prev, [activeWordIdx]: [] };
           });
           return;
         }
-        if (charIdx > 0) {
-          const newCi = charIdx - 1;
-          setCharIdx(newCi);
-          setWordCharStates((prev) => {
-            const ws = [...(prev[activeWordIdx] ?? [])].slice(0, newCi);
-            // After backspace, recheck whether the word still has any errors
-            // so we can clear the dirty flag if the user corrected the last mistake
-            const stillHasError = ws.some(
-              (s) => s !== undefined && s !== "correct"
-            );
-            setWordHasError((prevErrors) => ({
-              ...prevErrors,
-              [activeWordIdx]: stillHasError,
-            }));
-            netCorrectCharsRef.current = getNetCorrectCharactersCount(
-              ws,
-              // Pass current wordHasError with the potentially updated flag
-              { ...wordHasError, [activeWordIdx]: stillHasError }
-            );
-            return { ...prev, [activeWordIdx]: ws };
-          });
-        }
+        processBackspace();
         return;
       }
 
-      /* ── Space (Advance Word) ── */
       if (e.key === " ") {
         e.preventDefault();
-
-        // Anti-skip: Prevent advancing the word if no characters have been typed yet
-        if (charIdx === 0) return;
-
-        // Commit word: mark remaining un-typed characters as missed/errors
-        const finalWordStates = [...(wordCharStates[activeWordIdx] ?? [])];
-        let missedCount = 0;
-        for (let i = charIdx; i < currentWord.length; i++) {
-          finalWordStates[i] = "error";
-          missedCount++;
-        }
-
-        // Determine if this word has ANY error (incorrect chars already tracked + missed chars now)
-        const currentWordAlreadyHadError = wordHasError[activeWordIdx] ?? false;
-        const wordIsError = currentWordAlreadyHadError || missedCount > 0;
-
-        // Update live counter refs with missed chars (missed chars are errors in accuracy)
-        totalKeystrokesCounterRef.current += missedCount;
-        // correctKeystrokesCounterRef does NOT increment for missed chars
-
-        const newTotalKeystrokes = totalKeystrokesCounterRef.current;
-        const newCorrectKeystrokes = correctKeystrokesCounterRef.current;
-        const newAcc = newTotalKeystrokes > 0
-          ? Math.round((newCorrectKeystrokes / newTotalKeystrokes) * 100)
-          : 100;
-
-        // Sync state (for display) — these are async but refs above are already updated
-        setTotalKeystrokes(newTotalKeystrokes);
-        setAccuracy(newAcc);
-
-        // Commit word states and wordHasError, then recalculate net correct chars
-        setWordHasError((prevErrors) => ({ ...prevErrors, [activeWordIdx]: wordIsError }));
-        setWordCharStates((prev) => {
-          // Build updated errorMap including the just-committed word
-          const updatedErrorMap = { ...wordHasError, [activeWordIdx]: wordIsError };
-          // Recalculate net chars for all completed words (activeWordIdx now included as completed)
-          let count = 0;
-          for (let wi = 0; wi <= activeWordIdx; wi++) {
-            if (updatedErrorMap[wi]) continue; // skip error words
-            const word = visibleWords[wi];
-            if (!word) continue;
-            const states = wi === activeWordIdx ? finalWordStates : (prev[wi] ?? []);
-            for (let ci = 0; ci < word.length; ci++) {
-              if (states[ci] === "correct") count++;
-            }
-            count++; // space credit for fully-correct completed word
-          }
-          netCorrectCharsRef.current = count;
-          return { ...prev, [activeWordIdx]: finalWordStates };
-        });
-
-        const nextWi = activeWordIdx + 1;
-        const totalTyped = poolIndexRef.current - (visibleWords.length - nextWi);
-
-        setActiveWordIdx(nextWi);
-        setCharIdx(0);
-
-        if (totalTyped >= campaignWordCountRef.current) {
-          setCompleted(true);
-          const secs = (now - startTimeRef.current) / 1000;
-          // Use live ref values to avoid stale closure bug on the final submit
-          handleComplete(
-            totalKeystrokesCounterRef.current,
-            correctKeystrokesCounterRef.current,
-            newAcc,
-            secs,
-          );
-        }
+        processSpace();
         return;
       }
 
-      /* ── Ignore non-printable ── */
-      if (e.key.length !== 1) return;
-
-      // Allow typing extra characters beyond word length up to 10 extra characters
-      const isExtra = charIdx >= currentWord.length;
-      if (isExtra && charIdx >= currentWord.length + 10) {
-        return;
+      if (e.key.length === 1) {
+        e.preventDefault();
+        processCharacter(e.key);
       }
-
-      e.preventDefault();
-
-      keystrokesRef.current.push({
-        key: e.key,
-        timestamp: now,
-        interval_ms: interval,
-      });
-
-      const isCorrect = !isExtra && e.key === currentWord[charIdx];
-
-      // Update live counter refs immediately — these are used in handleComplete and
-      // space handler to avoid stale useState closure bugs
-      totalKeystrokesCounterRef.current += 1;
-      if (isCorrect) correctKeystrokesCounterRef.current += 1;
-
-      const newTotal = totalKeystrokesCounterRef.current;
-      const newCorrect = correctKeystrokesCounterRef.current;
-
-      if (isCorrect) {
-        consecutiveErrorsRef.current = 0;
-      } else {
-        consecutiveErrorsRef.current += 1;
-        // Anti-mash detection: Discard session if typing complete gibberish
-        if (consecutiveErrorsRef.current > 15) {
-          setDiscarded(true);
-          setCompleted(true);
-          return;
-        }
-        // Mark word as dirty — it now has at least one error (extra chars always count as errors)
-        setWordHasError((prevErrors) => ({ ...prevErrors, [activeWordIdx]: true }));
-      }
-
-      setTotalKeystrokes(newTotal);
-      setCorrectKeystrokes(newCorrect);
-      
-      const newAcc = newTotal > 0 ? Math.round((newCorrect / newTotal) * 100) : 100;
-      setAccuracy(newAcc);
-
-      setWordCharStates((prev) => {
-        const ws = [...(prev[activeWordIdx] ?? [])];
-        ws[charIdx] = isCorrect ? "correct" : `error_${e.key}`;
-        // If incorrect, the word is now dirty — pass updated error map so WPM is accurate
-        const updatedErrorMap = isCorrect
-          ? wordHasError
-          : { ...wordHasError, [activeWordIdx]: true };
-        netCorrectCharsRef.current = getNetCorrectCharactersCount(ws, updatedErrorMap);
-        return { ...prev, [activeWordIdx]: ws };
-      });
-
-      if (newTotal % 5 === 0) {
-        const min = (now - startTimeRef.current) / 60000;
-        // We use the updated net correct chars ref here
-        accuracySamplesRef.current.push({
-          char_index: newTotal,
-          time_sec: Math.round((now - startTimeRef.current) / 1000),
-          accuracy: newAcc,
-          wpm: min > 0 ? Math.round(netCorrectCharsRef.current / 5 / min) : 0,
-        });
-      }
-
-      setCharIdx(charIdx + 1);
     },
     [
       started,
       activeWordIdx,
-      charIdx,
       visibleWords,
-      totalKeystrokes,
-      correctKeystrokes,
-      handleComplete,
-      wordCharStates,
       wordHasError,
+      processBackspace,
+      processSpace,
+      processCharacter,
     ],
   );
 
@@ -1286,10 +1300,10 @@ export default function TypingInterface({
         <input
           ref={inputRef}
           type="text"
-          value=""
+          value={inputValue}
           onKeyDown={handleKeyDown}
           onPaste={(e) => e.preventDefault()}
-          onChange={() => {}}
+          onChange={handleInputChange}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           style={{ position: "absolute", opacity: 0, width: 1, height: 1, overflow: "hidden" }}
