@@ -6,6 +6,7 @@ import {
   Courier_Prime,
 } from "next/font/google";
 import localFont from "next/font/local";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const canopee = localFont({
@@ -59,7 +60,10 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${playfair.variable} ${imFell.variable} ${libreBaskerville.variable} ${courierPrime.variable} ${canopee.variable}`}
     >
-      <body>{children}</body>
+      <body>
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }
