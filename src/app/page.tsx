@@ -176,8 +176,8 @@ export default async function LandingPage({
               className="font-subheadline"
               style={{ fontSize: 24, marginBottom: 32 }}
             >
-              The internet's first typing platform where every keystroke earns
-              you rewards.
+              The internet's first typing platform where keystrokes earns you
+              rewards.
             </h2>
             <hr
               style={{
