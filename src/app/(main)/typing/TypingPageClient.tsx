@@ -17,6 +17,7 @@ interface SessionData {
   repeatNumber?: number;
   totalRepeats?: number;
   quotaExhausted?: boolean;
+  noAdsAvailable?: boolean;
   isGuest?: boolean;
 }
 
@@ -24,6 +25,7 @@ export default function TypingPageClient({ userId }: TypingPageClientProps) {
   const [loading, setLoading] = useState(true);
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [showToast, setShowToast] = useState(false);
+  const [toastType, setToastType] = useState<"quota" | "no-ads">("quota");
   const [practiceText, setPracticeText] = useState("");
 
   const { words, isLoading: wordsLoading } = useWordList("english");
@@ -55,6 +57,7 @@ export default function TypingPageClient({ userId }: TypingPageClientProps) {
           const toastKey = `typeads-practice-toast-${localDate}`;
           const alreadyShown = localStorage.getItem(toastKey);
           if (!alreadyShown) {
+            setToastType(data.noAdsAvailable ? "no-ads" : "quota");
             setShowToast(true);
             localStorage.setItem(toastKey, "true");
           }
@@ -217,7 +220,7 @@ export default function TypingPageClient({ userId }: TypingPageClientProps) {
                 justifyContent: "center",
               }}
             >
-              <Trophy size={20} />
+              {toastType === "no-ads" ? <Sparkles size={20} /> : <Trophy size={20} />}
             </div>
             <div>
               <div
@@ -229,7 +232,9 @@ export default function TypingPageClient({ userId }: TypingPageClientProps) {
                   color: "var(--ink)",
                 }}
               >
-                DAILY AD QUOTA EXHAUSTED
+                {toastType === "no-ads"
+                  ? "WE'RE JUST GETTING STARTED"
+                  : "DAILY AD QUOTA EXHAUSTED"}
               </div>
               <div
                 style={{
@@ -237,9 +242,20 @@ export default function TypingPageClient({ userId }: TypingPageClientProps) {
                   fontSize: 13,
                   color: "var(--ink-light)",
                   marginTop: 2,
+                  maxWidth: 520,
+                  lineHeight: 1.5,
                 }}
               >
-                That's it for today's ads — keep practicing below
+                {toastType === "no-ads" ? (
+                  <>
+                    We don&apos;t have any ads to serve right now — we&apos;ve just launched and are
+                    actively onboarding advertisers. We&apos;re working to bring you real rewards as soon
+                    as possible. In the meantime, keep sharpening your typing below — every session
+                    counts!
+                  </>
+                ) : (
+                  "That's it for today's ads — keep practicing below"
+                )}
               </div>
             </div>
           </div>

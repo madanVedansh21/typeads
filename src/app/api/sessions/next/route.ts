@@ -151,6 +151,9 @@ export async function GET(request: NextRequest) {
     const uniqueAdsCompletedCount = adsServedToday.filter(a => a.repeatsCompleted >= REPEAT_COUNT).length
 
     if (uniqueAdsCompletedCount >= DAILY_AD_LIMIT || availableCampaigns.length === 0) {
+      // Determine if it's truly quota exhausted or just no ad inventory
+      const noAdsAvailable = availableCampaigns.length === 0 && uniqueAdsCompletedCount < DAILY_AD_LIMIT
+
       // Quota exhausted or inventory empty
       await supabase
         .from('user_daily_states')
@@ -159,7 +162,8 @@ export async function GET(request: NextRequest) {
 
       return NextResponse.json({
         mode: 'practice',
-        quotaExhausted: true
+        quotaExhausted: true,
+        noAdsAvailable,
       })
     }
 
