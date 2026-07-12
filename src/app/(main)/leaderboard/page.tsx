@@ -217,7 +217,7 @@ export default function LeaderboardPage() {
                   >
                     POINTS {sortMode === "points" && "▼"}
                   </th>
-                  <th style={{ textAlign: "right" }}>ADS DONE</th>
+                  <th style={{ textAlign: "right" }}>SESSIONS</th>
                 </tr>
               </thead>
               <tbody>

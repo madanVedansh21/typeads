@@ -40,6 +40,13 @@ export default async function ProfilePage({ params }: Props) {
     .eq('id', profile.id)
     .single()
 
+  const { count: adsCompletedCount } = await supabase
+    .from('typing_sessions')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', profile.id)
+    .eq('status', 'completed')
+    .not('campaign_id', 'is', null)
+
   const avgWpm = profile.total_completions > 0
     ? Math.round(profile.total_wpm_sum / profile.total_completions)
     : 0
@@ -86,7 +93,7 @@ export default async function ProfilePage({ params }: Props) {
       <div className="editorial-box resp-stats-4col" style={{ padding: 0, marginBottom: 32 }}>
         {[
           { label: 'POINTS BALANCE', value: profile.points_balance.toLocaleString() },
-          { label: 'ADS COMPLETED', value: profile.total_completions },
+          { label: 'ADS COMPLETED', value: adsCompletedCount ?? 0 },
           { label: 'AVG WPM', value: avgWpm },
           { label: 'AVG ACCURACY', value: `${avgAccuracy}%` },
         ].map((stat, i) => (

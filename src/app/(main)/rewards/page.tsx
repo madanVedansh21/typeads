@@ -26,15 +26,24 @@ export default async function RewardsPage() {
     .eq('user_id', user!.id)
     .order('requested_at', { ascending: false })
 
+  const { count: adsCompletedCount } = await supabase
+    .from('typing_sessions')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user!.id)
+    .eq('status', 'completed')
+    .not('campaign_id', 'is', null)
+
+  const actualAdsCompleted = adsCompletedCount ?? 0
+
   // Eligibility checks
   const accountAgeDays = Math.floor((Date.now() - new Date(profile?.created_at ?? 0).getTime()) / (1000 * 60 * 60 * 24))
-  const eligible = accountAgeDays >= 7 && (profile?.total_completions ?? 0) >= 10 && (profile?.points_balance ?? 0) >= 500
+  const eligible = accountAgeDays >= 7 && actualAdsCompleted >= 10 && (profile?.points_balance ?? 0) >= 500
 
   let eligibilityReason: string | undefined
   if (accountAgeDays < 7) {
     eligibilityReason = `Account must be at least 7 days old to redeem. ${7 - accountAgeDays} day(s) remaining.`
-  } else if ((profile?.total_completions ?? 0) < 10) {
-    eligibilityReason = `Complete at least 10 ads to unlock redemption. ${10 - (profile?.total_completions ?? 0)} more needed.`
+  } else if (actualAdsCompleted < 10) {
+    eligibilityReason = `Complete at least 10 ads to unlock redemption. ${10 - actualAdsCompleted} more needed.`
   } else if ((profile?.points_balance ?? 0) < 500) {
     eligibilityReason = `Minimum 500 points needed to redeem. You have ${profile?.points_balance ?? 0} points.`
   }
@@ -58,7 +67,7 @@ export default async function RewardsPage() {
           { label: 'POINTS BALANCE', value: (profile?.points_balance ?? 0).toLocaleString() },
           { label: 'INR VALUE', value: `₹${Math.floor((profile?.points_balance ?? 0) / 10)}` },
           { label: 'MIN TO REDEEM', value: '500 PTS' },
-          { label: 'ADS COMPLETED', value: `${profile?.total_completions ?? 0}/10` },
+          { label: 'ADS COMPLETED', value: `${actualAdsCompleted}/10` },
         ].map((stat, i) => (
           <div key={stat.label} style={{ padding: '24px 16px', textAlign: 'center' }}>
             <div className="label-sm" style={{ marginBottom: 12 }}>{stat.label}</div>
