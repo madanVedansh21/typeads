@@ -31,9 +31,9 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', padding: 24 }}>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', padding: 'clamp(24px, 6vw, 48px) clamp(16px, 4vw, 24px)' }}>
       <div style={{ width: '100%', maxWidth: 400 }}>
-        <Link href="/" className="logo" style={{ textDecoration: 'none', color: '#000', display: 'block', marginBottom: 48 }}>
+        <Link href="/" className="logo" style={{ textDecoration: 'none', color: '#000', display: 'block', marginBottom: 48, fontSize: 'clamp(24px, 5vw, 32px)', fontWeight: 'bold' }}>
           TYPEADS
         </Link>
 

@@ -22,6 +22,8 @@ export default async function LandingPage() {
           borderBottom: "1px solid var(--paper-darker)",
           padding: "16px 32px",
           display: "flex",
+          flexWrap: "wrap",
+          gap: 16,
           alignItems: "center",
           justifyContent: "space-between",
           background: "var(--paper)",
@@ -41,7 +43,7 @@ export default async function LandingPage() {
           <div
             style={{
               fontFamily: "var(--font-canopee)",
-              fontSize: 48,
+              fontSize: "clamp(28px, 5vw, 48px)",
               fontWeight: 400,
               textTransform: "uppercase",
               color: "var(--ink)",
@@ -52,7 +54,7 @@ export default async function LandingPage() {
           </div>
         </div>
 
-        <nav style={{ display: "flex", gap: 32, alignItems: "center" }}>
+        <nav style={{ display: "flex", gap: "16px 32px", flexWrap: "wrap", alignItems: "center" }}>
           {[
             "HOW IT WORKS",
             "FOR TYPISTS",
@@ -85,30 +87,22 @@ export default async function LandingPage() {
         {/* 5.3 FRONT PAGE — HERO SECTION */}
         <section
           id="how-it-works"
+          className="resp-hero-grid"
           style={{
-            display: "grid",
-            gridTemplateColumns: "2fr 1fr",
-            gap: 48,
-            padding: "48px 32px",
             borderBottom: "1px solid var(--paper-darker)",
           }}
         >
           {/* LEFT COLUMN */}
-          <div
-            style={{
-              borderRight: "1px solid var(--paper-darker)",
-              paddingRight: 48,
-            }}
-          >
+          <div className="resp-hero-grid-left">
             <h1
               className="font-headline"
-              style={{ fontSize: 72, marginBottom: 12 }}
+              style={{ fontSize: "clamp(32px, 5vw, 72px)", marginBottom: 12 }}
             >
               YOU PRACTICE TYPING ANYWAY. WHY NOT GET REWARDED ON THE SIDE.
             </h1>
             <h2
               className="font-subheadline"
-              style={{ fontSize: 32, marginBottom: 32 }}
+              style={{ fontSize: "clamp(18px, 3vw, 32px)", marginBottom: 32 }}
             >
               You already spend time typing randomly to test your speed. You are
               pretty fast. Why not get a little reward for it.
@@ -259,9 +253,8 @@ export default async function LandingPage() {
             FOR ADVERTISERS
           </div>
           <div
+            className="resp-2col-grid"
             style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
               padding: 32,
               gap: 48,
             }}
@@ -308,7 +301,7 @@ export default async function LandingPage() {
             <div>
               <h2
                 className="font-headline"
-                style={{ fontSize: 42, marginBottom: 16 }}
+                style={{ fontSize: "clamp(24px, 4vw, 42px)", marginBottom: 16 }}
               >
                 PEOPLE WHO TYPE YOUR AD HAVE READ YOUR AD.
               </h2>
@@ -351,7 +344,7 @@ export default async function LandingPage() {
             style={{
               fontFamily: "var(--font-playfair)",
               fontStyle: "italic",
-              fontSize: 36,
+              fontSize: "clamp(20px, 4.5vw, 36px)",
               color: "var(--ink)",
               maxWidth: 800,
               margin: "0 auto",
@@ -392,12 +385,10 @@ export default async function LandingPage() {
         }}
       >
         <div
+          className="resp-footer-grid"
           style={{
             maxWidth: 1400,
             margin: "0 auto",
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr 1fr",
-            alignItems: "center",
           }}
         >
           <div>
@@ -422,7 +413,7 @@ export default async function LandingPage() {
               A TYPING PLATFORM THAT GIVES BACK
             </div>
           </div>
-          <div style={{ display: "flex", gap: 24, justifyContent: "center" }}>
+          <div style={{ display: "flex", gap: 24, justifyContent: "center", flexWrap: "wrap", margin: "16px 0" }}>
             {["HOME", "TERMS", "PRIVACY"].map((link) => (
               <a
                 key={link}

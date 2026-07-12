@@ -57,18 +57,18 @@ export default async function ProfilePage({ params }: Props) {
   })).reverse() ?? []
 
   return (
-    <div className="page-wrapper" style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 24px' }}>
+    <div className="page-wrapper" style={{ maxWidth: 1200, margin: '0 auto', padding: 'clamp(16px, 4vw, 40px) clamp(12px, 3vw, 24px)' }}>
       
       {/* Profile header */}
-      <div className="editorial-box" style={{ display: 'flex', alignItems: 'center', gap: 32, padding: 32, marginBottom: 32, background: 'var(--paper-dark)' }}>
-        <div style={{ width: 100, height: 100, border: '2px solid var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, fontFamily: 'var(--font-playfair)', background: 'var(--paper)' }}>
+      <div className="editorial-box profile-header" style={{ marginBottom: 32, background: 'var(--paper-dark)' }}>
+        <div style={{ width: 100, height: 100, border: '2px solid var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, fontFamily: 'var(--font-playfair)', background: 'var(--paper)', flexShrink: 0 }}>
           {profile.avatar_url
-            ? <img src={profile.avatar_url} alt={profile.display_name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            : (profile.display_name ?? profile.username ?? 'U')[0].toUpperCase()
+             ? <img src={profile.avatar_url} alt={profile.display_name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+             : (profile.display_name ?? profile.username ?? 'U')[0].toUpperCase()
           }
         </div>
         <div style={{ flex: 1 }}>
-          <h1 className="font-headline" style={{ fontSize: 42, marginBottom: 8 }}>
+          <h1 className="font-headline" style={{ fontSize: 'clamp(28px, 5vw, 42px)', marginBottom: 8 }}>
             {profile.display_name ?? profile.username}
           </h1>
           <p style={{ fontFamily: 'var(--font-libre)', fontSize: 11, color: 'var(--ink-light)', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
@@ -83,14 +83,14 @@ export default async function ProfilePage({ params }: Props) {
       </div>
 
       {/* Stats row */}
-      <div className="editorial-box" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', padding: 0, marginBottom: 32 }}>
+      <div className="editorial-box resp-stats-4col" style={{ padding: 0, marginBottom: 32 }}>
         {[
           { label: 'POINTS BALANCE', value: profile.points_balance.toLocaleString() },
           { label: 'ADS COMPLETED', value: profile.total_completions },
           { label: 'AVG WPM', value: avgWpm },
           { label: 'AVG ACCURACY', value: `${avgAccuracy}%` },
         ].map((stat, i) => (
-          <div key={stat.label} style={{ padding: '24px 16px', borderRight: i < 3 ? '1px solid var(--paper-darker)' : 'none', textAlign: 'center' }}>
+          <div key={stat.label} style={{ padding: '24px 16px', textAlign: 'center' }}>
             <div className="label-sm" style={{ marginBottom: 12 }}>{stat.label}</div>
             <div className="stat-number">{stat.value}</div>
           </div>
@@ -98,7 +98,7 @@ export default async function ProfilePage({ params }: Props) {
       </div>
 
       {/* Charts */}
-      <div className="editorial-box" style={{ padding: 32, marginBottom: 32 }}>
+      <div className="editorial-box" style={{ padding: 'clamp(16px, 4vw, 32px)', marginBottom: 32 }}>
         <div className="label-sm" style={{ marginBottom: 24, borderBottom: '1px solid var(--paper-darker)', paddingBottom: 8 }}>PERFORMANCE HISTORY</div>
         {sessionChartData.length > 1 ? (
           <ProfileCharts data={sessionChartData} />
@@ -125,7 +125,7 @@ export default async function ProfilePage({ params }: Props) {
               return (
                 <div key={session.id} style={{
                   display: 'grid', gridTemplateColumns: '1fr 70px 70px',
-                  padding: '16px 24px',
+                  padding: '16px clamp(12px, 3vw, 24px)',
                   borderBottom: '1px solid var(--paper-darker)',
                   alignItems: 'center',
                 }}>

@@ -23,6 +23,8 @@ export default function PrivacyPage() {
           borderBottom: "1px solid var(--paper-darker)",
           padding: "16px 32px",
           display: "flex",
+          flexWrap: "wrap",
+          gap: 16,
           alignItems: "center",
           justifyContent: "space-between",
           background: "var(--paper)",
@@ -42,7 +44,7 @@ export default function PrivacyPage() {
           <div
             style={{
               fontFamily: "var(--font-canopee)",
-              fontSize: 48,
+              fontSize: "clamp(24px, 5vw, 48px)",
               fontWeight: 400,
               textTransform: "uppercase",
               color: "var(--ink)",
@@ -62,13 +64,13 @@ export default function PrivacyPage() {
         style={{
           maxWidth: 800,
           margin: "48px auto",
-          padding: "0 32px",
+          padding: "0 clamp(16px, 4vw, 32px)",
         }}
       >
         {/* PAGE HEADER */}
         <div style={{ borderBottom: "3px solid var(--ink)", paddingBottom: "24px", marginBottom: "40px" }}>
           <span className="label-sm" style={{ display: "block", marginBottom: 8 }}>DATA PROTECTION & PRIVACY</span>
-          <h1 className="font-headline" style={{ fontSize: 64, textTransform: "uppercase", margin: 0 }}>
+          <h1 className="font-headline" style={{ fontSize: "clamp(32px, 6vw, 64px)", textTransform: "uppercase", margin: 0 }}>
             Privacy Policy
           </h1>
           <p className="font-body" style={{ fontStyle: "italic", marginTop: 12, opacity: 0.8 }}>

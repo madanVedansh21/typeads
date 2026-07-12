@@ -772,3 +772,398 @@ body {
 .falling-word.landing {
   animation: word-land-pulse 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
+
+/* ============================================================
+   RESPONSIVE DESIGN SYSTEM
+   Mobile  : ≤ 640px
+   Tablet  : 641px – 1024px
+   Desktop : > 1024px
+   ============================================================ */
+
+/* ── Page padding bottom: account for fixed bottom marquee ── */
+.page-wrapper {
+  padding-bottom: 35px;
+}
+
+/* ── Hamburger / Mobile Menu ── */
+.mobile-menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 20px;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  flex-direction: column;
+  color: var(--ink);
+}
+.mobile-menu-btn span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--ink);
+  border-radius: 1px;
+  transition: all 0.25s ease;
+}
+.mobile-menu-btn.open span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.mobile-menu-btn.open span:nth-child(2) {
+  opacity: 0;
+}
+.mobile-menu-btn.open span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* Mobile slide-down menu */
+.mobile-menu {
+  display: none;
+  position: fixed;
+  top: 60px;
+  left: 0;
+  right: 0;
+  background: var(--paper);
+  border-bottom: 2px solid var(--ink);
+  z-index: 99;
+  flex-direction: column;
+}
+.mobile-menu.open {
+  display: flex;
+}
+.mobile-menu a,
+.mobile-menu button {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--paper-darker);
+  font-family: var(--font-canopee), Georgia, serif;
+  font-size: 20px;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: none;
+  background: none;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+.mobile-menu a:last-child,
+.mobile-menu button:last-child {
+  border-bottom: none;
+}
+.mobile-menu .mobile-points {
+  padding: 10px 24px;
+  font-family: var(--font-libre), serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--ink-faint);
+  background: var(--paper-dark);
+  border-bottom: 1px solid var(--paper-darker);
+}
+
+/* ── Responsive Grid Utilities ── */
+.resp-hero-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 48px;
+  padding: 48px 32px;
+  border-bottom: 1px solid var(--paper-darker);
+}
+.resp-hero-grid-left {
+  border-right: 1px solid var(--paper-darker);
+  padding-right: 48px;
+}
+.resp-2col-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+}
+.resp-footer-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: center;
+}
+.resp-stats-4col {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+.resp-stats-3col {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+.resp-charts-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.resp-results-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 32px;
+  margin-bottom: 32px;
+}
+
+/* ── Table Scroll Wrapper ── */
+.table-scroll-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.table-scroll-wrapper .data-table {
+  min-width: 560px;
+}
+
+/* ── Typing settings bar responsive class ── */
+.typing-settings-bar {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  right: 0;
+  z-index: 90;
+  background: var(--paper-dark);
+  border-bottom: 2px solid var(--paper-darker);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  height: 52px;
+  padding-inline: 32px;
+  overflow-x: auto;
+}
+
+/* ── Responsive action buttons ── */
+.resp-action-btn {
+  width: 300px;
+  padding: 20px;
+  font-size: 16px;
+}
+
+/* ── Landing page nav ── */
+.landing-nav {
+  background: var(--paper-dark);
+  border-bottom: 1px solid var(--paper-darker);
+  padding: 12px 32px;
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+
+/* ============================================================
+   TABLET BREAKPOINT  ≤ 1024px
+   ============================================================ */
+@media (max-width: 1024px) {
+  .resp-hero-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    padding: 32px 24px;
+  }
+  .resp-stats-4col {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .topbar-nav a {
+    font-size: 16px;
+    padding: 0 14px;
+  }
+  .topbar-logo {
+    font-size: 26px;
+    padding: 0 16px;
+  }
+  .topbar-points {
+    padding: 0 14px;
+    font-size: 10px;
+  }
+}
+
+/* ============================================================
+   MOBILE BREAKPOINT  ≤ 640px
+   ============================================================ */
+@media (max-width: 640px) {
+
+  /* Typography scaling */
+  .font-body {
+    font-size: 16px;
+    line-height: 1.65;
+  }
+  .stat-number {
+    font-size: 22px;
+  }
+  .nav-item {
+    font-size: 18px;
+  }
+
+  /* Topbar: hide nav & actions, show hamburger */
+  .topbar-nav {
+    display: none;
+  }
+  .topbar-actions {
+    display: none;
+  }
+  .mobile-menu-btn {
+    display: flex;
+  }
+  .topbar-logo {
+    font-size: 22px;
+    padding: 0 12px;
+  }
+
+  /* Responsive grid utilities → single column */
+  .resp-hero-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 24px 16px;
+  }
+  .resp-hero-grid-left {
+    border-right: none;
+    padding-right: 0;
+    border-bottom: 1px solid var(--paper-darker);
+    padding-bottom: 24px;
+  }
+  .resp-2col-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .resp-footer-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    text-align: center;
+  }
+  .resp-stats-4col {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .resp-stats-3col {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .resp-charts-2col {
+    grid-template-columns: 1fr;
+  }
+  .resp-results-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Typing settings bar */
+  .typing-settings-bar {
+    height: auto;
+    min-height: 44px;
+    gap: 12px;
+    padding: 8px 16px;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  /* Typing canvas scaling */
+  .typing-lane-track {
+    font-size: 26px !important;
+    padding: 0 50vw 0 5vw;
+  }
+  .typing-lane-wrapper {
+    height: 90px;
+  }
+  .typing-canvas {
+    font-size: 26px;
+  }
+
+  /* Table cells compact */
+  .data-table th {
+    padding: 8px 10px;
+    font-size: 7px;
+  }
+  .data-table td {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  /* Buttons */
+  .btn-lg {
+    font-size: 13px;
+    padding: 12px 20px;
+  }
+  .resp-action-btn {
+    width: 100%;
+    max-width: 340px;
+    padding: 14px;
+    font-size: 13px;
+  }
+
+  /* Section header */
+  .section-header {
+    font-size: 8px;
+    padding: 6px 0;
+  }
+
+  /* Page wrapper padding */
+  .page-wrapper {
+    padding-bottom: 40px;
+  }
+
+  /* Sloth thought bubble on mobile: prevent overflow */
+  .sloth-thought-bubble {
+    font-size: 11px;
+    padding: 5px 10px;
+    max-width: 200px;
+    white-space: normal;
+  }
+
+  /* Landing nav */
+  .landing-nav {
+    gap: 12px;
+    padding: 10px 16px;
+  }
+
+  /* 404 Stamp on mobile */
+  .notfound-stamp {
+    position: static !important;
+    margin: 16px auto 0 auto !important;
+    width: fit-content;
+    transform: rotate(-3deg) !important;
+    display: inline-block;
+  }
+
+  /* Profile header mobile stacking */
+  .profile-header {
+    flex-direction: column;
+    text-align: center;
+    padding: 24px 16px !important;
+    gap: 16px !important;
+  }
+
+  /* 4-column stats border adjustments for 2x2 grid on mobile */
+  .resp-stats-4col > div {
+    border-right: 1px solid var(--paper-darker) !important;
+    border-bottom: 1px solid var(--paper-darker);
+  }
+  .resp-stats-4col > div:nth-child(2n) {
+    border-right: none !important;
+  }
+  .resp-stats-4col > div:nth-child(3),
+  .resp-stats-4col > div:nth-child(4) {
+    border-bottom: none !important;
+  }
+
+  /* Charts border shift for mobile stacking */
+  .resp-charts-2col > div:first-child {
+    border-right: none !important;
+    border-bottom: 2px solid var(--ink);
+  }
+}
+
+/* Profile header default desktop styles */
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding: 32px;
+}
+
+/* Default charts grid border */
+.resp-charts-2col {
+  border: 3px solid var(--ink);
+}
+.resp-charts-2col > div:first-child {
+  border-right: 2px solid var(--ink);
+}
+
+

@@ -6,7 +6,7 @@ import {
   Courier_Prime,
 } from "next/font/google";
 import localFont from "next/font/local";
-import { Analytics } from "@vercel/analytics/next";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 
 const canopee = localFont({

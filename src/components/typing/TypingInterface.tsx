@@ -807,23 +807,7 @@ export default function TypingInterface({
   return (
     <>
       {/* ── Settings Sub-bar ── */}
-      <div
-        style={{
-          position: "fixed",
-          top: 60,
-          left: 0,
-          right: 0,
-          zIndex: 90,
-          background: "var(--paper-dark)",
-          borderBottom: "2px solid var(--paper-darker)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 40,
-          height: 52,
-          paddingInline: 32,
-        }}
-      >
+      <div className="typing-settings-bar">
         {/* Punctuation */}
         <button
           disabled={started && !completed}
@@ -939,11 +923,13 @@ export default function TypingInterface({
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            padding: "20px 48px 0 48px",
-            height: 36,
+            flexWrap: "wrap",
+            gap: 12,
+            padding: "20px clamp(12px, 4vw, 48px) 0 clamp(12px, 4vw, 48px)",
+            minHeight: 36,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
             <span
               style={{
                 background: (isPractice || isGuest) ? "var(--paper-darker)" : "var(--stamp-navy)",
@@ -1048,11 +1034,12 @@ export default function TypingInterface({
           style={{
             display: "flex",
             gap: 24,
-            padding: "20px 48px 0 48px",
+            padding: "20px clamp(12px, 4vw, 48px) 0 clamp(12px, 4vw, 48px)",
             fontFamily: "var(--font-courier)",
             fontSize: 13,
             color: "var(--ink-faint)",
             minHeight: 40,
+            flexWrap: "wrap",
           }}
         >
           {started && !completed && (
@@ -1414,9 +1401,8 @@ export default function TypingInterface({
 
                 {/* 2-Column Layout */}
                 <div
+                  className="resp-results-grid"
                   style={{
-                    display: "grid",
-                    gridTemplateColumns: "320px 1fr",
                     gap: 32,
                     marginBottom: 32,
                   }}
@@ -1539,6 +1525,7 @@ export default function TypingInterface({
                       padding: "20px 24px",
                       marginBottom: 32,
                       display: "flex",
+                      flexWrap: "wrap",
                       alignItems: "center",
                       justifyContent: "space-between",
                       gap: 16,
@@ -1590,6 +1577,7 @@ export default function TypingInterface({
                   style={{
                     display: "flex",
                     justifyContent: "center",
+                    flexWrap: "wrap",
                     gap: 16,
                     marginTop: 40,
                     marginBottom: 40,
@@ -1599,12 +1587,7 @@ export default function TypingInterface({
                     onClick={() => {
                       setPracticeTrigger((prev) => prev + 1);
                     }}
-                    className="btn btn-inverted"
-                    style={{
-                      width: 300,
-                      padding: "20px",
-                      fontSize: 16,
-                    }}
+                    className="btn btn-inverted resp-action-btn"
                   >
                     PRACTICE AGAIN
                   </button>
@@ -1612,12 +1595,7 @@ export default function TypingInterface({
                     onClick={() => {
                       router.push("/");
                     }}
-                    className="btn"
-                    style={{
-                      width: 300,
-                      padding: "20px",
-                      fontSize: 16,
-                    }}
+                    className="btn resp-action-btn"
                   >
                     EXIT TO HOME
                   </button>

@@ -57,10 +57,10 @@ export default function SignupPage() {
 
   if (success) {
     return (
-      <div className="page-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '64px 24px' }}>
+      <div className="page-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(32px, 8vw, 64px) clamp(16px, 4vw, 24px)' }}>
         <div className="editorial-box" style={{ maxWidth: 500, textAlign: 'center' }}>
           <div className="box-label">REGISTRATION SUCCESSFUL</div>
-          <h2 className="font-headline" style={{ fontSize: 32, margin: '16px 0' }}>Verify Your Identity</h2>
+          <h2 className="font-headline" style={{ fontSize: 'clamp(24px, 5vw, 32px)', margin: '16px 0' }}>Verify Your Identity</h2>
           <p className="font-body" style={{ color: 'var(--ink-faint)', marginBottom: 32 }}>
             A verification dispatch has been sent to <strong>{email}</strong>. 
             Please review the document and follow the enclosed instructions to activate your credentials.
@@ -74,13 +74,13 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="page-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '64px 24px' }}>
+    <div className="page-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(32px, 8vw, 64px) clamp(16px, 4vw, 24px)' }}>
       
       <div style={{ width: '100%', maxWidth: 500 }}>
         
         {/* LOGO & TITLE */}
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
-          <Link href="/" className="font-headline" style={{ textDecoration: 'none', fontSize: 32, letterSpacing: '0.05em' }}>
+          <Link href="/" className="font-headline" style={{ textDecoration: 'none', fontSize: 'clamp(24px, 5vw, 32px)', letterSpacing: '0.05em' }}>
             TYPEADS
           </Link>
           <div className="label-sm" style={{ marginTop: 8 }}>
@@ -94,7 +94,7 @@ export default function SignupPage() {
           </div>
 
           <div style={{ padding: '24px 16px' }}>
-            <h1 className="font-headline" style={{ fontSize: 32, marginBottom: 8, textAlign: 'center' }}>
+            <h1 className="font-headline" style={{ fontSize: 'clamp(24px, 5vw, 32px)', marginBottom: 8, textAlign: 'center' }}>
               Create Account
             </h1>
             <p className="font-subheadline" style={{ fontSize: 18, color: 'var(--ink-faint)', textAlign: 'center', marginBottom: 32 }}>

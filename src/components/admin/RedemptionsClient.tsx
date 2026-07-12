@@ -58,8 +58,8 @@ export default function RedemptionsClient({ redemptions }: Props) {
         <h1 className="font-brand" style={{ fontSize: 20, fontWeight: 900 }}>REDEMPTION REQUESTS</h1>
       </div>
 
-      <div style={{ padding: 24 }}>
-        <div style={{ border: '3px solid #000' }}>
+      <div style={{ padding: '24px clamp(12px, 4vw, 24px)' }}>
+        <div className="table-scroll-wrapper" style={{ border: '3px solid #000' }}>
           <table className="data-table">
             <thead>
               <tr>
@@ -104,7 +104,7 @@ export default function RedemptionsClient({ redemptions }: Props) {
                     </td>
                     <td>
                       {r.status === 'pending' && (
-                        <div style={{ display: 'flex', gap: 6 }}>
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                           <button
                             onClick={() => { setFulfilling(r.id); setCode('') }}
                             className="btn btn-sm btn-inverted"
@@ -126,7 +126,7 @@ export default function RedemptionsClient({ redemptions }: Props) {
                   {fulfilling === r.id && (
                     <tr key={`fulfill-${r.id}`}>
                       <td colSpan={7} style={{ padding: '12px 16px', background: '#f9f9f9', borderTop: '2px solid #000' }}>
-                        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                        <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
                           <span className="label-sm">GIFT CARD CODE:</span>
                           <input
                             type="text"
@@ -134,7 +134,7 @@ export default function RedemptionsClient({ redemptions }: Props) {
                             value={code}
                             onChange={e => setCode(e.target.value)}
                             placeholder="Enter gift card code..."
-                            style={{ flex: 1, maxWidth: 400 }}
+                            style={{ flex: 1, minWidth: 200, maxWidth: 400 }}
                             autoFocus
                           />
                           <button onClick={() => handleFulfill(r)} className="btn btn-inverted" disabled={loading || !code.trim()}>

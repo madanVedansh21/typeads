@@ -46,15 +46,15 @@ export default function CampaignsClient({ campaigns }: Props) {
 
   return (
     <div>
-      <div style={{ padding: '16px 24px', borderBottom: '3px solid #000', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ padding: '16px 24px', borderBottom: '3px solid #000', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <h1 className="font-brand" style={{ fontSize: 20, fontWeight: 900 }}>CAMPAIGNS</h1>
         <button onClick={() => { setEditing(null); setShowForm(true) }} className="btn btn-inverted">
           + NEW CAMPAIGN
         </button>
       </div>
 
-      <div style={{ padding: 24 }}>
-        <div style={{ border: '3px solid #000' }}>
+      <div style={{ padding: '24px clamp(12px, 4vw, 24px)' }}>
+        <div className="table-scroll-wrapper" style={{ border: '3px solid #000' }}>
           <table className="data-table">
             <thead>
               <tr>
@@ -87,7 +87,7 @@ export default function CampaignsClient({ campaigns }: Props) {
                     </span>
                   </td>
                   <td>
-                    <div style={{ display: 'flex', gap: 8 }}>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                       <button onClick={() => { setEditing(campaign); setShowForm(true) }} className="btn btn-sm">
                         EDIT
                       </button>

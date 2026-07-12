@@ -24,14 +24,14 @@ export default function NotFound() {
           maxWidth: 600,
           background: 'var(--paper-dark)',
           border: '2px solid var(--ink)',
-          padding: '48px 36px',
+          padding: 'clamp(24px, 5vw, 48px) clamp(16px, 4vw, 36px)',
           textAlign: 'center',
           position: 'relative',
           boxShadow: '0 12px 40px rgba(0,0,0,0.06)',
         }}
       >
         {/* Label block */}
-        <div className="box-label" style={{ letterSpacing: '0.2em', margin: '-48px -36px 32px -36px' }}>
+        <div className="box-label" style={{ letterSpacing: '0.2em', margin: 'calc(-1 * clamp(24px, 5vw, 48px)) calc(-1 * clamp(16px, 4vw, 36px)) 32px calc(-1 * clamp(16px, 4vw, 36px))' }}>
           OFFICIAL DISPATCH • STATUS: 404
         </div>
 
@@ -53,7 +53,7 @@ export default function NotFound() {
         <h1
           className="font-headline"
           style={{
-            fontSize: 42,
+            fontSize: 'clamp(26px, 5vw, 42px)',
             margin: '24px 0 12px 0',
             textTransform: 'uppercase',
             letterSpacing: '-0.02em',
@@ -77,6 +77,7 @@ export default function NotFound() {
 
         {/* Vintage Style "RETURN TO SENDER" Stamp */}
         <div
+          className="notfound-stamp"
           style={{
             position: 'absolute',
             bottom: 24,
@@ -109,11 +110,8 @@ export default function NotFound() {
         >
           <Link
             href="/"
-            className="btn btn-inverted"
+            className="btn btn-inverted resp-action-btn"
             style={{
-              width: 280,
-              padding: '16px',
-              fontSize: 14,
               textAlign: 'center',
               textDecoration: 'none',
               display: 'inline-block',
@@ -123,11 +121,8 @@ export default function NotFound() {
           </Link>
           <Link
             href="/typing"
-            className="btn"
+            className="btn resp-action-btn"
             style={{
-              width: 280,
-              padding: '16px',
-              fontSize: 14,
               textAlign: 'center',
               textDecoration: 'none',
               display: 'inline-block',

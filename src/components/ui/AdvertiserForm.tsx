@@ -115,7 +115,7 @@ export default function AdvertiserForm() {
           />
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <div className="resp-2col-grid" style={{ gap: 16 }}>
           <div>
             <label className="form-label" htmlFor="adv-name">
               Contact Name

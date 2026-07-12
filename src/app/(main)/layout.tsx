@@ -23,6 +23,7 @@ export default async function MainLayout({
       <div className="page-wrapper">{children}</div>
       {/* Early Access Marquee — fixed at bottom */}
       <div
+        className="marquee-footer-text"
         style={{
           background: "var(--ink)",
           color: "var(--paper)",

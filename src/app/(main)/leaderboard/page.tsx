@@ -171,206 +171,198 @@ export default function LeaderboardPage() {
             <style>{`@keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }`}</style>
           </div>
         ) : (
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th
-                  style={{
-                    textAlign: "center",
-                    width: 60,
-                    borderRight: "1px solid var(--paper-darker)",
-                  }}
-                >
-                  #
-                </th>
-                <th style={{ borderRight: "1px solid var(--paper-darker)" }}>
-                  TYPIST
-                </th>
-                <th
-                  style={{
-                    textAlign: "right",
-                    borderRight: "1px solid var(--paper-darker)",
-                    color: sortMode === "wpm" ? "var(--ink)" : "var(--ink-faint)",
-                    fontWeight: sortMode === "wpm" ? 900 : 700,
-                  }}
-                >
-                  AVG WPM {sortMode === "wpm" && "▼"}
-                </th>
-                <th
-                  style={{
-                    textAlign: "right",
-                    borderRight: "1px solid var(--paper-darker)",
-                    color: sortMode === "accuracy" ? "var(--ink)" : "var(--ink-faint)",
-                    fontWeight: sortMode === "accuracy" ? 900 : 700,
-                  }}
-                >
-                  ACCURACY {sortMode === "accuracy" && "▼"}
-                </th>
-                <th
-                  style={{
-                    textAlign: "right",
-                    borderRight: "1px solid var(--paper-darker)",
-                    color: sortMode === "points" ? "var(--ink)" : "var(--ink-faint)",
-                    fontWeight: sortMode === "points" ? 900 : 700,
-                  }}
-                >
-                  POINTS {sortMode === "points" && "▼"}
-                </th>
-                <th style={{ textAlign: "right" }}>ADS DONE</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sorted.map((entry, idx) => {
-                const isCurrentUser = entry.id === currentUserId;
-                const medal =
-                  idx === 0 ? "I" : idx === 1 ? "II" : idx === 2 ? "III" : null;
-
-                return (
-                  <tr
-                    key={entry.id}
+          <div className="table-scroll-wrapper">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th
                     style={{
-                      background: isCurrentUser
-                        ? "var(--paper-dark)"
-                        : "transparent",
-                      transition: "background 0.15s",
+                      textAlign: "center",
+                      width: 60,
+                      borderRight: "1px solid var(--paper-darker)",
                     }}
                   >
-                    <td
+                    #
+                  </th>
+                  <th style={{ borderRight: "1px solid var(--paper-darker)" }}>
+                    TYPIST
+                  </th>
+                  <th
+                    style={{
+                      textAlign: "right",
+                      borderRight: "1px solid var(--paper-darker)",
+                      color: sortMode === "wpm" ? "var(--ink)" : "var(--ink-faint)",
+                      fontWeight: sortMode === "wpm" ? 900 : 700,
+                    }}
+                  >
+                    AVG WPM {sortMode === "wpm" && "▼"}
+                  </th>
+                  <th
+                    style={{
+                      textAlign: "right",
+                      borderRight: "1px solid var(--paper-darker)",
+                      color: sortMode === "accuracy" ? "var(--ink)" : "var(--ink-faint)",
+                      fontWeight: sortMode === "accuracy" ? 900 : 700,
+                    }}
+                  >
+                    ACCURACY {sortMode === "accuracy" && "▼"}
+                  </th>
+                  <th
+                    style={{
+                      textAlign: "right",
+                      borderRight: "1px solid var(--paper-darker)",
+                      color: sortMode === "points" ? "var(--ink)" : "var(--ink-faint)",
+                      fontWeight: sortMode === "points" ? 900 : 700,
+                    }}
+                  >
+                    POINTS {sortMode === "points" && "▼"}
+                  </th>
+                  <th style={{ textAlign: "right" }}>ADS DONE</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sorted.map((entry, idx) => {
+                  const isCurrentUser = entry.id === currentUserId;
+                  const medal =
+                    idx === 0 ? "I" : idx === 1 ? "II" : idx === 2 ? "III" : null;
+
+                  return (
+                    <tr
+                      key={entry.id}
                       style={{
-                        textAlign: "center",
-                        fontSize: 18,
-                        borderRight: "1px solid var(--paper-darker)",
-                        fontFamily: "var(--font-playfair)",
-                        fontWeight: 700,
+                        background: isCurrentUser
+                          ? "var(--paper-dark)"
+                          : "transparent",
+                        transition: "background 0.15s",
                       }}
                     >
-                      {medal ?? idx + 1}
-                    </td>
-                    <td
-                      style={{
-                        borderRight: "1px solid var(--paper-darker)",
-                        padding: "16px",
-                      }}
-                    >
-                      <div
+                      <td
                         style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 16,
+                          textAlign: "center",
+                          fontSize: 18,
+                          borderRight: "1px solid var(--paper-darker)",
+                          fontFamily: "var(--font-playfair)",
+                          fontWeight: 700,
                         }}
                       >
-                        <div
-                          style={{
-                            width: 40,
-                            height: 40,
-                            border: "1px solid var(--ink)",
-                            background: "var(--paper)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontFamily: "var(--font-playfair)",
-                            fontSize: 18,
-                            overflow: "hidden",
-                          }}
-                        >
-                          {entry.avatar_url ? (
-                            <img
-                              src={entry.avatar_url}
-                              alt=""
-                              style={{
-                                width: "100%",
-                                height: "100%",
-                                objectFit: "cover",
-                              }}
-                            />
-                          ) : (
-                            (entry.username ?? "U")[0].toUpperCase()
-                          )}
-                        </div>
-                        <div>
-                          <Link
-                            href={`/profile/${entry.username}`}
-                            style={{
-                              color: "var(--ink)",
-                              textDecoration: "none",
-                              fontWeight: 700,
-                              fontFamily: "var(--font-libre)",
-                              fontSize: 14,
-                            }}
-                          >
-                            {entry.display_name ?? entry.username}
-                          </Link>
+                        {medal ?? idx + 1}
+                      </td>
+                      <td
+                        style={{
+                          borderRight: "1px solid var(--paper-darker)",
+                          padding: "12px 16px",
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
                           <div
                             style={{
-                              fontFamily: "var(--font-courier)",
-                              fontSize: 11,
-                              color: "var(--ink-faint)",
-                              marginTop: 4,
+                              width: 40,
+                              height: 40,
+                              border: "2px solid var(--ink)",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: 18,
+                              fontFamily: "var(--font-playfair)",
+                              background: "var(--paper)",
+                              flexShrink: 0,
                             }}
                           >
-                            @{entry.username}
+                            {entry.avatar_url ? (
+                              <img
+                                src={entry.avatar_url}
+                                alt={entry.display_name ?? entry.username}
+                                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                              />
+                            ) : (
+                              (entry.display_name ?? entry.username ?? "U")[0].toUpperCase()
+                            )}
                           </div>
+                          <div style={{ flex: 1 }}>
+                            <Link
+                              href={`/profile/${entry.username}`}
+                              style={{
+                                fontFamily: "var(--font-playfair)",
+                                fontWeight: 700,
+                                fontSize: 16,
+                                color: "var(--ink)",
+                                textDecoration: "none",
+                              }}
+                            >
+                              {entry.display_name ?? entry.username}
+                            </Link>
+                            <div
+                              style={{
+                                fontFamily: "var(--font-courier)",
+                                fontSize: 11,
+                                color: "var(--ink-faint)",
+                                marginTop: 4,
+                              }}
+                            >
+                              @{entry.username}
+                            </div>
+                          </div>
+                          {isCurrentUser && (
+                            <span
+                              className="badge badge-solid"
+                              style={{ marginLeft: 16 }}
+                            >
+                              YOU
+                            </span>
+                          )}
                         </div>
-                        {isCurrentUser && (
-                          <span
-                            className="badge badge-solid"
-                            style={{ marginLeft: 16 }}
-                          >
-                            YOU
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td
-                      style={{
-                        textAlign: "right",
-                        fontFamily: "var(--font-courier)",
-                        fontWeight: sortMode === "wpm" ? 900 : 700,
-                        borderRight: "1px solid var(--paper-darker)",
-                        fontSize: sortMode === "wpm" ? 18 : 15,
-                        color: sortMode === "wpm" ? "var(--ink)" : "var(--ink-light)",
-                      }}
-                    >
-                      {entry.avg_wpm}
-                    </td>
-                    <td
-                      style={{
-                        textAlign: "right",
-                        fontFamily: "var(--font-courier)",
-                        fontWeight: sortMode === "accuracy" ? 900 : 700,
-                        borderRight: "1px solid var(--paper-darker)",
-                        fontSize: sortMode === "accuracy" ? 18 : 15,
-                        color: sortMode === "accuracy" ? "var(--ink)" : "var(--ink-light)",
-                      }}
-                    >
-                      {entry.avg_accuracy}%
-                    </td>
-                    <td
-                      style={{
-                        textAlign: "right",
-                        fontFamily: "var(--font-courier)",
-                        fontWeight: sortMode === "points" ? 900 : 700,
-                        borderRight: "1px solid var(--paper-darker)",
-                        fontSize: sortMode === "points" ? 18 : 15,
-                        color: sortMode === "points" ? "var(--ink)" : "var(--ink-light)",
-                      }}
-                    >
-                      {entry.points_balance.toLocaleString()}
-                    </td>
-                    <td
-                      style={{
-                        textAlign: "right",
-                        fontFamily: "var(--font-courier)",
-                        fontWeight: 700,
-                      }}
-                    >
-                      {entry.total_completions}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      </td>
+                      <td
+                        style={{
+                          textAlign: "right",
+                          fontFamily: "var(--font-courier)",
+                          fontWeight: sortMode === "wpm" ? 900 : 700,
+                          borderRight: "1px solid var(--paper-darker)",
+                          fontSize: sortMode === "wpm" ? 18 : 15,
+                          color: sortMode === "wpm" ? "var(--ink)" : "var(--ink-light)",
+                        }}
+                      >
+                        {entry.avg_wpm}
+                      </td>
+                      <td
+                        style={{
+                          textAlign: "right",
+                          fontFamily: "var(--font-courier)",
+                          fontWeight: sortMode === "accuracy" ? 900 : 700,
+                          borderRight: "1px solid var(--paper-darker)",
+                          fontSize: sortMode === "accuracy" ? 18 : 15,
+                          color: sortMode === "accuracy" ? "var(--ink)" : "var(--ink-light)",
+                        }}
+                      >
+                        {entry.avg_accuracy}%
+                      </td>
+                      <td
+                        style={{
+                          textAlign: "right",
+                          fontFamily: "var(--font-courier)",
+                          fontWeight: sortMode === "points" ? 900 : 700,
+                          borderRight: "1px solid var(--paper-darker)",
+                          fontSize: sortMode === "points" ? 18 : 15,
+                          color: sortMode === "points" ? "var(--ink)" : "var(--ink-light)",
+                        }}
+                      >
+                        {entry.points_balance.toLocaleString()}
+                      </td>
+                      <td
+                        style={{
+                          textAlign: "right",
+                          fontFamily: "var(--font-courier)",
+                          fontWeight: 700,
+                        }}
+                      >
+                        {entry.total_completions}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
 
         {!loading && sorted.length === 0 && (

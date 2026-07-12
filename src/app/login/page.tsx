@@ -41,13 +41,13 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="page-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '64px 24px' }}>
+    <div className="page-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(32px, 8vw, 64px) clamp(16px, 4vw, 24px)' }}>
       
       <div style={{ width: '100%', maxWidth: 500 }}>
         
         {/* LOGO & TITLE */}
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
-          <Link href="/" className="font-headline" style={{ textDecoration: 'none', fontSize: 32, letterSpacing: '0.05em' }}>
+          <Link href="/" className="font-headline" style={{ textDecoration: 'none', fontSize: 'clamp(24px, 5vw, 32px)', letterSpacing: '0.05em' }}>
             TYPEADS
           </Link>
           <div className="label-sm" style={{ marginTop: 8 }}>
@@ -61,7 +61,7 @@ export default function LoginPage() {
           </div>
 
           <div style={{ padding: '24px 16px' }}>
-            <h1 className="font-headline" style={{ fontSize: 32, marginBottom: 8, textAlign: 'center' }}>
+            <h1 className="font-headline" style={{ fontSize: 'clamp(24px, 5vw, 32px)', marginBottom: 8, textAlign: 'center' }}>
               Welcome Back
             </h1>
             <p className="font-subheadline" style={{ fontSize: 18, color: 'var(--ink-faint)', textAlign: 'center', marginBottom: 32 }}>

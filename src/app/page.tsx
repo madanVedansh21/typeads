@@ -94,7 +94,7 @@ export default async function LandingPage({
           <div
             style={{
               fontFamily: "var(--font-playfair)",
-              fontSize: 56,
+              fontSize: "clamp(32px, 6vw, 56px)",
               fontWeight: 900,
               textTransform: "uppercase",
               textAlign: "center",
@@ -111,16 +111,7 @@ export default async function LandingPage({
       </div>
 
       {/* 5.2 NAVIGATION BAR */}
-      <nav
-        style={{
-          background: "var(--paper-dark)",
-          borderBottom: "1px solid var(--paper-darker)",
-          padding: "12px 32px",
-          display: "flex",
-          justifyContent: "center",
-          gap: 40,
-        }}
-      >
+      <nav className="landing-nav">
         {[
           "HOW IT WORKS",
           "FOR TYPISTS",
@@ -151,30 +142,22 @@ export default async function LandingPage({
       <div style={{ maxWidth: 1400, margin: "0 auto" }}>
         {/* 5.3 FRONT PAGE — HERO SECTION */}
         <section
+          className="resp-hero-grid"
           style={{
-            display: "grid",
-            gridTemplateColumns: "2fr 1fr",
-            gap: 48,
-            padding: "48px 32px",
             borderBottom: "1px solid var(--paper-darker)",
           }}
         >
           {/* LEFT COLUMN */}
-          <div
-            style={{
-              borderRight: "1px solid var(--paper-darker)",
-              paddingRight: 48,
-            }}
-          >
+          <div className="resp-hero-grid-left">
             <h1
               className="font-headline"
-              style={{ fontSize: 48, marginBottom: 12 }}
+              style={{ fontSize: "clamp(32px, 5.5vw, 48px)", marginBottom: 12 }}
             >
               GET REWARDED TO TYPE ADS.
             </h1>
             <h2
               className="font-subheadline"
-              style={{ fontSize: 24, marginBottom: 32 }}
+              style={{ fontSize: "clamp(18px, 3.5vw, 24px)", marginBottom: 32 }}
             >
               The internet's first typing platform where keystrokes earns you
               rewards.
@@ -324,20 +307,19 @@ export default async function LandingPage({
             FOR ADVERTISERS
           </div>
           <div
+            className="resp-2col-grid"
             style={{
               padding: "48px 32px",
               maxWidth: 1200,
               margin: "0 auto",
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 48,
               alignItems: "start",
+              gap: 48,
             }}
           >
             <div>
               <h2
                 className="font-headline"
-                style={{ fontSize: 36, marginBottom: 16 }}
+                style={{ fontSize: "clamp(24px, 4vw, 36px)", marginBottom: 16 }}
               >
                 Guaranteed Attention.
               </h2>
@@ -391,12 +373,10 @@ export default async function LandingPage({
         }}
       >
         <div
+          className="resp-footer-grid"
           style={{
             maxWidth: 1400,
             margin: "0 auto",
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr 1fr",
-            alignItems: "center",
           }}
         >
           <div>
@@ -421,7 +401,7 @@ export default async function LandingPage({
               TYPEADS.FAIRGIGS.APP
             </div>
           </div>
-          <div style={{ display: "flex", gap: 24, justifyContent: "center" }}>
+          <div style={{ display: "flex", gap: 24, justifyContent: "center", flexWrap: "wrap", margin: "16px 0" }}>
             {[
               { label: "HOME", href: "/" },
               { label: "TERMS OF SERVICE", href: "/terms" },

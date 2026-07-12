@@ -36,7 +36,7 @@ export default function UsersClient({ users, flaggedMap }: Props) {
 
   return (
     <div>
-      <div style={{ padding: '16px 24px', borderBottom: '3px solid #000', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ padding: '16px 24px', borderBottom: '3px solid #000', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <h1 className="font-brand" style={{ fontSize: 20, fontWeight: 900 }}>USER MANAGEMENT</h1>
         <input
           type="text"
@@ -44,27 +44,27 @@ export default function UsersClient({ users, flaggedMap }: Props) {
           placeholder="Search username or email..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          style={{ width: 280 }}
+          style={{ width: '100%', maxWidth: 280 }}
         />
       </div>
 
-      <div style={{ padding: 24 }}>
+      <div style={{ padding: '24px clamp(12px, 4vw, 24px)' }}>
         {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', border: '3px solid #000', marginBottom: 24 }}>
+        <div className="resp-stats-4col" style={{ border: '3px solid #000', marginBottom: 24 }}>
           {[
             ['TOTAL USERS', users.length],
             ['BANNED', users.filter(u => u.is_banned).length],
             ['ADMINS', users.filter(u => u.is_admin).length],
             ['WITH FLAGS', Object.keys(flaggedMap).length],
           ].map(([label, val], i) => (
-            <div key={String(label)} style={{ padding: '12px 16px', borderRight: i < 3 ? '3px solid #000' : 'none' }}>
+            <div key={String(label)} style={{ padding: '12px 16px', textAlign: 'center' }}>
               <div className="label-sm">{label}</div>
               <div className="stat-number">{val}</div>
             </div>
           ))}
         </div>
 
-        <div style={{ border: '3px solid #000' }}>
+        <div className="table-scroll-wrapper" style={{ border: '3px solid #000' }}>
           <table className="data-table">
             <thead>
               <tr>

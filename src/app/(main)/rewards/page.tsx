@@ -40,12 +40,12 @@ export default async function RewardsPage() {
   }
 
   return (
-    <div className="page-wrapper" style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 24px' }}>
+    <div className="page-wrapper" style={{ maxWidth: 1200, margin: '0 auto', padding: 'clamp(16px, 4vw, 40px) clamp(12px, 3vw, 24px)' }}>
       
       {/* Header */}
       <div style={{ borderBottom: '2px solid var(--ink)', paddingBottom: 16, marginBottom: 32 }}>
         <div className="label-sm">TREASURY</div>
-        <h1 className="font-headline" style={{ fontSize: 42, marginTop: 12 }}>
+        <h1 className="font-headline" style={{ fontSize: 'clamp(28px, 5vw, 42px)', marginTop: 12 }}>
           REDEEM REWARDS
         </h1>
         <p className="font-body" style={{ color: 'var(--ink-light)', marginTop: 8 }}>
@@ -53,21 +53,18 @@ export default async function RewardsPage() {
         </p>
       </div>
 
-      <div className="editorial-box" style={{ padding: 0, marginBottom: 32 }}>
-        {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)' }}>
-          {[
-            { label: 'POINTS BALANCE', value: (profile?.points_balance ?? 0).toLocaleString() },
-            { label: 'INR VALUE', value: `₹${Math.floor((profile?.points_balance ?? 0) / 10)}` },
-            { label: 'MIN TO REDEEM', value: '500 PTS' },
-            { label: 'ADS COMPLETED', value: `${profile?.total_completions ?? 0}/10` },
-          ].map((stat, i) => (
-            <div key={stat.label} style={{ padding: '24px 16px', borderRight: i < 3 ? '1px solid var(--paper-darker)' : 'none', textAlign: 'center' }}>
-              <div className="label-sm" style={{ marginBottom: 12 }}>{stat.label}</div>
-              <div className="stat-number">{stat.value}</div>
-            </div>
-          ))}
-        </div>
+      <div className="editorial-box resp-stats-4col" style={{ padding: 0, marginBottom: 32 }}>
+        {[
+          { label: 'POINTS BALANCE', value: (profile?.points_balance ?? 0).toLocaleString() },
+          { label: 'INR VALUE', value: `₹${Math.floor((profile?.points_balance ?? 0) / 10)}` },
+          { label: 'MIN TO REDEEM', value: '500 PTS' },
+          { label: 'ADS COMPLETED', value: `${profile?.total_completions ?? 0}/10` },
+        ].map((stat, i) => (
+          <div key={stat.label} style={{ padding: '24px 16px', textAlign: 'center' }}>
+            <div className="label-sm" style={{ marginBottom: 12 }}>{stat.label}</div>
+            <div className="stat-number">{stat.value}</div>
+          </div>
+        ))}
       </div>
 
       <RewardsClient
@@ -87,43 +84,45 @@ export default async function RewardsPage() {
             </p>
           </div>
         ) : (
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th style={{ borderRight: '1px solid var(--paper-darker)', paddingLeft: 24 }}>GIFT CARD</th>
-                <th style={{ borderRight: '1px solid var(--paper-darker)' }}>DENOMINATION</th>
-                <th style={{ textAlign: 'right', borderRight: '1px solid var(--paper-darker)' }}>POINTS COST</th>
-                <th style={{ borderRight: '1px solid var(--paper-darker)' }}>STATUS</th>
-                <th style={{ borderRight: '1px solid var(--paper-darker)' }}>CODE</th>
-                <th style={{ textAlign: 'right', paddingRight: 24 }}>REQUESTED</th>
-              </tr>
-            </thead>
-            <tbody>
-              {redemptions.map(r => (
-                <tr key={r.id}>
-                  <td style={{ fontFamily: 'var(--font-playfair)', fontWeight: 700, fontSize: 16, borderRight: '1px solid var(--paper-darker)', paddingLeft: 24 }}>
-                    {r.gift_card_type.toUpperCase()}
-                  </td>
-                  <td style={{ fontFamily: 'var(--font-courier)', borderRight: '1px solid var(--paper-darker)', fontWeight: 700 }}>₹{r.denomination}</td>
-                  <td style={{ textAlign: 'right', fontFamily: 'var(--font-courier)', borderRight: '1px solid var(--paper-darker)', fontWeight: 700 }}>{r.points_cost.toLocaleString()}</td>
-                  <td style={{ borderRight: '1px solid var(--paper-darker)' }}>
-                    <span className={`badge ${r.status === 'fulfilled' ? 'badge-solid' : ''}`}>{r.status.toUpperCase()}</span>
-                  </td>
-                  <td style={{ borderRight: '1px solid var(--paper-darker)' }}>
-                    <div style={{ fontFamily: 'var(--font-courier)', fontSize: 13 }}>
-                      {r.status === 'fulfilled'
-                        ? <span style={{ fontWeight: 700, background: 'var(--ink)', color: 'var(--white)', padding: '4px 8px' }}>{r.gift_card_code}</span>
-                        : <span style={{ color: 'var(--ink-faint)' }}>Processing...</span>
-                      }
-                    </div>
-                  </td>
-                  <td style={{ textAlign: 'right', fontFamily: 'var(--font-courier)', fontSize: 13, color: 'var(--ink-faint)', paddingRight: 24 }}>
-                    {new Date(r.requested_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                  </td>
+          <div className="table-scroll-wrapper">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th style={{ borderRight: '1px solid var(--paper-darker)', paddingLeft: 24 }}>GIFT CARD</th>
+                  <th style={{ borderRight: '1px solid var(--paper-darker)' }}>DENOMINATION</th>
+                  <th style={{ textAlign: 'right', borderRight: '1px solid var(--paper-darker)' }}>POINTS COST</th>
+                  <th style={{ borderRight: '1px solid var(--paper-darker)' }}>STATUS</th>
+                  <th style={{ borderRight: '1px solid var(--paper-darker)' }}>CODE</th>
+                  <th style={{ textAlign: 'right', paddingRight: 24 }}>REQUESTED</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {redemptions.map(r => (
+                  <tr key={r.id}>
+                    <td style={{ fontFamily: 'var(--font-playfair)', fontWeight: 700, fontSize: 16, borderRight: '1px solid var(--paper-darker)', paddingLeft: 24 }}>
+                      {r.gift_card_type.toUpperCase()}
+                    </td>
+                    <td style={{ fontFamily: 'var(--font-courier)', borderRight: '1px solid var(--paper-darker)', fontWeight: 700 }}>₹{r.denomination}</td>
+                    <td style={{ textAlign: 'right', fontFamily: 'var(--font-courier)', borderRight: '1px solid var(--paper-darker)', fontWeight: 700 }}>{r.points_cost.toLocaleString()}</td>
+                    <td style={{ borderRight: '1px solid var(--paper-darker)' }}>
+                      <span className={`badge ${r.status === 'fulfilled' ? 'badge-solid' : ''}`}>{r.status.toUpperCase()}</span>
+                    </td>
+                    <td style={{ borderRight: '1px solid var(--paper-darker)' }}>
+                      <div style={{ fontFamily: 'var(--font-courier)', fontSize: 13 }}>
+                        {r.status === 'fulfilled'
+                          ? <span style={{ fontWeight: 700, background: 'var(--ink)', color: 'var(--white)', padding: '4px 8px' }}>{r.gift_card_code}</span>
+                          : <span style={{ color: 'var(--ink-faint)' }}>Processing...</span>
+                        }
+                      </div>
+                    </td>
+                    <td style={{ textAlign: 'right', fontFamily: 'var(--font-courier)', fontSize: 13, color: 'var(--ink-faint)', paddingRight: 24 }}>
+                      {new Date(r.requested_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>

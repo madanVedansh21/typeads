@@ -48,7 +48,7 @@ export default async function ResultsPage({ params }: Props) {
   return (
     <div
       className="page-wrapper"
-      style={{ maxWidth: 1200, margin: "0 auto", padding: "40px 24px" }}
+      style={{ maxWidth: 1200, margin: "0 auto", padding: "clamp(16px, 4vw, 40px) clamp(12px, 3vw, 24px)" }}
     >
       {/* Header */}
       <div
@@ -59,7 +59,7 @@ export default async function ResultsPage({ params }: Props) {
         }}
       >
         <div className="label-sm">DISPATCH REPORT</div>
-        <h1 className="font-headline" style={{ fontSize: 48, marginTop: 12 }}>
+        <h1 className="font-headline" style={{ fontSize: "clamp(28px, 5vw, 48px)", marginTop: 12 }}>
           {isFlagged ? "SESSION FLAGGED" : "SESSION COMPLETE"}
         </h1>
         {isFlagged && (
@@ -88,6 +88,7 @@ export default async function ResultsPage({ params }: Props) {
           background: "var(--paper-dark)",
           border: "1px solid var(--paper-darker)",
           borderRadius: 8,
+          flexWrap: "wrap",
         }}
       >
         <div
@@ -98,6 +99,7 @@ export default async function ResultsPage({ params }: Props) {
             fontSize: 14,
             fontWeight: 700,
             color: "var(--ink-faint)",
+            flexWrap: "wrap",
           }}
         >
           <div>{session.test_mode || "jumbled"}</div>
@@ -143,9 +145,8 @@ export default async function ResultsPage({ params }: Props) {
 
       {/* 2-Column Layout for Ledger and Charts */}
       <div
+        className="resp-results-grid"
         style={{
-          display: "grid",
-          gridTemplateColumns: "320px 1fr",
           gap: 32,
           marginBottom: 32,
         }}
@@ -246,26 +247,25 @@ export default async function ResultsPage({ params }: Props) {
         style={{
           display: "flex",
           justifyContent: "center",
+          flexWrap: "wrap",
           gap: 16,
           marginTop: 40,
         }}
       >
         <Link
           href="/typing"
-          className="btn btn-inverted"
+          className="btn btn-inverted resp-action-btn"
           style={{
-            width: 300,
-            padding: "20px",
-            fontSize: 16,
             textAlign: "center",
+            textDecoration: "none",
           }}
         >
           NEXT DISPATCH →
         </Link>
         <Link
           href="/leaderboard"
-          className="btn"
-          style={{ width: 300, textAlign: "center", padding: "20px" }}
+          className="btn resp-action-btn"
+          style={{ textAlign: "center", textDecoration: "none" }}
         >
           VIEW LEADERBOARD
         </Link>

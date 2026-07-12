@@ -81,7 +81,7 @@ export default function ContactForm() {
         )}
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          <div className="resp-2col-grid" style={{ gap: 16 }}>
             <div>
               <label className="form-label" htmlFor="contact-name">
                 Your Alias / Name
@@ -112,7 +112,7 @@ export default function ContactForm() {
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          <div className="resp-2col-grid" style={{ gap: 16 }}>
             <div>
               <label className="form-label" htmlFor="contact-brand">
                 Brand / Company (Optional)

@@ -29,10 +29,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <div style={{
         background: '#000', color: '#fff',
         borderBottom: '3px solid #000',
-        padding: '0 24px', height: 44,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+        padding: '8px 24px', minHeight: 44, height: 'auto',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        flexWrap: 'wrap', gap: 12
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
           <span style={{ fontFamily: 'Arial Black', fontSize: 11, fontWeight: 900, letterSpacing: '0.12em', color: '#fff' }}>
             ADMIN PANEL
           </span>
@@ -40,7 +41,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <Link key={item.href} href={item.href} style={{
               fontFamily: 'Arial', fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
               letterSpacing: '0.1em', color: '#888', textDecoration: 'none',
-              padding: '0 12px', height: 44, display: 'flex', alignItems: 'center'
+              padding: '6px 12px', display: 'flex', alignItems: 'center'
             }}>
               {item.label}
             </Link>

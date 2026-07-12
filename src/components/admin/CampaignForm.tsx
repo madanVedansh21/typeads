@@ -96,7 +96,7 @@ export default function CampaignForm({ campaign, onClose }: Props) {
         alignItems: "center",
         justifyContent: "center",
         zIndex: 100000,
-        padding: 24,
+        padding: "clamp(12px, 4vw, 24px)",
       }}
     >
       <div
@@ -113,7 +113,7 @@ export default function CampaignForm({ campaign, onClose }: Props) {
       >
         <div
           style={{
-            padding: "24px 32px",
+            padding: "20px clamp(16px, 4vw, 32px)",
             borderBottom: "2px solid var(--ink)",
             display: "flex",
             justifyContent: "space-between",
@@ -124,7 +124,7 @@ export default function CampaignForm({ campaign, onClose }: Props) {
           <span
             style={{
               fontFamily: "var(--font-headline)",
-              fontSize: 24,
+              fontSize: "clamp(18px, 4vw, 24px)",
               fontWeight: 900,
               letterSpacing: "0.05em",
             }}
@@ -150,7 +150,7 @@ export default function CampaignForm({ campaign, onClose }: Props) {
         <form
           onSubmit={handleSubmit}
           style={{
-            padding: "32px",
+            padding: "clamp(16px, 4vw, 32px)",
             display: "flex",
             flexDirection: "column",
             gap: 24,
@@ -340,12 +340,12 @@ export default function CampaignForm({ campaign, onClose }: Props) {
             </span>
           </label>
 
-          <div style={{ display: "flex", gap: 16, marginTop: 16 }}>
+          <div style={{ display: "flex", gap: 16, marginTop: 16, flexWrap: "wrap" }}>
             <button
               type="button"
               onClick={onClose}
               style={{
-                flex: 1,
+                flex: "1 1 180px",
                 padding: "16px",
                 border: "2px solid var(--ink)",
                 background: "transparent",
@@ -361,7 +361,7 @@ export default function CampaignForm({ campaign, onClose }: Props) {
               type="submit"
               disabled={loading}
               style={{
-                flex: 2,
+                flex: "2 1 240px",
                 padding: "16px",
                 border: "2px solid var(--ink)",
                 background: "var(--ink)",
