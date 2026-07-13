@@ -1,0 +1,9 @@
+# Group 1: Disallow crawling of admin panel, api routes, and authentication callbacks
+User-agent: *
+Disallow: /admin
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+
+# Allow all other public pages
+Allow: /
