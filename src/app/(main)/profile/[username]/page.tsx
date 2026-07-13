@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import ProfileCharts from '@/components/profile/ProfileCharts'
+import DeleteAccountButton from '@/components/profile/DeleteAccountButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -158,6 +159,45 @@ export default async function ProfilePage({ params }: Props) {
           )}
         </div>
       </div>
+
+      {/* Account Deletion Panel */}
+      {isOwnProfile && (
+        <div className="editorial-box" style={{
+          marginTop: 32,
+          borderColor: 'var(--stamp-red)',
+          background: 'rgba(139, 32, 32, 0.03)',
+          padding: '24px 20px',
+        }}>
+          <div className="box-label" style={{
+            color: 'var(--stamp-red)',
+            borderColor: 'var(--stamp-red)',
+            background: 'var(--paper)',
+            margin: '0 0 16px 0',
+            padding: '4px 12px',
+          }}>
+            ACCOUNT TERMINATION
+          </div>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 20
+          }}>
+            <div style={{ flex: '1 1 400px' }}>
+              <h3 className="font-headline" style={{ fontSize: 20, color: 'var(--stamp-red)', marginBottom: 8 }}>
+                Permanent Purge Protocol
+              </h3>
+              <p className="font-body" style={{ fontSize: 15, color: 'var(--ink-light)', lineHeight: '1.5' }}>
+                Executing this protocol will permanently erase all credentials, accumulated points, and typing history from the central ledger. This transaction is immediate and irreversible.
+              </p>
+            </div>
+            <div style={{ flexShrink: 0 }}>
+              <DeleteAccountButton username={profile.username} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

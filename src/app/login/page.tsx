@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -12,6 +12,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('message') === 'account_deleted') {
+      setNotice('Your account credentials and history have been successfully terminated from the ledger.')
+    }
+  }, [])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -67,6 +75,12 @@ export default function LoginPage() {
             <p className="font-subheadline" style={{ fontSize: 18, color: 'var(--ink-faint)', textAlign: 'center', marginBottom: 32 }}>
               Present your credentials to access the dispatch.
             </p>
+
+            {notice && (
+              <div style={{ background: 'var(--stamp-navy)', color: 'var(--white)', padding: 12, marginBottom: 24, fontSize: 12, fontWeight: 700, fontFamily: 'var(--font-courier)' }}>
+                NOTICE: {notice}
+              </div>
+            )}
 
             {error && (
               <div style={{ background: 'var(--stamp-red)', color: 'var(--white)', padding: 12, marginBottom: 24, fontSize: 12, fontWeight: 700, fontFamily: 'var(--font-courier)' }}>
